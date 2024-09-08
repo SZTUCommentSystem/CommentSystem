@@ -16,7 +16,7 @@ const showNotification = () => {
 // 下拉菜单项
 const sideDropList = [
 
-  { path: "/student/homework", name: "我的作业" },
+  { path: "/home/task", name: "我的作业" },
   { path: "/teacher/assign", name: "布置作业" },
   { path: "/teacher/correct", name: "批改作业" },
 
@@ -43,7 +43,8 @@ const sideDropList = [
               <RouterLink class="nav-link" to="/home">首页</RouterLink>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
                 作业
               </a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -91,7 +92,8 @@ const sideDropList = [
 <style scoped>
 /* 样式部分 */
 .navbar {
-  background-color: #fff; /* 背景颜色 */
+  background-color: #fff;
+  /* 背景颜色 */
 }
 
 .shadow-sm {
@@ -103,22 +105,32 @@ const sideDropList = [
 }
 
 .dropdown-menu {
-  border-radius: 0.5rem; /* 圆角边框 */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 阴影 */
-  background-color: #fff; /* 背景颜色 */
-  padding: 0.5rem; /* 内边距 */
-  min-width: 120px; /* 最小宽度 */
+  border-radius: 0.5rem;
+  /* 圆角边框 */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  /* 阴影 */
+  background-color: #fff;
+  /* 背景颜色 */
+  padding: 0.5rem;
+  /* 内边距 */
+  min-width: 120px;
+  /* 最小宽度 */
 }
 
 .dropdown-item {
-  padding: 0.25rem 0.5rem; /* 内边距 */
-  font-size: 0.9rem; /* 字体大小 */
-  color: #333; /* 文字颜色 */
+  padding: 0.25rem 0.5rem;
+  /* 内边距 */
+  font-size: 0.9rem;
+  /* 字体大小 */
+  color: #333;
+  /* 文字颜色 */
 }
 
 .dropdown-item:hover {
-  background-color: #f8f9fa; /* 悬停背景颜色 */
-  color: #007bff; /* 悬停字体颜色 */
+  background-color: #f8f9fa;
+  /* 悬停背景颜色 */
+  color: #007bff;
+  /* 悬停字体颜色 */
 }
 
 .username {
@@ -139,10 +151,12 @@ const sideDropList = [
 }
 
 .ms-auto {
-  margin-left: auto; /* 将元素推到容器的最右边 */
+  margin-left: auto;
+  /* 将元素推到容器的最右边 */
 }
 
 .text-start {
-  text-align: start; /* 确保文本左对齐 */
+  text-align: start;
+  /* 确保文本左对齐 */
 }
 </style>
