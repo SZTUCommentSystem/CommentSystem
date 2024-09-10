@@ -2,51 +2,48 @@
 import { ref, watchEffect } from "vue";
 import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
-import { useRoute } from "vue-router";
 
-//引入参数
-const route = useRoute();
 // 从ListDisplay.ts中引入
 import ListDisplay from "./hooks/ListDisplay";
 // 从DelAndAddList.ts中引入
 import DelAndAddList from "./hooks/DelAndAddList";
 
-const { state, handleSizeChange, handleCurrentChange, displayedTasks } = ListDisplay();
+const { state, handleSizeChange, handleCurrentChange, displayedChapters } = ListDisplay();
 
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal, addDialogVisible, newTask, addTask: addTaskOriginal } = DelAndAddList(state.TaskList);
+const { delDialogVisible, confirmDelChapter, deleteChapter: deleteTaskOriginal, addDialogVisible, newChapter, addChapter: addChapterOriginal } = DelAndAddList(state.ChapterList);
 
-const deleteTask = () => {
-    state.TaskList = deleteTaskOriginal();
+const deleteChapter = () => {
+    state.ChapterList = deleteTaskOriginal();
 }
 
-const addTask = () => {
-    state.TaskList = addTaskOriginal();
+const addChapter = () => {
+    state.ChapterList = addChapterOriginal();
 }
 
-//展示是否有作业
-const IsTask = ref(true);
+//展示是否有章节
+const IsChapter = ref(true);
 watchEffect(() => {
-    if (state.TaskList.length === 0) {
-        IsTask.value = false;
+    if (state.ChapterList.length === 0) {
+        IsChapter.value = false;
     } else {
-        IsTask.value = true;
+        IsChapter.value = true;
     }
 });
 </script>
 <template>
     <div>
-        <p><router-link to="/home/chapter">主页</router-link> > {{ route.query.title }} > </p>
+        <p><router-link to="/home/chapter">主页</router-link> > </p>
         <div class="base">
             <div class="title">
-                <h2>作业列表</h2>
+                <h2>章节列表</h2>
                 <div class="title_button">
-                    <el-button type="primary" @click="addDialogVisible = true">创建作业</el-button>
-                    <el-button type="primary">发布作业</el-button>
+                    <el-button type="primary" @click="addDialogVisible = true">创建章节</el-button>
+                    <el-button type="primary">发布章节</el-button>
                 </div>
             </div>
             <div class="list">
                 <ul>
-                    <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
+                    <li v-for="item in displayedChapters" :key="item.id" v-if="IsChapter" class="list_li">
                         <div class="left">
                             <img src="" alt="">
                         </div>
@@ -57,8 +54,8 @@ watchEffect(() => {
                             </div>
                             <div class="right_skip">
                                 <router-link
-                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">进入作业</router-link>
-                                <a href="javascripy:;" @click="confirmDelTask(item.id)">删除作业</a>
+                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">进入章节</router-link>
+                                <a href="javascripy:;" @click="confirmDelChapter(item.id)">删除章节</a>
                             </div>
                         </div>
                     </li>
@@ -67,43 +64,42 @@ watchEffect(() => {
                     </li>
                 </ul>
             </div>
-            <router-link to="/home/chapter" class="returnChapter">返回</router-link>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
                     <el-pagination :current-page="state.pageNum" :page-size="state.pageSize" :page-sizes="[10]"
-                        v-if="state.TaskList.length > 0" layout="total, prev, pager, next, jumper"
-                        :total="state.TaskList.length" @size-change="handleSizeChange"
+                        v-if="state.ChapterList.length > 0" layout="total, prev, pager, next, jumper"
+                        :total="state.ChapterList.length" @size-change="handleSizeChange"
                         @current-change="handleCurrentChange" />
                 </el-config-provider>
             </div>
         </div>
-        <!-- 添加新作业 -->
-        <el-dialog v-model="addDialogVisible" title="添加新作业" width="500" center>
+        <!-- 添加新章节 -->
+        <el-dialog v-model="addDialogVisible" title="添加新章节" width="500" center>
             <div>
                 <el-form label-width="80px">
-                    <el-form-item label="作业名称">
-                        <el-input v-model="newTask.title" placeholder="请输入作业名称"></el-input>
+                    <el-form-item label="章节名称">
+                        <el-input v-model="newChapter.title" placeholder="请输入章节名称"></el-input>
                     </el-form-item>
-                    <el-form-item label="作业描述">
-                        <el-input v-model="newTask.description" placeholder="请输入作业描述"></el-input>
+                    <el-form-item label="章节描述">
+                        <el-input v-model="newChapter.description" placeholder="请输入章节描述"></el-input>
                     </el-form-item>
                 </el-form>
             </div>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-button type="primary" @click="addTask">
+                    <el-button type="primary" @click="addChapter">
                         确定
                     </el-button>
                     <el-button @click="addDialogVisible = false">取消</el-button>
                 </div>
             </template>
         </el-dialog>
-        <!-- 删除作业 -->
-        <el-dialog v-model="delDialogVisible" title="删除作业" width="30%" center>
-            <div>确定删除该作业吗？</div>
+        <!-- 删除章节 -->
+        <el-dialog v-model="delDialogVisible" title="删除章节" width="30%" center>
+            <div>确定删除该章节吗？</div>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-button type="primary" @click="deleteTask">
+                    <el-button type="primary" @click="deleteChapter">
                         确定
                     </el-button>
                     <el-button @click="delDialogVisible = false">取消</el-button>
@@ -233,17 +229,6 @@ p a {
         position: absolute;
         right: 35px;
         bottom: 20px;
-    }
-
-    .returnChapter {
-        position: absolute;
-        left: 38px;
-        bottom: 26px;
-        color: #000;
-
-        &:hover {
-            color: #409EFF;
-        }
     }
 }
 </style>

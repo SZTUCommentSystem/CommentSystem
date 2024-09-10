@@ -16,7 +16,7 @@ const showNotification = () => {
 // 下拉菜单项
 const sideDropList = [
 
-  { path: "/home/task", name: "我的作业" },
+  { path: "/home/chapter", name: "我的作业" },
   { path: "/teacher/assign", name: "布置作业" },
   { path: "/teacher/correct", name: "批改作业" },
 

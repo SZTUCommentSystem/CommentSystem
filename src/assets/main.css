@@ -10,11 +10,6 @@ i {
     font-style: normal
 }
 
-ul {
-    padding: 0 !important;
-    margin: 0;
-}
-
 /* 去掉li 的小圆点 */
 li {
     list-style: none
@@ -67,4 +62,30 @@ body {
     display: block;
     content: ".";
     height: 0
+}
+
+/* 楷体 */
+p,
+i,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+div,
+li,
+ul,
+ol,
+dl,
+dt,
+dd,
+em,
+strong,
+button,
+input,
+textarea,
+select {
+    font-family: KaiTi
 }
