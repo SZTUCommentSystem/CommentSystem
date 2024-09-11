@@ -44,17 +44,14 @@ watchEffect(() => {
             <div class="list">
                 <ul>
                     <li v-for="item in displayedChapters" :key="item.id" v-if="IsChapter" class="list_li">
-                        <div class="left">
-                            <img src="" alt="">
-                        </div>
-                        <div class="right">
-                            <div class="right_rep">
+                        <div class="pane">
+                            <div class="pane_rep">
                                 <h5>标题：{{ item.title }}</h5>
                                 <p>描述：{{ item.description }}</p>
                             </div>
-                            <div class="right_skip">
+                            <div class="pane_skip">
                                 <router-link
-                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">进入章节</router-link>
+                                    :to="{ path: '/home/chapter/task', query: { listId: item.id, title: item.title } }">进入章节</router-link>
                                 <a href="javascripy:;" @click="confirmDelChapter(item.id)">删除章节</a>
                             </div>
                         </div>
@@ -155,10 +152,18 @@ p a {
             min-height: 200px;
             background-color: #e7e7e736;
 
+            &::after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
             .list_li {
+                float: left;
                 display: flex;
-                justify-content: space-between;
+                /* justify-content: space-between; */
                 height: 150px;
+                width: 43%;
                 margin: 1rem 2rem;
                 border: 1px solid #ccc;
                 border-radius: 7px;
@@ -170,38 +175,24 @@ p a {
                     transform: scale(1.05);
                 }
 
-                &:last-child {
-                    margin-bottom: 0;
-                }
-
-                .left {
-                    width: 20%;
-                    height: 100%;
-
-                    img {
-                        border-radius: 7px 0 0 7px;
-                        width: 100%;
-                        height: 100%;
-                    }
-                }
-
-                .right {
+                .pane {
                     display: flex;
-                    justify-content: space-between;
                     align-items: center;
-                    margin-left: 10px;
+                    margin: 0 auto;
                     padding-left: 10px;
-                    width: 80%;
                     height: 100%;
 
-                    .right_rep {
+                    .pane_rep {
+                        width: 70%;
+
                         h5 {
                             margin-bottom: 20px;
                         }
                     }
 
-                    .right_skip {
-                        margin-right: 10px;
+                    .pane_skip {
+                        width: 30%;
+                        margin-left: 128px;
 
                         a {
                             margin-right: 10px;

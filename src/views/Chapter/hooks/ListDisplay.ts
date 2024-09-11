@@ -19,7 +19,7 @@ export default function ListDisplay() {
                 description: "This is Chapter 3",
             },
         ],
-        pageSize: 5,
+        pageSize: 6,
         pageNum: 1
     });
 

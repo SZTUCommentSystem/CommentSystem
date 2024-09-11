@@ -26,6 +26,8 @@ export default function DelAndAddList(ChapterList: { id: number, title: string, 
         }
         ChapterList.push(Chapter)
         addDialogVisible.value = false
+        newChapter.title = ""
+        newChapter.description = ""
         return ChapterList
     }
 
