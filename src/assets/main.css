@@ -65,6 +65,7 @@ body {
 }
 
 /* 楷体 */
+a,
 p,
 i,
 h1,
@@ -87,5 +88,6 @@ button,
 input,
 textarea,
 select {
-    font-family: KaiTi
+    font-family: KaiTi;
+    font-size: 1.2vw;
 }

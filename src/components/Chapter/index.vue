@@ -20,7 +20,7 @@ const addChapter = () => {
     state.ChapterList = addChapterOriginal();
 }
 
-//展示是否有章节
+//展示是否有作业
 const IsChapter = ref(true);
 watchEffect(() => {
     if (state.ChapterList.length === 0) {
@@ -31,14 +31,13 @@ watchEffect(() => {
 });
 </script>
 <template>
-    <div>
-        <p><router-link to="/home/chapter">主页</router-link> > </p>
+    <div class="all_class">
         <div class="base">
             <div class="title">
-                <h2>章节列表</h2>
+                <h2>作业列表</h2>
                 <div class="title_button">
-                    <el-button type="primary" @click="addDialogVisible = true">创建章节</el-button>
-                    <el-button type="primary">发布章节</el-button>
+                    <el-button type="primary" @click="addDialogVisible = true">去创建作业</el-button>
+                    <!-- <el-button type="primary">发布作业</el-button> -->
                 </div>
             </div>
             <div class="list">
@@ -51,8 +50,11 @@ watchEffect(() => {
                             </div>
                             <div class="pane_skip">
                                 <router-link
-                                    :to="{ path: '/home/chapter/task', query: { listId: item.id, title: item.title } }">进入章节</router-link>
-                                <a href="javascripy:;" @click="confirmDelChapter(item.id)">删除章节</a>
+                                    :to="{ path: '/home/chapter/task', query: { listId: item.id, title: item.title } }">进入作业</router-link>
+                                <br>
+                                <a href="javascript:;" @click="confirmDelChapter(item.id)">删除作业</a>
+                                <br>
+                                <a href="javascript:;">批改作业</a>
                             </div>
                         </div>
                     </li>
@@ -63,22 +65,22 @@ watchEffect(() => {
             </div>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
-                    <el-pagination :current-page="state.pageNum" :page-size="state.pageSize" :page-sizes="[10]"
-                        v-if="state.ChapterList.length > 0" layout="total, prev, pager, next, jumper"
+                    <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
+                        :page-sizes="[10]" v-if="state.ChapterList.length > 0" layout="total, prev, pager, next, jumper"
                         :total="state.ChapterList.length" @size-change="handleSizeChange"
                         @current-change="handleCurrentChange" />
                 </el-config-provider>
             </div>
         </div>
-        <!-- 添加新章节 -->
-        <el-dialog v-model="addDialogVisible" title="添加新章节" width="500" center>
+        <!-- 添加新作业
+        <el-dialog v-model="addDialogVisible" title="添加新作业" width="30vw" center>
             <div>
-                <el-form label-width="80px">
-                    <el-form-item label="章节名称">
-                        <el-input v-model="newChapter.title" placeholder="请输入章节名称"></el-input>
+                <el-form label-width="5vw">
+                    <el-form-item label="作业名称" class="font2vw">
+                        <el-input v-model="newChapter.title" placeholder="请输入作业名称"></el-input>
                     </el-form-item>
-                    <el-form-item label="章节描述">
-                        <el-input v-model="newChapter.description" placeholder="请输入章节描述"></el-input>
+                    <el-form-item label="作业描述">
+                        <el-input v-model="newChapter.description" placeholder="请输入作业描述"></el-input>
                     </el-form-item>
                 </el-form>
             </div>
@@ -90,10 +92,10 @@ watchEffect(() => {
                     <el-button @click="addDialogVisible = false">取消</el-button>
                 </div>
             </template>
-        </el-dialog>
-        <!-- 删除章节 -->
-        <el-dialog v-model="delDialogVisible" title="删除章节" width="30%" center>
-            <div>确定删除该章节吗？</div>
+</el-dialog> -->
+        <!-- 删除作业 -->
+        <el-dialog v-model="delDialogVisible" title="删除作业" width="30vw" center>
+            <div>确定删除该作业吗？</div>
             <template #footer>
                 <div class="dialog-footer">
                     <el-button type="primary" @click="deleteChapter">
@@ -104,9 +106,12 @@ watchEffect(() => {
             </template>
         </el-dialog>
     </div>
-
 </template>
 <style scoped>
+.font2vw {
+    font-size: 2vw;
+}
+
 p a {
     color: #000;
 
@@ -120,7 +125,7 @@ p a {
     width: 100%;
     min-height: 300px;
     padding: 20px 0 65px 0;
-    border-radius: 7px;
+    border-radius: 2%;
     background-color: #fff;
 
     .title {
@@ -129,16 +134,20 @@ p a {
         align-items: center;
 
         h2 {
-            margin-left: 40px;
+            font-size: 2vw;
+            margin-left: 1.5vw;
         }
 
         .title_button {
             display: flex;
             align-items: center;
-            margin-right: 30px;
+            margin: 1.5vw 2vw;
 
             button {
-                margin-right: 10px;
+                margin-right: 1vw;
+                height: 4.5vh;
+                width: 8vw;
+                border-radius: 0.3vw;
             }
         }
 
@@ -147,8 +156,9 @@ p a {
     .list {
         ul {
             position: relative;
-            margin: 15px 1rem;
-            padding: 1rem 0;
+            margin: 1vw;
+            margin-bottom: 2vw;
+            padding-left: 1.5vw;
             min-height: 200px;
             background-color: #e7e7e736;
 
@@ -160,13 +170,11 @@ p a {
 
             .list_li {
                 float: left;
-                display: flex;
-                /* justify-content: space-between; */
-                height: 150px;
+                height: 10vw;
                 width: 43%;
-                margin: 1rem 2rem;
+                margin: 1vw 2vw;
                 border: 1px solid #ccc;
-                border-radius: 7px;
+                border-radius: 1vw;
                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                 /* 动画效果 */
                 transition: transform 0.3s ease;
@@ -175,24 +183,35 @@ p a {
                     transform: scale(1.05);
                 }
 
+                &:first-child,
+                &:nth-child(2) {
+                    margin-top: 2vw;
+                }
+
+                &:nth-last-child(1),
+                &:nth-last-child(2) {
+                    margin-bottom: 2vw;
+                }
+
                 .pane {
                     display: flex;
                     align-items: center;
                     margin: 0 auto;
-                    padding-left: 10px;
+                    padding-left: 1vw;
                     height: 100%;
 
                     .pane_rep {
                         width: 70%;
 
                         h5 {
+                            font-size: 1.6vw;
                             margin-bottom: 20px;
                         }
                     }
 
                     .pane_skip {
                         width: 30%;
-                        margin-left: 128px;
+                        margin-left: 1vw;
 
                         a {
                             margin-right: 10px;
@@ -218,8 +237,24 @@ p a {
 
     .paging {
         position: absolute;
-        right: 35px;
-        bottom: 20px;
+        right: 1vw;
+        bottom: 1vw;
     }
+}
+
+/* .all_class ::v-deep .el-dialog__title {
+    font-size: 1.5vw;
+} */
+
+.all_class button {
+    height: 3.5vh;
+}
+
+.all_class ::v-deep .el-pagination .el-pager li {
+    font-size: 1.2vw;
+}
+
+.all_class ::v-deep .el-input__wrapper {
+    padding: 0.3vw;
 }
 </style>

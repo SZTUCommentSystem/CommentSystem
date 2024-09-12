@@ -10,21 +10,20 @@ const router = createRouter({
     {
       path: '/home',
       name: 'home',
-      component: () => import('../views/HomeView/index.vue'),
+      component: () => import('../views/HomeView.vue'),
       children: [
         {
           path: '/home/chapter',
           name: 'chapter',
-          component: () => import('../views/Chapter/index.vue'),
+          component: () => import('../views/Chapter.vue'),
         },
         {
           path: '/home/chapter/task',
           name: 'task',
-          component: () => import('../views/Task/index.vue')
-        }
+          component: () => import('../views/Task.vue')
+        },
       ]
     },
-
   ]
 })
 

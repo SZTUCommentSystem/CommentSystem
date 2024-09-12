@@ -31,7 +31,6 @@ const sideDropList = [
         <div class="col-2 d-flex align-items-center justify-content-center">
           <!-- 空白区域 -->
         </div>
-
         <!-- 中间左边内容区域 -->
         <div class="col-8 d-flex align-items-center">
           <!-- Logo -->
@@ -120,7 +119,7 @@ const sideDropList = [
 .dropdown-item {
   padding: 0.25rem 0.5rem;
   /* 内边距 */
-  font-size: 0.9rem;
+  font-size: 1rem;
   /* 字体大小 */
   color: #333;
   /* 文字颜色 */

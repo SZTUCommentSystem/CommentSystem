@@ -57,8 +57,10 @@ watchEffect(() => {
                             </div>
                             <div class="right_skip">
                                 <router-link
-                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">进入作业</router-link>
-                                <a href="javascripy:;" @click="confirmDelTask(item.id)">删除作业</a>
+                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">查看作业详情</router-link>
+                                <!-- 暂定a，后面改routerlink -->
+                                <a href="javascript:;">查看作业批语库</a>
+                                <i class="circle" @click="confirmDelTask(item.id)">x</i>
                             </div>
                         </div>
                     </li>
@@ -190,6 +192,7 @@ p a {
                 }
 
                 .right {
+                    position: relative;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
@@ -209,6 +212,20 @@ p a {
 
                         a {
                             margin-right: 10px;
+                        }
+
+                        .circle {
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            background-color: red;
+                            color: #fff;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 10%;
+                            text-align: center;
+                            line-height: 20px;
+                            cursor: pointer;
                         }
                     }
                 }

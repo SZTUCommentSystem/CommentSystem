@@ -18,8 +18,19 @@ export default function ListDisplay() {
                 title: "Chapter 3",
                 description: "This is Chapter 3",
             },
+            {
+                id: 3,
+                title: "Chapter 3",
+                description: "This is Chapter 3",
+            },
+            {
+                id: 3,
+                title: "Chapter 3",
+                description: "This is Chapter 3",
+            },
+
         ],
-        pageSize: 6,
+        pageSize: 4,
         pageNum: 1
     });
 
