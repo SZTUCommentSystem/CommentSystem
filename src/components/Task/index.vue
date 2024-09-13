@@ -2,10 +2,10 @@
 import { ref, watchEffect } from "vue";
 import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
-import { useRoute } from "vue-router";
+// import { useRoute } from "vue-router";
 
 //引入参数
-const route = useRoute();
+// const route = useRoute();
 // 从ListDisplay.ts中引入
 import ListDisplay from "./hooks/ListDisplay";
 // 从DelAndAddList.ts中引入
@@ -13,15 +13,15 @@ import DelAndAddList from "./hooks/DelAndAddList";
 
 const { state, handleSizeChange, handleCurrentChange, displayedTasks } = ListDisplay();
 
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal, addDialogVisible, newTask, addTask: addTaskOriginal } = DelAndAddList(state.TaskList);
+const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelAndAddList(state.TaskList);
 
 const deleteTask = () => {
     state.TaskList = deleteTaskOriginal();
 }
 
-const addTask = () => {
-    state.TaskList = addTaskOriginal();
-}
+// const addTask = () => {
+//     state.TaskList = addTaskOriginal();
+// }
 
 //展示是否有作业
 const IsTask = ref(true);
@@ -34,14 +34,14 @@ watchEffect(() => {
 });
 </script>
 <template>
-    <div>
-        <p><router-link to="/home/chapter">主页</router-link> > {{ route.query.title }} > </p>
+    <div class="all_class">
+        <!-- <p><router-link to="/home/chapter">主页</router-link> > {{ route.query.title }} > </p> -->
         <div class="base">
             <div class="title">
                 <h2>作业列表</h2>
                 <div class="title_button">
-                    <el-button type="primary" @click="addDialogVisible = true">创建作业</el-button>
-                    <el-button type="primary">发布作业</el-button>
+                    <el-button type="primary">去创建作业</el-button>
+                    <!-- <el-button type="primary">发布作业</el-button> -->
                 </div>
             </div>
             <div class="list">
@@ -72,15 +72,15 @@ watchEffect(() => {
             <router-link to="/home/chapter" class="returnChapter">返回</router-link>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
-                    <el-pagination :current-page="state.pageNum" :page-size="state.pageSize" :page-sizes="[10]"
-                        v-if="state.TaskList.length > 0" layout="total, prev, pager, next, jumper"
+                    <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
+                        :page-sizes="[10]" v-if="state.TaskList.length > 0" layout="total, prev, pager, next, jumper"
                         :total="state.TaskList.length" @size-change="handleSizeChange"
                         @current-change="handleCurrentChange" />
                 </el-config-provider>
             </div>
         </div>
         <!-- 添加新作业 -->
-        <el-dialog v-model="addDialogVisible" title="添加新作业" width="500" center>
+        <!-- <el-dialog v-model="addDialogVisible" title="添加新作业" width="500" center>
             <div>
                 <el-form label-width="80px">
                     <el-form-item label="作业名称">
@@ -99,7 +99,7 @@ watchEffect(() => {
                     <el-button @click="addDialogVisible = false">取消</el-button>
                 </div>
             </template>
-        </el-dialog>
+</el-dialog> -->
         <!-- 删除作业 -->
         <el-dialog v-model="delDialogVisible" title="删除作业" width="30%" center>
             <div>确定删除该作业吗？</div>
@@ -138,16 +138,20 @@ p a {
         align-items: center;
 
         h2 {
-            margin-left: 40px;
+            font-size: 2vw;
+            margin-left: 1.5vw;
         }
 
         .title_button {
             display: flex;
             align-items: center;
-            margin-right: 30px;
+            margin: 1.5vw 2vw;
 
             button {
-                margin-right: 10px;
+                margin-right: 1vw;
+                height: 4.5vh;
+                width: 8vw;
+                border-radius: 0.3vw;
             }
         }
 
@@ -156,18 +160,19 @@ p a {
     .list {
         ul {
             position: relative;
-            margin: 15px 1rem;
-            padding: 1rem 0;
+            margin: 1vw;
+            margin-bottom: 2vw;
+            padding: 1.5vw;
             min-height: 200px;
             background-color: #e7e7e736;
 
             .list_li {
                 display: flex;
                 justify-content: space-between;
-                height: 150px;
-                margin: 1rem 2rem;
+                height: 20vh;
+                margin: 1vw 2vw;
                 border: 1px solid #ccc;
-                border-radius: 7px;
+                border-radius: 1vw;
                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                 /* 动画效果 */
                 transition: transform 0.3s ease;
@@ -203,12 +208,13 @@ p a {
 
                     .right_rep {
                         h5 {
+                            font-size: 1.6vw;
                             margin-bottom: 20px;
                         }
                     }
 
                     .right_skip {
-                        margin-right: 10px;
+                        margin-right: 1vw;
 
                         a {
                             margin-right: 10px;
@@ -218,13 +224,13 @@ p a {
                             position: absolute;
                             top: 0;
                             right: 0;
-                            background-color: red;
-                            color: #fff;
-                            width: 20px;
-                            height: 20px;
+                            /* background-color: red; */
+                            color: #000;
+                            width: 1.5vw;
+                            height: 1.5vw;
                             border-radius: 10%;
                             text-align: center;
-                            line-height: 20px;
+                            line-height: 1.5vw;
                             cursor: pointer;
                         }
                     }
@@ -248,8 +254,8 @@ p a {
 
     .paging {
         position: absolute;
-        right: 35px;
-        bottom: 20px;
+        right: 1vw;
+        bottom: 1vw;
     }
 
     .returnChapter {
@@ -262,5 +268,31 @@ p a {
             color: #409EFF;
         }
     }
+}
+
+
+/* 修改Element分页样式 */
+.all_class ::v-deep .el-dialog__title {
+    font-size: 1.5vw;
+}
+
+.all_class ::v-deep .el-dialog__headerbtn {
+    font-size: 1.2vw;
+}
+
+.all_class ::v-deep .btn-prev,
+.all_class ::v-deep .btn-next {
+    width: 2vw;
+    height: 2vw;
+}
+
+.all_class ::v-deep .el-icon {
+    font-size: 1vw;
+}
+
+.all_class ::v-deep .el-pager .number {
+    height: 2vw;
+    min-width: 2vw;
+    font-size: 1vw;
 }
 </style>

@@ -30,7 +30,7 @@ export default function ListDisplay() {
             },
 
         ],
-        pageSize: 4,
+        pageSize: 8,
         pageNum: 1
     });
 

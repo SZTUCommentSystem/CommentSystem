@@ -16,7 +16,7 @@ const showNotification = () => {
 // 下拉菜单项
 const sideDropList = [
 
-  { path: "/home/chapter", name: "我的作业" },
+  { path: "/home/task", name: "我的作业" },
   { path: "/teacher/assign", name: "布置作业" },
   { path: "/teacher/correct", name: "批改作业" },
 
@@ -119,7 +119,7 @@ const sideDropList = [
 .dropdown-item {
   padding: 0.25rem 0.5rem;
   /* 内边距 */
-  font-size: 1rem;
+  font-size: 1vw;
   /* 字体大小 */
   color: #333;
   /* 文字颜色 */

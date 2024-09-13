@@ -246,9 +246,9 @@ p a {
     font-size: 1.5vw;
 } */
 
-.all_class button {
+/* .all_class button {
     height: 3.5vh;
-}
+} */
 
 .all_class ::v-deep .el-pagination .el-pager li {
     font-size: 1.2vw;

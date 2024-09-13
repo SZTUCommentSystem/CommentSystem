@@ -12,22 +12,22 @@ export default function DelAndAddList(TaskList: { id: number, title: string, des
         delDialogVisible.value = false
         return TaskList
     }
-    // 添加新章节
-    const addDialogVisible = ref(false)
-    const newTask = reactive({
-        title: "",
-        description: ""
-    })
-    const addTask = () => {
-        const Task = {
-            id: TaskList[TaskList.length - 1].id + 1,
-            title: newTask.title,
-            description: newTask.description
-        }
-        TaskList.push(Task);
-        addDialogVisible.value = false
-        return TaskList
-    }
+    // // 添加新章节
+    // const addDialogVisible = ref(false)
+    // const newTask = reactive({
+    //     title: "",
+    //     description: ""
+    // })
+    // const addTask = () => {
+    //     const Task = {
+    //         id: TaskList[TaskList.length - 1].id + 1,
+    //         title: newTask.title,
+    //         description: newTask.description
+    //     }
+    //     TaskList.push(Task);
+    //     addDialogVisible.value = false
+    //     return TaskList
+    // }
 
-    return { delDialogVisible, delTaskId, confirmDelTask, deleteTask, addDialogVisible, newTask, addTask }
+    return { delDialogVisible, delTaskId, confirmDelTask, deleteTask }
 }
