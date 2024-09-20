@@ -46,33 +46,57 @@ const IsDropList = ref(false);
                 <ul>
                     <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
                         <div class="pane">
-                            <div class="pane_rep">
-                                <div class="status">
-                                    <p>未发布</p>
-                                    <h5>标题：{{ item.title }}</h5>
+                            <div class="pane_top">
+                                <div class="pane_rep">
+                                    <div class="status">
+                                        <p>未发布</p>
+                                        <h5>标题：{{ item.title }}</h5>
+                                    </div>
+                                    <p>描述：{{ item.description }}</p>
+                                    <p>老师：{{ item.teacher }}</p>
+                                    <p>截止时间：0213</p>
                                 </div>
-                                <p>描述：{{ item.description }}</p>
-                                <p>老师：{{ item.teacher }}</p>
-                                <p>截止时间：0213</p>
+                                <div class="pane_skip">
+                                    <el-dropdown placement="bottom">
+                                        <el-button> 更多 </el-button>
+                                        <template #dropdown>
+                                            <el-dropdown-menu>
+                                                <el-dropdown-item>立即发布</el-dropdown-item>
+                                                <el-dropdown-item>立即截止</el-dropdown-item>
+                                                <el-dropdown-item
+                                                    @click="confirmDelTask(item.id)">立即删除</el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </template>
+                                    </el-dropdown>
+                                    <br>
+                                    <div class="icon" @click="item.IsDropList = !item.IsDropList">
+                                        <img v-show="item.IsDropList === false" src="@/assets/img/向下的箭头.png" alt="">
+                                        <img v-show="item.IsDropList === true" src="@/assets/img/向上的箭头.png" alt="">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="pane_skip">
-                                <el-dropdown placement="bottom">
-                                    <el-button> 更多 </el-button>
-                                    <template #dropdown>
-                                        <el-dropdown-menu>
-                                            <el-dropdown-item>立即发布</el-dropdown-item>
-                                            <el-dropdown-item>立即截止</el-dropdown-item>
-                                            <el-dropdown-item>立即删除</el-dropdown-item>
-                                        </el-dropdown-menu>
-                                    </template>
-                                </el-dropdown>
-                                <br>
-                                <div class="icon" @click="IsDropList = !IsDropList">
-                                    <img v-show="IsDropList === false" src="@/assets/img/向下的箭头.png" alt="">
-                                    <img v-show="IsDropList === true" src="@/assets/img/向上的箭头.png" alt="">
-                                </div>
+                            <div class="pane_drop_list" v-if="item.IsDropList">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>班级</th>
+                                            <th>状态</th>
+                                            <th>提交情况</th>
+                                            <th>截止时间</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>2</td>
+                                            <td>3</td>
+                                            <td>4</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
                     </li>
                     <li v-else class="list_not_li">
                         <h1>尚未发布作业</h1>
@@ -155,8 +179,8 @@ p a {
             background-color: #e7e7e736;
 
             .list_li {
-                display: flex;
-                height: 20vh;
+                /* display: flex; */
+                height: auto;
                 margin: 1vw 2vw;
                 border: 1px solid #ccc;
                 border-radius: 1vw;
@@ -170,14 +194,16 @@ p a {
                 }
 
                 .pane {
-                    position: relative;
+                    width: 100%;
+                }
+
+                .pane_top {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-left: 10px;
                     padding-left: 2vw;
                     width: 100%;
-                    height: 100%;
+                    height: 20vh;
 
                     .pane_rep {
                         width: 69%;
@@ -246,6 +272,36 @@ p a {
                             img {
                                 width: 1.5vw;
                                 height: 1vw;
+                            }
+                        }
+                    }
+                }
+
+                .pane_drop_list {
+                    width: 100%;
+                    height: 12vh;
+
+                    table {
+                        margin: 0 auto;
+                        padding: 10vw 0;
+
+                        thead {
+                            color: #000;
+                            font-size: 1.2vw;
+                            background-color: #c8c8c8;
+
+                            th {
+                                padding: 0.5vw 1.5vw;
+                            }
+                        }
+
+                        tbody {
+                            color: #000;
+                            font-size: 1.2vw;
+                            border-bottom: 1px solid #ccc;
+
+                            td {
+                                padding: 0.5vw 1.5vw;
                             }
                         }
                     }

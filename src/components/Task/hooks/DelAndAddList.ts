@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-export default function DelAndAddList(TaskList: { id: number, title: string, description: string, teacher: string }[]) {
+export default function DelAndAddList(TaskList: { id: number, title: string, description: string, teacher: string, IsDropList: boolean }[]) {
     // 删除章节
     const delDialogVisible = ref(false)
     const delTaskId = ref(0)
