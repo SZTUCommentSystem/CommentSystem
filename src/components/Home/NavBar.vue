@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ElNotification } from 'element-plus';
-import NavBar_Notice from "@/components/icons/NavBar_Notice.vue";
-import NavBar_Logo from "@/components/icons/NavBar_Logo.vue";
+import NavBar_Notice from "@/components/icons/navbar/NavBar_Notice.vue";
+import NavBar_Logo from "@/components/icons/navbar/NavBar_Logo.vue";
 import { RouterLink } from 'vue-router';
 
 // 示例通知功能的函数
