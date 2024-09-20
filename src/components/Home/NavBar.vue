@@ -13,13 +13,13 @@ const showNotification = () => {
   });
 };
 
-// 下拉菜单项
-const sideDropList = [
-
-  { path: "/home/task", name: "我的作业" },
-  { path: "/teacher/assign", name: "布置作业" },
-  { path: "/teacher/correct", name: "批改作业" },
-
+// 导航菜单项
+const navList = [
+  { path: "/home", name: "首页" },
+  { path: "/home/question", name: "题库管理" },
+  { path: "/home/class", name: "班级管理" },
+  { path: "/home/task", name: "作业" },
+  { path: "/home/work", name: "我的任务" },
 ];
 </script>
 
@@ -31,33 +31,16 @@ const sideDropList = [
         <div class="col-2 d-flex align-items-center justify-content-center">
           <!-- 空白区域 -->
         </div>
-        <!-- 中间左边内容区域 -->
+
+        <!-- 中间内容区域 -->
         <div class="col-8 d-flex align-items-center">
           <!-- Logo -->
           <nav-bar_-logo class="me-4"></nav-bar_-logo>
 
           <!-- 导航链接 -->
           <ul class="navbar-nav d-flex flex-row mb-0">
-            <li class="nav-item">
-              <RouterLink class="nav-link" to="/home">首页</RouterLink>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                作业
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li v-for="item in sideDropList" :key="item.path">
-                  <RouterLink class="dropdown-item" :to="item.path">{{ item.name }}</RouterLink>
-                </li>
-              </ul>
-            </li>
-
-            <li class="nav-item">
-              <RouterLink class="nav-link" to="/courses">课程</RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link" to="/comments">批语库</RouterLink>
+            <li v-for="item in navList" :key="item.path" class="nav-item">
+              <RouterLink class="nav-link" :to="item.path">{{ item.name }}</RouterLink>
             </li>
           </ul>
 
@@ -92,7 +75,6 @@ const sideDropList = [
 /* 样式部分 */
 .navbar {
   background-color: #fff;
-  /* 背景颜色 */
 }
 
 .shadow-sm {
@@ -101,35 +83,7 @@ const sideDropList = [
 
 .nav-link {
   margin: 0 10px;
-}
-
-.dropdown-menu {
-  border-radius: 0.5rem;
-  /* 圆角边框 */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  /* 阴影 */
-  background-color: #fff;
-  /* 背景颜色 */
-  padding: 0.5rem;
-  /* 内边距 */
-  min-width: 120px;
-  /* 最小宽度 */
-}
-
-.dropdown-item {
-  padding: 0.25rem 0.5rem;
-  /* 内边距 */
   font-size: 1vw;
-  /* 字体大小 */
-  color: #333;
-  /* 文字颜色 */
-}
-
-.dropdown-item:hover {
-  background-color: #f8f9fa;
-  /* 悬停背景颜色 */
-  color: #007bff;
-  /* 悬停字体颜色 */
 }
 
 .username {
@@ -151,11 +105,9 @@ const sideDropList = [
 
 .ms-auto {
   margin-left: auto;
-  /* 将元素推到容器的最右边 */
 }
 
 .text-start {
   text-align: start;
-  /* 确保文本左对齐 */
 }
 </style>

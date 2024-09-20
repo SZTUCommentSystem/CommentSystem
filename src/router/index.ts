@@ -22,6 +22,21 @@ const router = createRouter({
           name: 'task',
           component: () => import('../views/Task.vue')
         },
+        {
+          path: '/home/question',
+          name: 'question',
+          component: () => import('../components/Question/index.vue')
+        },
+        {
+          path: '/home/work',
+          name: 'work',
+          component: () => import('../components/Work/index.vue')
+        },
+        {
+          path: '/home/class',
+          name: 'class',
+          component: () => import('../components/Class/index.vue')
+        },
       ]
     },
   ]
