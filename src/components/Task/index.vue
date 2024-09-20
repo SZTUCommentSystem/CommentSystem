@@ -19,10 +19,6 @@ const deleteTask = () => {
     state.TaskList = deleteTaskOriginal();
 }
 
-// const addTask = () => {
-//     state.TaskList = addTaskOriginal();
-// }
-
 //展示是否有作业
 const IsTask = ref(true);
 watchEffect(() => {
@@ -32,35 +28,49 @@ watchEffect(() => {
         IsTask.value = true;
     }
 });
+
+//展示下拉框
+const IsDropList = ref(false);
+
 </script>
 <template>
     <div class="all_class">
-        <!-- <p><router-link to="/home/chapter">主页</router-link> > {{ route.query.title }} > </p> -->
         <div class="base">
             <div class="title">
                 <h2>作业列表</h2>
                 <div class="title_button">
                     <el-button type="primary">去创建作业</el-button>
-                    <!-- <el-button type="primary">发布作业</el-button> -->
                 </div>
             </div>
             <div class="list">
                 <ul>
                     <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
-                        <div class="left">
-                            <img src="" alt="">
-                        </div>
-                        <div class="right">
-                            <div class="right_rep">
-                                <h5>标题：{{ item.title }}</h5>
+                        <div class="pane">
+                            <div class="pane_rep">
+                                <div class="status">
+                                    <p>未发布</p>
+                                    <h5>标题：{{ item.title }}</h5>
+                                </div>
                                 <p>描述：{{ item.description }}</p>
+                                <p>老师：{{ item.teacher }}</p>
+                                <p>截止时间：0213</p>
                             </div>
-                            <div class="right_skip">
-                                <router-link
-                                    :to="{ path: '/home/task', query: { listId: item.id, title: item.title } }">查看作业详情</router-link>
-                                <!-- 暂定a，后面改routerlink -->
-                                <a href="javascript:;">查看作业批语库</a>
-                                <i class="circle" @click="confirmDelTask(item.id)">x</i>
+                            <div class="pane_skip">
+                                <el-dropdown placement="bottom">
+                                    <el-button> 更多 </el-button>
+                                    <template #dropdown>
+                                        <el-dropdown-menu>
+                                            <el-dropdown-item>立即发布</el-dropdown-item>
+                                            <el-dropdown-item>立即截止</el-dropdown-item>
+                                            <el-dropdown-item>立即删除</el-dropdown-item>
+                                        </el-dropdown-menu>
+                                    </template>
+                                </el-dropdown>
+                                <br>
+                                <div class="icon" @click="IsDropList = !IsDropList">
+                                    <img v-show="IsDropList === false" src="@/assets/img/向下的箭头.png" alt="">
+                                    <img v-show="IsDropList === true" src="@/assets/img/向上的箭头.png" alt="">
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -69,7 +79,6 @@ watchEffect(() => {
                     </li>
                 </ul>
             </div>
-            <router-link to="/home/chapter" class="returnChapter">返回</router-link>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
                     <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
@@ -79,27 +88,6 @@ watchEffect(() => {
                 </el-config-provider>
             </div>
         </div>
-        <!-- 添加新作业 -->
-        <!-- <el-dialog v-model="addDialogVisible" title="添加新作业" width="500" center>
-            <div>
-                <el-form label-width="80px">
-                    <el-form-item label="作业名称">
-                        <el-input v-model="newTask.title" placeholder="请输入作业名称"></el-input>
-                    </el-form-item>
-                    <el-form-item label="作业描述">
-                        <el-input v-model="newTask.description" placeholder="请输入作业描述"></el-input>
-                    </el-form-item>
-                </el-form>
-            </div>
-            <template #footer>
-                <div class="dialog-footer">
-                    <el-button type="primary" @click="addTask">
-                        确定
-                    </el-button>
-                    <el-button @click="addDialogVisible = false">取消</el-button>
-                </div>
-            </template>
-</el-dialog> -->
         <!-- 删除作业 -->
         <el-dialog v-model="delDialogVisible" title="删除作业" width="30%" center>
             <div>确定删除该作业吗？</div>
@@ -139,7 +127,7 @@ p a {
 
         h2 {
             font-size: 2vw;
-            margin-left: 1.5vw;
+            margin-left: 2.6vw;
         }
 
         .title_button {
@@ -163,68 +151,84 @@ p a {
             margin: 1vw;
             margin-bottom: 2vw;
             padding: 1.5vw;
-            min-height: 200px;
+            min-height: 20vh;
             background-color: #e7e7e736;
 
             .list_li {
                 display: flex;
-                justify-content: space-between;
                 height: 20vh;
                 margin: 1vw 2vw;
                 border: 1px solid #ccc;
                 border-radius: 1vw;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                /* 动画效果 */
-                transition: transform 0.3s ease;
 
                 &:hover {
-                    transform: scale(1.05);
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
                 }
 
                 &:last-child {
                     margin-bottom: 0;
                 }
 
-                .left {
-                    width: 20%;
-                    height: 100%;
-
-                    img {
-                        border-radius: 7px 0 0 7px;
-                        width: 100%;
-                        height: 100%;
-                    }
-                }
-
-                .right {
+                .pane {
                     position: relative;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     margin-left: 10px;
-                    padding-left: 10px;
-                    width: 80%;
+                    padding-left: 2vw;
+                    width: 100%;
                     height: 100%;
 
-                    .right_rep {
-                        h5 {
-                            font-size: 1.6vw;
-                            margin-bottom: 20px;
+                    .pane_rep {
+                        width: 69%;
+
+                        p {
+                            padding: 0;
+                            margin: 0;
+                        }
+
+                        .status {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 1vw;
+
+                            p {
+                                text-align: center;
+                                width: 4vw;
+                                margin-right: 10px;
+                                background-color: #409EFF;
+                                color: #fff;
+                                border-radius: 0.5vw;
+
+                            }
+
+                            h5 {
+                                font-size: 1.6vw;
+                                margin-bottom: 0;
+                            }
                         }
                     }
 
-                    .right_skip {
+                    .pane_skip {
                         margin-right: 1vw;
+                        margin-top: 2vh;
+
+                        button:focus {
+                            outline: none;
+                        }
 
                         a {
                             margin-right: 10px;
+                        }
+
+                        button {
+                            border-radius: 20px;
                         }
 
                         .circle {
                             position: absolute;
                             top: 0;
                             right: 0;
-                            /* background-color: red; */
                             color: #000;
                             width: 1.5vw;
                             height: 1.5vw;
@@ -232,6 +236,17 @@ p a {
                             text-align: center;
                             line-height: 1.5vw;
                             cursor: pointer;
+                        }
+
+                        .icon {
+                            margin-top: 2vh;
+                            margin-left: 1.5vw;
+                            cursor: pointer;
+
+                            img {
+                                width: 1.5vw;
+                                height: 1vw;
+                            }
                         }
                     }
                 }
@@ -244,7 +259,7 @@ p a {
                 transform: translate(-50%, -50%);
 
                 h1 {
-                    /* font-size: 20px; */
+                    font-size: 3vw;
                     font-style: italic;
                     color: #c8c8c8;
                 }
@@ -255,24 +270,16 @@ p a {
     .paging {
         position: absolute;
         right: 1vw;
-        bottom: 1vw;
-    }
-
-    .returnChapter {
-        position: absolute;
-        left: 38px;
-        bottom: 26px;
-        color: #000;
-
-        &:hover {
-            color: #409EFF;
-        }
+        bottom: 2vw;
     }
 }
 
+.all_class ::v-deep el-icon--right svg:hover {
+    cursor: pointer;
+}
 
 /* 修改Element分页样式 */
-.all_class ::v-deep .el-dialog__title {
+/* .all_class ::v-deep .el-dialog__title {
     font-size: 1.5vw;
 }
 
@@ -294,5 +301,5 @@ p a {
     height: 2vw;
     min-width: 2vw;
     font-size: 1vw;
-}
+} */
 </style>

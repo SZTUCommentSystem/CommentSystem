@@ -12,11 +12,11 @@ const router = createRouter({
       name: 'home',
       component: () => import('../views/HomeView.vue'),
       children: [
-        {
-          path: '/home/chapter',
-          name: 'chapter',
-          component: () => import('../views/Chapter.vue'),
-        },
+        // {
+        //   path: '/home/chapter',
+        //   name: 'chapter',
+        //   component: () => import('../views/Chapter.vue'),
+        // },
         {
           path: '/home/task',
           name: 'task',

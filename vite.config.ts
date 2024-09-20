@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
+import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import { viteMockServe } from 'vite-plugin-mock' // 引入mock插件提供的方法
 
@@ -17,7 +18,8 @@ export default defineConfig(({ command }) => {
     ],
     resolve: {
       alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url))
+        // '@': fileURLToPath(new URL('./src', import.meta.url))
+        '@': path.resolve(__dirname, 'src')
       }
     }
   }
