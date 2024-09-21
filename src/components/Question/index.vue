@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { useRouter } from 'vue-router'; // 引入useRouter钩子
 import { ElTable, ElTableColumn, ElSelect, ElOption, ElInput } from 'element-plus';
 import Edit from "@/components/icons/question/edit.vue";
 import Delete from "@/components/icons/question/delete.vue";
@@ -8,9 +8,11 @@ import Comment from "@/components/icons/question/comment.vue";
 import { Search } from '@element-plus/icons-vue';
 import { zhCn } from "element-plus/es/locale/index.mjs";
 
+const router = useRouter(); // 使用路由实例
+
 // 分页相关的状态
 const currentPage = ref(1); // 当前页码
-const pageSize = ref(10); // 每页显示的题目数量
+const pageSize = ref(30); // 每页显示的题目数量
 
 // 模拟题目数据
 const questionList = ref([
@@ -94,12 +96,16 @@ const handlePageChange = (page: number) => {
 const handlePageSizeChange = (size: number) => {
   pageSize.value = size;
 };
+
+// 处理行点击事件，跳转到对应题目详情页
+const handleRowClick = (row: any) => {
+  router.push(`/home/question/${row.id}`); // 跳转到对应的题目详情页，基于题目ID
+};
 </script>
 
 <template>
   <div class="question-bank">
     <div class="filter-container">
-      <!-- 类型选择下拉框 -->
       <el-select v-model="selectedType" placeholder="选择题目类型" style="margin-right: 10px; width: 200px;">
         <el-option label="全部" value=""></el-option>
         <el-option label="选择题" value="选择题"></el-option>
@@ -110,26 +116,25 @@ const handlePageSizeChange = (size: number) => {
         <el-option label="工程设计" value="工程设计"></el-option>
       </el-select>
 
-      <!-- 搜索框 -->
       <el-input v-model="searchQuery" placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search"/>
     </div>
 
     <!-- 题目列表展示 -->
-    <ElTable :data="paginatedQuestions" stripe>
+    <ElTable :data="paginatedQuestions" stripe @row-click="handleRowClick" style="cursor: pointer;">
       <ElTableColumn label="序号" type="index" width="100" />
       <ElTableColumn prop="type" label="题目类型" width="150" />
       <ElTableColumn prop="content" label="题目" />
       <ElTableColumn label="操作" width="200">
         <template #default="scope">
-          <div style="display: flex; align-items: center;">
-            <RouterLink :to="`/edit-question/${scope.row.id}`">
-              <Edit style="cursor: pointer; margin-right: 20px;" />
+          <div class="icon-container" style="display: flex; align-items: center;">
+            <RouterLink :to="`/edit-question/${scope.row.id}`" @click.stop>
+              <Edit class="icon" style="margin-right: 20px;" />
             </RouterLink>
-            <RouterLink :to="`/comment-library/${scope.row.id}`">
-              <Comment style="cursor: pointer;margin-right: 23px;" />
+            <RouterLink :to="`/comment-library/${scope.row.id}`" @click.stop>
+              <Comment class="icon" style="margin-right: 23px;" />
             </RouterLink>
-            <div  style="margin-right: 20px">
-              <Delete style="cursor: pointer;" />
+            <div style="margin-right: 20px">
+              <Delete class="icon" @click.stop />
             </div>
           </div>
         </template>
@@ -154,8 +159,9 @@ const handlePageSizeChange = (size: number) => {
   </div>
 </template>
 
+
 <style scoped>
-*{
+* {
   font-size: 18px;
 }
 .question-bank {
@@ -165,5 +171,12 @@ const handlePageSizeChange = (size: number) => {
 .filter-container {
   display: flex;
   margin-bottom: 10px;
+}
+.icon {
+  opacity: 0.3; /* 默认透明度 */
+  transition: opacity 0.3s; /* 添加过渡效果 */
+}
+.icon-container:hover .icon {
+  opacity: 1; /* 鼠标悬停时变为不透明 */
 }
 </style>
