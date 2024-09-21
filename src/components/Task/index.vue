@@ -38,7 +38,8 @@ const IsDropList = ref(false);
         <div class="base">
             <div class="title">
                 <h2>作业列表</h2>
-                    <router-link to="/home/createtask" class="title_button"><el-button type="primary">去创建作业</el-button></router-link>
+                <router-link to="/home/createtask" class="title_button"><el-button
+                        type="primary">去创建作业</el-button></router-link>
             </div>
             <div class="list">
                 <ul>
@@ -129,11 +130,15 @@ const IsDropList = ref(false);
 
 </template>
 <style scoped>
-p a {
-    color: #000;
+p {
+    font-size: 12px;
 
-    &:hover {
-        color: #409EFF;
+    a {
+        color: #000;
+
+        &:hover {
+            color: #409EFF;
+        }
     }
 }
 
@@ -151,20 +156,19 @@ p a {
         align-items: center;
 
         h2 {
-            font-size: 2vw;
-            margin-left: 2.6vw;
+            font-size: 28px;
+            margin: 0;
+            margin-left: 30px;
         }
 
         .title_button {
-            display: flex;
-            align-items: center;
-            margin: 1.5vw 2vw;
+            margin: 15px 20px;
 
             button {
-                margin-right: 1vw;
-                height: 4.5vh;
-                width: 8vw;
-                border-radius: 0.3vw;
+                margin-right: 10px;
+                height: 35px;
+                width: 110px;
+                border-radius: 10px;
             }
         }
 
@@ -173,18 +177,18 @@ p a {
     .list {
         ul {
             position: relative;
-            margin: 1vw;
-            margin-bottom: 2vw;
-            padding: 1.5vw;
-            min-height: 20vh;
+            margin: 10px;
+            margin-bottom: 30px;
+            padding: 13px;
+            min-height: 300px;
             background-color: #e7e7e736;
 
+
             .list_li {
-                /* display: flex; */
                 height: auto;
-                margin: 1vw 2vw;
+                margin: 10px 20px;
                 border: 1px solid #ccc;
-                border-radius: 1vw;
+                border-radius: 10px;
 
                 &:hover {
                     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
@@ -202,9 +206,9 @@ p a {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding-left: 2vw;
+                    padding-left: 35px;
                     width: 100%;
-                    height: 20vh;
+                    height: 128px;
 
                     .pane_rep {
                         width: 69%;
@@ -217,28 +221,29 @@ p a {
                         .status {
                             display: flex;
                             align-items: center;
-                            margin-bottom: 1vw;
+                            margin-bottom: 10px;
 
                             p {
                                 text-align: center;
-                                width: 4vw;
+                                font-size: 14px;
+                                width: 60px;
                                 margin-right: 10px;
                                 background-color: #409EFF;
                                 color: #fff;
-                                border-radius: 0.5vw;
+                                border-radius: 10px;
 
                             }
 
                             h5 {
-                                font-size: 1.4vw;
+                                font-size: 18px;
                                 margin-bottom: 0;
+                                font-weight: 600;
                             }
                         }
                     }
 
                     .pane_skip {
-                        margin-right: 1vw;
-                        margin-top: 2vh;
+                        margin-right: 25px;
 
                         button:focus {
                             outline: none;
@@ -252,27 +257,14 @@ p a {
                             border-radius: 20px;
                         }
 
-                        .circle {
-                            position: absolute;
-                            top: 0;
-                            right: 0;
-                            color: #000;
-                            width: 1.5vw;
-                            height: 1.5vw;
-                            border-radius: 10%;
-                            text-align: center;
-                            line-height: 1.5vw;
-                            cursor: pointer;
-                        }
-
                         .icon {
-                            margin-top: 2vh;
-                            margin-left: 1.5vw;
+                            margin-top: 17px;
+                            margin-left: 20px;
                             cursor: pointer;
 
                             img {
-                                width: 1.3vw;
-                                height: 1vw;
+                                width: 20px;
+                                height: 17px;
                             }
                         }
                     }
@@ -280,29 +272,28 @@ p a {
 
                 .pane_drop_list {
                     width: 100%;
-                    height: 12vh;
+                    height: 100px;
 
                     table {
                         margin: 0 auto;
-                        padding: 10vw 0;
 
                         thead {
                             color: #000;
-                            font-size: 1.2vw;
+                            font-size: 14px;
                             background-color: #c8c8c8;
 
                             th {
-                                padding: 0.5vw 1.5vw;
+                                padding: 10px 20px;
                             }
                         }
 
                         tbody {
                             color: #000;
-                            font-size: 1.2vw;
+                            font-size: 14px;
                             border-bottom: 1px solid #ccc;
 
                             td {
-                                padding: 0.5vw 1.5vw;
+                                padding: 10px 20px;
                             }
                         }
                     }
@@ -314,49 +305,18 @@ p a {
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-
-                h1 {
-                    font-size: 3vw;
-                    font-style: italic;
-                    color: #c8c8c8;
-                }
             }
         }
     }
 
     .paging {
         position: absolute;
-        right: 1vw;
-        bottom: 2vw;
+        right: 10px;
+        bottom: 30px;
     }
 }
 
 .all_class ::v-deep el-icon--right svg:hover {
     cursor: pointer;
 }
-
-/* 修改Element分页样式 */
-/* .all_class ::v-deep .el-dialog__title {
-    font-size: 1.5vw;
-}
-
-.all_class ::v-deep .el-dialog__headerbtn {
-    font-size: 1.2vw;
-}
-
-.all_class ::v-deep .btn-prev,
-.all_class ::v-deep .btn-next {
-    width: 2vw;
-    height: 2vw;
-}
-
-.all_class ::v-deep .el-icon {
-    font-size: 1vw;
-}
-
-.all_class ::v-deep .el-pager .number {
-    height: 2vw;
-    min-width: 2vw;
-    font-size: 1vw;
-} */
 </style>

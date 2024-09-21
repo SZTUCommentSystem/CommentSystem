@@ -30,7 +30,10 @@
                     </li>
                     <li>
                         <div class="type2">
-                            <p>制图要求：</p>
+                            <div class="title">
+                                <p>制图要求：</p>
+                                <i class="icon-add">+</i>
+                            </div>
                             <ul>
                                 <li>
                                     <input type="text">
@@ -41,19 +44,20 @@
                                     <i class="icon-del">x</i>
                                 </li>
                             </ul>
-                            <i class="icon-add">+</i>
                         </div>
                     </li>
                     <li>
                         <div class="type2">
-                            <p>视图方向：</p>
+                            <div class="title">
+                                <p>视图方向：</p>
+                                <i class="icon-add">+</i>
+                            </div>
                             <ul>
                                 <li>
                                     <input type="text">
                                     <i class="icon-del">x</i>
                                 </li>
                             </ul>
-                            <i class="icon-add">+</i>
                         </div>
                     </li>
                     <li>
@@ -64,7 +68,10 @@
                     </li>
                     <li>
                         <div class="type2">
-                            <p>技术要求：</p>
+                            <div class="title">
+                                <p>技术要求：</p>
+                                <i class="icon-add">+</i>
+                            </div>
                             <ul>
                                 <li>
                                     <input type="text">
@@ -75,7 +82,6 @@
                                     <i class="icon-del">x</i>
                                 </li>
                             </ul>
-                            <i class="icon-add">+</i>
                         </div>
                     </li>
                     <li>
@@ -86,7 +92,10 @@
                     </li>
                     <li>
                         <div class="type2">
-                            <p>评分标准（请确保总评分相加为100%）：</p>
+                            <div class="title">
+                                <p>评分标准（请确保总评分相加为100%）：</p>
+                                <i class="icon-add">+</i>
+                            </div>
                             <ul>
                                 <li>
                                     <input type="text">
@@ -105,7 +114,6 @@
                                     <i class="icon-del">x</i>
                                 </li>
                             </ul>
-                            <i class="icon-add">+</i>
                         </div>
                     </li>
                     <li>
@@ -122,7 +130,9 @@
         </div>
         <div class="button_submit">
             <el-button type="primary">提交</el-button>
-            <el-button>取消</el-button>
+            <router-link to="/home/task">
+                <el-button>取消</el-button>
+            </router-link>
         </div>
     </div>
 </template>
@@ -135,21 +145,21 @@
     flex-direction: column;
     /* 向左对齐 */
     align-items: flex-start;
-    width: 63vw;
-    height: 13vh;
+    width: 54.5em;
+    height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;
     background-color: #fff;
 
     p {
         margin: 0;
-        font-size: 1.2vw;
+        font-size: 18px;
     }
 
     input {
         display: inline-block;
         width: 100%;
-        height: 6vh;
+        height: 45px;
         margin-top: 5px;
         padding-left: 10px;
         border: 1px solid #ccc;
@@ -223,8 +233,8 @@
             margin-left: 10px;
 
             input {
-                height: 4vh;
-                width: 60%;
+                height: 35px;
+                width: 86%;
             }
         }
     }
@@ -246,6 +256,18 @@
         vertical-align: text-bottom;
         margin-left: 10px;
         cursor: pointer;
+        opacity: 0.3;
+        transition: transform 0.3s, 0.3s ease;
+
+        &:hover {
+            opacity: 1;
+        }
     }
+}
+
+.title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 </style>
