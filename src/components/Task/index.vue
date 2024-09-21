@@ -38,9 +38,7 @@ const IsDropList = ref(false);
         <div class="base">
             <div class="title">
                 <h2>作业列表</h2>
-                <div class="title_button">
-                    <el-button type="primary">去创建作业</el-button>
-                </div>
+                    <router-link to="/home/createtask" class="title_button"><el-button type="primary">去创建作业</el-button></router-link>
             </div>
             <div class="list">
                 <ul>
@@ -63,8 +61,11 @@ const IsDropList = ref(false);
                                             <el-dropdown-menu>
                                                 <el-dropdown-item>立即发布</el-dropdown-item>
                                                 <el-dropdown-item>立即截止</el-dropdown-item>
-                                                <el-dropdown-item
-                                                    @click="confirmDelTask(item.id)">立即删除</el-dropdown-item>
+                                                <el-dropdown-item @click="confirmDelTask(item.id)">
+                                                    立即删除
+                                                </el-dropdown-item>
+                                                <el-dropdown-item>编辑作业</el-dropdown-item>
+                                                <el-dropdown-item>查看批语</el-dropdown-item>
                                             </el-dropdown-menu>
                                         </template>
                                     </el-dropdown>
@@ -229,7 +230,7 @@ p a {
                             }
 
                             h5 {
-                                font-size: 1.6vw;
+                                font-size: 1.4vw;
                                 margin-bottom: 0;
                             }
                         }
@@ -270,7 +271,7 @@ p a {
                             cursor: pointer;
 
                             img {
-                                width: 1.5vw;
+                                width: 1.3vw;
                                 height: 1vw;
                             }
                         }
