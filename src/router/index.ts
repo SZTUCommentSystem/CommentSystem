@@ -5,27 +5,27 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/home'
+      redirect: '/home/homepage'
     },
     {
       path: '/home',
       name: 'home',
       component: () => import('../views/HomeView.vue'),
       children: [
-        // {
-        //   path: '/home/chapter',
-        //   name: 'chapter',
-        //   component: () => import('../views/Chapter.vue'),
-        // },
+        {
+          path: '/home/homepage',
+          name: 'homepage',
+          component: () => import('../components/Home/HomePage.vue')
+        },
         {
           path: '/home/task',
           name: 'task',
-          component: () => import('../views/Task.vue')
+          component: () => import('../components/Task/index.vue')
         },
         {
           path: '/home/createtask',
           name: 'createtask',
-          component: () => import('../views/CreateTask.vue')
+          component: () => import('../components/CreateTask/index.vue')
         },
         {
           path: '/home/question',

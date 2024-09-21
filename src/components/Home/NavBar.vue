@@ -15,7 +15,7 @@ const showNotification = () => {
 
 // 导航菜单项
 const navList = [
-  { path: "/home", name: "首页" },
+  { path: "/home/homepage", name: "首页" },
   { path: "/home/question", name: "题库管理" },
   { path: "/home/class", name: "班级管理" },
   { path: "/home/task", name: "作业" },
