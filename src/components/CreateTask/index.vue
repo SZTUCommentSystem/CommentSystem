@@ -146,13 +146,14 @@
 
 <style scoped>
 .create-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 
 
 }
+
 .create_title,
 .create_task {
     display: flex;
@@ -160,7 +161,7 @@
     flex-direction: column;
     /* 向左对齐 */
     align-items: flex-start;
-    width: 90em;
+    width: 100%;
     height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;

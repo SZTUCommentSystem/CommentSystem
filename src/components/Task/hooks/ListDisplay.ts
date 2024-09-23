@@ -24,8 +24,64 @@ export default function ListDisplay() {
                 teacher: '冯某',
                 IsDropList: false,
             },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
+            {
+                id: 3,
+                title: "Task 3",
+                description: "This is Task 3",
+                teacher: '冯某',
+                IsDropList: false,
+            },
         ],
-        pageSize: 5,
+        pageSize: 10,
         pageNum: 1
     });
 
@@ -35,6 +91,7 @@ export default function ListDisplay() {
     }
     const handleCurrentChange = (val: number) => {
         state.pageNum = val
+        window.scrollTo(0, 0)
     }
     // 根据当前页码和每页显示数量计算当前显示的章节列表
     const displayedTasks = computed(() => {

@@ -156,7 +156,6 @@ p {
         align-items: center;
 
         h2 {
-            font-size: 28px;
             margin: 0;
             margin-left: 30px;
         }
@@ -180,7 +179,7 @@ p {
             margin: 10px;
             margin-bottom: 30px;
             padding: 13px;
-            min-height: 300px;
+            min-height: calc(100vh - 100px);
             background-color: #e7e7e736;
 
 
@@ -189,6 +188,7 @@ p {
                 margin: 10px 20px;
                 border: 1px solid #ccc;
                 border-radius: 10px;
+                transition: box-shadow 0.3s;
 
                 &:hover {
                     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
