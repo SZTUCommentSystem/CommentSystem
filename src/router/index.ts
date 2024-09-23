@@ -42,6 +42,16 @@ const router = createRouter({
           name: 'class',
           component: () => import('../components/Class/index.vue')
         },
+        {
+          path: '/home/library',
+          name: 'library',
+          component: () => import('../components/Library/index.vue')
+        },
+        {
+          path: '/home/question/:questionId',
+          name: 'questionDetail',
+          component: () => import('../components/QuestionDetail/index.vue')
+        },
       ]
     },
   ]

@@ -20,6 +20,7 @@ const navList = [
   { path: "/home/class", name: "班级管理" },
   { path: "/home/task", name: "作业" },
   { path: "/home/work", name: "我的任务" },
+  { path: "/home/library", name: "批语库管理" },
 
 ];
 </script>

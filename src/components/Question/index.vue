@@ -12,7 +12,7 @@ const router = useRouter(); // 使用路由实例
 
 // 分页相关的状态
 const currentPage = ref(1); // 当前页码
-const pageSize = ref(30); // 每页显示的题目数量
+const pageSize = ref(20); // 每页显示的题目数量
 
 // 模拟题目数据
 const questionList = ref([

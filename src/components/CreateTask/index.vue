@@ -153,7 +153,7 @@
     flex-direction: column;
     /* 向左对齐 */
     align-items: flex-start;
-    width: 70em;
+    width: 90em;
     height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;
