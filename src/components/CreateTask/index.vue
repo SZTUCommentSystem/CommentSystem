@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <div>
+    <div class="create-wrapper">
         <h2 style="margin-bottom: 10px;">新建作业</h2>
         <div class="create_title">
             <p>标题：</p>
@@ -138,6 +138,14 @@
 </template>
 
 <style scoped>
+.create-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+
+
+}
 .create_title,
 .create_task {
     display: flex;
@@ -145,7 +153,7 @@
     flex-direction: column;
     /* 向左对齐 */
     align-items: flex-start;
-    width: 54.5em;
+    width: 70em;
     height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;

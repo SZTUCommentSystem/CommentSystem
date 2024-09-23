@@ -20,6 +20,7 @@ const navList = [
   { path: "/home/class", name: "班级管理" },
   { path: "/home/task", name: "作业" },
   { path: "/home/work", name: "我的任务" },
+
 ];
 </script>
 
@@ -28,12 +29,12 @@ const navList = [
     <div class="container-fluid">
       <div class="row w-100">
         <!-- 左侧留白 -->
-        <div class="col-2 d-flex align-items-center justify-content-center">
+        <div class="col-1 d-flex align-items-center justify-content-center">
           <!-- 空白区域 -->
         </div>
 
         <!-- 中间内容区域 -->
-        <div class="col-8 d-flex align-items-center">
+        <div class="col-10 d-flex align-items-center">
           <!-- Logo -->
           <nav-bar_-logo class="me-4"></nav-bar_-logo>
 
@@ -63,7 +64,7 @@ const navList = [
         </div>
 
         <!-- 右侧留白区域 -->
-        <div class="col-2">
+        <div class="col-1">
           <!-- 空白区域 -->
         </div>
       </div>
