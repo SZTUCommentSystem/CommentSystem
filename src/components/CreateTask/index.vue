@@ -16,6 +16,7 @@
             <p>作业列表：</p>
             <div class="task_list">
                 <ul>
+                    <i class="icon-del-list">x</i>
                     <li>
                         <div class="type1">
                             <p>题目：</p>
@@ -122,6 +123,12 @@
                             <input type="text" placeholder="请输入注意事项" />
                         </div>
                     </li>
+                    <li>
+                        <div class="upload-file">
+                            <img src="@/assets/img/上传.png" alt="" style="height: 20px;">
+                            上传图片
+                        </div>
+                    </li>
                 </ul>
             </div>
             <div class="button_container">
@@ -193,6 +200,18 @@
     padding-right: 2rem;
     border-radius: 5px;
     background-color: #f9f9f9;
+
+    ul {
+        position: relative;
+
+        .icon-del-list {
+            position: absolute;
+            font-size: 20px;
+            top: -18px;
+            right: -15px;
+            cursor: pointer;
+        }
+    }
 
     li {
         margin-top: 10px;
@@ -277,5 +296,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.upload-file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 119px;
+    height: 45px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background-color: #fff;
+
+    img {
+        margin-right: 10px;
+    }
 }
 </style>
