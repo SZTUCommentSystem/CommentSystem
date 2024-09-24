@@ -126,7 +126,7 @@
                     <li>
                         <div class="upload-file">
                             <img src="@/assets/img/上传.png" alt="" style="height: 20px;">
-                            上传图片
+                            上传文件
                         </div>
                     </li>
                 </ul>

@@ -9,7 +9,7 @@ import { RouterView } from "vue-router";
   <div>
     <NavBar></NavBar>
     <div class="router-view-container">
-      <router-view v-slot="{ Component }" style="width: 80%; margin: 0 auto;">
+      <router-view v-slot="{ Component }" style="width: 81%; margin: 0 auto;">
         <keep-alive>
           <component :is="Component" />
         </keep-alive>

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { de } from 'element-plus/es/locales.mjs';
 
 const request = axios.create({
     baseURL: '/api',

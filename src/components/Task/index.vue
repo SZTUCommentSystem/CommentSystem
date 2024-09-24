@@ -2,10 +2,8 @@
 import { ref, watchEffect } from "vue";
 import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
-// import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
-//引入参数
-// const route = useRoute();
 // 从ListDisplay.ts中引入
 import ListDisplay from "./hooks/ListDisplay";
 // 从DelAndAddList.ts中引入
@@ -29,9 +27,11 @@ watchEffect(() => {
     }
 });
 
-//展示下拉框
-const IsDropList = ref(false);
-
+//添加点击事件，带着title跳转到创建作业页面
+const router = useRouter();
+const toTaskDetail = (title: string) => {
+    router.push({ path: "/home/task/taskdetail", query: { title: title } });
+}
 </script>
 <template>
     <div class="all_class">
@@ -67,6 +67,8 @@ const IsDropList = ref(false);
                                                 </el-dropdown-item>
                                                 <el-dropdown-item>编辑作业</el-dropdown-item>
                                                 <el-dropdown-item>查看批语</el-dropdown-item>
+                                                <el-dropdown-item
+                                                    @click="toTaskDetail(item.title)">查看作业</el-dropdown-item>
                                             </el-dropdown-menu>
                                         </template>
                                     </el-dropdown>
@@ -188,10 +190,11 @@ p {
                 margin: 10px 20px;
                 border: 1px solid #ccc;
                 border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                 transition: box-shadow 0.3s;
 
                 &:hover {
-                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
                 }
 
                 &:last-child {
