@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { ref, watchEffect, computed } from "vue";
 import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { useRouter } from "vue-router";
 
-// 从ListDisplay.ts中引入
-import ListDisplay from "./hooks/ListDisplay";
-// 从DelAndAddList.ts中引入
-import DelAndAddList from "./hooks/DelAndAddList";
+// 导入相关ts文件
+import ListDisplay from "../../hooks/TaskHooks/ListDisplay";
+import DelAndAddList from "../../hooks/TaskHooks/DelAndAddList";
+// import FilterStatus from "../../hooks /TaskHooks/FilterStatus";
 
-const { state, handleSizeChange, handleCurrentChange, displayedTasks } = ListDisplay();
+//载入主要数据和事件
+const { state, handleSizeChange, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
 
+//删除相关事件
 const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelAndAddList(state.TaskList);
 
 const deleteTask = () => {
@@ -32,12 +34,22 @@ const router = useRouter();
 const toTaskDetail = (title: string) => {
     router.push({ path: "/home/task/taskdetail", query: { title: title } });
 }
+
+
 </script>
 <template>
     <div class="all_class">
         <div class="base">
             <div class="title">
-                <h2>作业列表</h2>
+                <div class="title-left">
+                    <h2>作业列表</h2>
+                    <el-select v-model="selectedType" placeholder="选择作业状态" style="width: 200px;">
+                        <el-option label="全部" value=""></el-option>
+                        <el-option label="未发布" value="0"></el-option>
+                        <el-option label="已发布" value="1"></el-option>
+                        <el-option label="已结束" value="2"></el-option>
+                    </el-select>
+                </div>
                 <router-link to="/home/createtask" class="title_button"><el-button
                         type="primary">去创建作业</el-button></router-link>
             </div>
@@ -48,7 +60,9 @@ const toTaskDetail = (title: string) => {
                             <div class="pane_top">
                                 <div class="pane_rep">
                                     <div class="status">
-                                        <p>未发布</p>
+                                        <p v-if="item.PublishStatus === 0" class="unpublish">未发布</p>
+                                        <p v-else-if="item.PublishStatus === 1" class="publish">已发布</p>
+                                        <p v-else class="ended">已结束</p>
                                         <h5>标题：{{ item.title }}</h5>
                                     </div>
                                     <p>描述：{{ item.description }}</p>
@@ -110,8 +124,8 @@ const toTaskDetail = (title: string) => {
             <div class="paging">
                 <el-config-provider :locale="zhCn">
                     <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
-                        :page-sizes="[10]" v-if="state.TaskList.length > 0" layout="total, prev, pager, next, jumper"
-                        :total="state.TaskList.length" @size-change="handleSizeChange"
+                        :page-sizes="[10]" v-if="FilterStatus.length > 0" layout="total, prev, pager, next, jumper"
+                        :total="FilterStatus.length" @size-change="handleSizeChange"
                         @current-change="handleCurrentChange" />
                 </el-config-provider>
             </div>
@@ -157,9 +171,13 @@ p {
         justify-content: space-between;
         align-items: center;
 
+        .title-left {
+            display: flex;
+            align-items: center;
+        }
+
         h2 {
-            margin: 0;
-            margin-left: 30px;
+            margin: 0 30px;
         }
 
         .title_button {
@@ -232,10 +250,20 @@ p {
                                 font-size: 14px;
                                 width: 60px;
                                 margin-right: 10px;
-                                background-color: #409EFF;
                                 color: #fff;
                                 border-radius: 10px;
+                            }
 
+                            .unpublish {
+                                background-color: #f56c6c;
+                            }
+
+                            .publish {
+                                background-color: #409EFF;
+                            }
+
+                            .ended {
+                                background-color: #bebfbe;
                             }
 
                             h5 {

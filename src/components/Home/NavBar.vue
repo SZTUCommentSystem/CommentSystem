@@ -19,9 +19,7 @@ const navList = [
   { path: "/home/question", name: "题库管理" },
   { path: "/home/class", name: "班级管理" },
   { path: "/home/task", name: "作业" },
-  { path: "/home/work", name: "我的任务" },
   { path: "/home/library", name: "批语库管理" },
-
 ];
 </script>
 
@@ -42,7 +40,7 @@ const navList = [
           <!-- 导航链接 -->
           <ul class="navbar-nav d-flex flex-row mb-0">
             <li v-for="item in navList" :key="item.path" class="nav-item">
-              <RouterLink class="nav-link" :to="item.path">{{ item.name }}</RouterLink>
+              <RouterLink class="nav-link" :to="item.path" active-class="active">{{ item.name }}</RouterLink>
             </li>
           </ul>
 
@@ -111,5 +109,9 @@ const navList = [
 
 .text-start {
   text-align: start;
+}
+
+.active {
+  color: #000;
 }
 </style>

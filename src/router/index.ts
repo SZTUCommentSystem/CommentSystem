@@ -38,11 +38,6 @@ const router = createRouter({
           component: () => import('../components/Question/index.vue')
         },
         {
-          path: '/home/work',
-          name: 'work',
-          component: () => import('../components/Work/index.vue')
-        },
-        {
           path: '/home/class',
           name: 'class',
           component: () => import('../components/Class/index.vue')
