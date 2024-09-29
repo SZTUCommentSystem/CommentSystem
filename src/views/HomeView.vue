@@ -9,7 +9,7 @@ import { RouterView } from "vue-router";
   <div>
     <NavBar></NavBar>
     <div class="router-view-container">
-      <router-view v-slot="{ Component }" style="width: 81%; margin: 0 auto;">
+      <router-view v-slot="{ Component }" class="router-view-div">
         <keep-alive>
           <component :is="Component" />
         </keep-alive>
@@ -26,5 +26,11 @@ import { RouterView } from "vue-router";
   /* 设置背景色 */
   min-height: calc(100vh - 60px);
   /* 高度减去导航栏的高度，导航栏高度为60px */
+}
+
+.router-view-div {
+  width: 81%;
+  margin: 0 auto;
+  /* 设置宽度和居中 */
 }
 </style>

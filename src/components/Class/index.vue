@@ -216,6 +216,7 @@ p {
       background-color: #fff;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s;
+      cursor: pointer;
 
       &:hover {
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);

@@ -8,6 +8,10 @@ import StudentList from '../../hooks/TaskDetailHooks/StudentList';
 const route = useRoute();
 
 const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, filteredStudent } = StudentList();
+
+const getStatusClass = (row) => {
+    return row.status === '未提交' ? 'isRed' : 'isSubmit';
+}
 </script>
 
 <template>
@@ -35,11 +39,15 @@ const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNam
                 <el-table-column prop="id" label="序号" width="100" />
                 <el-table-column prop="name" label="姓名" width="180" />
                 <el-table-column prop="studentId" label="学号" width="280" />
-                <el-table-column prop="status" label="作业状态" width="180" />
+                <el-table-column prop="status" label="作业状态" width="180">
+                    <template #default="{ row }">
+                        <span :class="getStatusClass(row)">{{ row.status }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="score" label="得分" width="180" />
                 <el-table-column label="操作">
                     <div>
-                        <router-link to="">查看作业</router-link>
+                        <router-link to="">批改作业</router-link>
                         <router-link to="" style="margin-left: 10px;">追加点评</router-link>
                     </div>
                 </el-table-column>
@@ -90,5 +98,13 @@ const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNam
     padding: 20px;
     padding-top: 3dvh;
     margin-top: auto;
+}
+
+.isRed {
+    color: red;
+}
+
+.isSubmit {
+    color: #409EFF;
 }
 </style>
