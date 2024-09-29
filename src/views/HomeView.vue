@@ -20,7 +20,7 @@ import { RouterView } from "vue-router";
 
 <style scoped>
 .router-view-container {
-  padding: 20px 0;
+  padding: 10px 0;
   background-color: rgb(245, 246, 246);
   ;
   /* 设置背景色 */
