@@ -52,7 +52,7 @@ const currentPage = ref(1);
 
 
   <el-row class="con">
-    <el-col :span="4">
+    <el-col :span="5">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5 ms-5">批语库分类</span>
         <edit class="pb-2 me-3 edit-icon " :style="{ opacity: isHovered ? 1 : 0.3,transition: 'opacity 0.3s ease' }"></edit>
@@ -175,7 +175,7 @@ const currentPage = ref(1);
 
       </el-menu>
     </el-col>
-    <el-col :span="20">
+    <el-col :span="19">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库列表</span>
         <edit class="pb-2 me-5 edit-icon" :style="{ opacity: isHovered ? 1 : 0.3,transition: 'opacity 0.3s ease' }"></edit>
