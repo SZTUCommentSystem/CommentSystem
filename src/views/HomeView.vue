@@ -10,9 +10,11 @@ import { RouterView } from "vue-router";
     <NavBar></NavBar>
     <div class="router-view-container">
       <router-view v-slot="{ Component }" class="router-view-div">
-        <keep-alive>
-          <component :is="Component" />
-        </keep-alive>
+        <transition name="fade" mode="out-in">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </transition>
       </router-view>
     </div>
   </div>
@@ -32,5 +34,12 @@ import { RouterView } from "vue-router";
   width: 81%;
   margin: 0 auto;
   /* 设置宽度和居中 */
+}
+/* 定义 fade 过渡效果 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

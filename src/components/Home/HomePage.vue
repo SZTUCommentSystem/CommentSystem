@@ -170,7 +170,7 @@ const textarea = ref('');
 
 .home-header {
     position: absolute;
-    top: -20px;
+    top: -10px;
     left: 50%;
     transform: translateX(-50%);
     width: 100vw;
@@ -300,6 +300,7 @@ const textarea = ref('');
                 }
 
                 .left {
+                    margin-right: 10px;
                     border-top-right-radius: 0;
                     border-bottom-right-radius: 0;
 
