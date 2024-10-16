@@ -28,14 +28,24 @@ const router = createRouter({
           component: () => import('../components/TaskDetail/index.vue')
         },
         {
-          path: '/home/createtask',
-          name: 'createtask',
-          component: () => import('../components/CreateTask/index.vue')
+          path: '/home/task/taskcreate',
+          name: 'taskcreate',
+          component: () => import('../components/TaskCreate/index.vue')
         },
         {
           path: '/home/question',
           name: 'question',
           component: () => import('../components/Question/index.vue')
+        },
+        {
+          path: '/home/question/:questionId',
+          name: 'questiondetail',
+          component: () => import('../components/QuestionDetail/index.vue')
+        },
+        {
+          path: '/home/question/questioncreate',
+          name: 'questioncreate',
+          component: () => import('../components/QuestionCreate/index.vue')
         },
         {
           path: '/home/class',
@@ -48,9 +58,9 @@ const router = createRouter({
           component: () => import('../components/Library/index.vue')
         },
         {
-          path: '/home/question/:questionId',
-          name: 'questionDetail',
-          component: () => import('../components/QuestionDetail/index.vue')
+          path: '/home/corret',
+          name: 'corret',
+          component: () => import('../components/Corret/index.vue')
         },
       ]
     },

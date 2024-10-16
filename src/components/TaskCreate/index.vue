@@ -9,10 +9,10 @@
             <input type="text" placeholder="请输入作业标题" />
         </div>
         <div class="create_title">
-            <p>描述：</p>
+            <p>描述（可选）：</p>
             <input type="text" placeholder="请输入作业简介" />
         </div>
-        <div class="create_task">
+        <!-- <div class="create_task">
             <p>作业列表：</p>
             <div class="task_list">
                 <ul>
@@ -134,6 +134,13 @@
             <div class="button_container">
                 <el-button type="primary" style="margin-top: 10px;">添加题目</el-button>
             </div>
+        </div> -->
+        <div class="create_title">
+            <p>请选择本次作业的题目：</p>
+        </div>
+        <div class="create_title">
+            <p>请选择本次作业的截止时间：</p>
+            <input type="date" style="width: 150px; padding: 0 10px;" />
         </div>
         <div class="button_submit">
             <el-button type="primary">提交</el-button>
@@ -187,7 +194,7 @@
     }
 }
 
-.create_task {
+/* .create_task {
     height: auto;
 }
 
@@ -228,7 +235,7 @@
     align-self: flex-end;
     justify-content: flex-end;
     width: 100%;
-}
+} */
 
 .button_submit {
     display: flex;

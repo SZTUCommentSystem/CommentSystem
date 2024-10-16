@@ -127,7 +127,7 @@ const textarea = ref('');
         </div>
         <div class="home-body-library">
             <div class="title">
-                <h1>标题待定</h1>
+                <h1>详情内容</h1>
             </div>
             <div class="info">
                 <ul>

@@ -9,7 +9,7 @@ const route = useRoute();
 
 const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, filteredStudent } = StudentList();
 
-const getStatusClass = (row) => {
+const getStatusClass = (row: any) => {
     return row.status === '未提交' ? 'isRed' : 'isSubmit';
 }
 </script>
@@ -46,10 +46,13 @@ const getStatusClass = (row) => {
                 </el-table-column>
                 <el-table-column prop="score" label="得分" width="180" />
                 <el-table-column label="操作">
-                    <div>
-                        <router-link to="">批改作业</router-link>
-                        <router-link to="" style="margin-left: 10px;">追加点评</router-link>
-                    </div>
+                    <template #default="scope">
+                        <div>
+                            <router-link
+                                :to="{ path: '/home/corret', query: { name: scope.row.name } }">批改作业</router-link>
+                            <router-link to="" style="margin-left: 10px;">追加点评</router-link>
+                        </div>
+                    </template>
                 </el-table-column>
             </el-table>
             <div class="pageing">

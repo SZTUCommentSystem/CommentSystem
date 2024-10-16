@@ -50,7 +50,7 @@ const toTaskDetail = (title: string) => {
                         <el-option label="已结束" value="2"></el-option>
                     </el-select>
                 </div>
-                <router-link to="/home/createtask" class="title_button"><el-button
+                <router-link to="/home/taskcreate" class="title_button"><el-button
                         type="primary">去创建作业</el-button></router-link>
             </div>
             <div class="list">

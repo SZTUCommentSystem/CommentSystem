@@ -116,7 +116,9 @@ const handleRowClick = (row: any) => {
         <el-option label="工程设计" value="工程设计"></el-option>
       </el-select>
 
-      <el-input v-model="searchQuery" placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search"/>
+      <el-input v-model="searchQuery" placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+      <el-button type="primary" style="margin-left: 10px;"
+        @click="router.push('/home/question/questioncreate')">创建题目</el-button>
     </div>
 
     <!-- 题目列表展示 -->
@@ -144,16 +146,9 @@ const handleRowClick = (row: any) => {
     <!-- 分页器 -->
     <div class="paging mt-4" style="display: flex;justify-content: flex-end;">
       <el-config-provider :locale="zhCn">
-        <el-pagination
-            :current-page="currentPage"
-            :page-size="pageSize"
-            :total="filteredQuestions.length"
-            background
-            layout="total, prev, pager, next, sizes, jumper"
-            :page-sizes="[5, 10, 20, 30]"
-            @size-change="handlePageSizeChange"
-            @current-change="handlePageChange"
-        />
+        <el-pagination :current-page="currentPage" :page-size="pageSize" :total="filteredQuestions.length" background
+          layout="total, prev, pager, next, sizes, jumper" :page-sizes="[5, 10, 20, 30]"
+          @size-change="handlePageSizeChange" @current-change="handlePageChange" />
       </el-config-provider>
     </div>
   </div>
@@ -164,19 +159,26 @@ const handleRowClick = (row: any) => {
 * {
   font-size: 18px;
 }
+
 .question-bank {
   background-color: #fff;
   padding: 20px;
 }
+
 .filter-container {
   display: flex;
   margin-bottom: 10px;
 }
+
 .icon {
-  opacity: 0.3; /* 默认透明度 */
-  transition: opacity 0.3s; /* 添加过渡效果 */
+  opacity: 0.3;
+  /* 默认透明度 */
+  transition: opacity 0.3s;
+  /* 添加过渡效果 */
 }
+
 .icon-container:hover .icon {
-  opacity: 1; /* 鼠标悬停时变为不透明 */
+  opacity: 1;
+  /* 鼠标悬停时变为不透明 */
 }
 </style>
