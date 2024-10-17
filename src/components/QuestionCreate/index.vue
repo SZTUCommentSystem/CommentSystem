@@ -8,6 +8,7 @@ import type { UploadProps, UploadUserFile } from 'element-plus'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 const markdownContent = ref()
 
+// 上传图片
 const fileList = ref<UploadUserFile[]>([
     {
         name: 'food.jpg',
@@ -30,6 +31,23 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     dialogImageUrl.value = uploadFile.url!
     dialogVisible.value = true
 }
+
+// 标签
+const displayTags = ref(['标签1', '标签2'])
+
+const handleCloseTag = (tag: string) => {
+    displayTags.value.splice(displayTags.value.indexOf(tag), 1)
+}
+
+// 批语
+const displayComments = ref([
+    '你在这个项目中展现了极高的专业水平。',
+    '你的思考方式为大家打开了新的视野。'
+])
+
+const handleCloseComment = (comment: string) => {
+    displayComments.value.splice(displayComments.value.indexOf(comment), 1)
+}
 </script>
 
 <template>
@@ -38,6 +56,14 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
         <div class="create_title">
             <p>标题：</p>
             <input type="text" placeholder="请输入题目标题" />
+        </div>
+        <div class="create_list">
+            <p>选择题目标签：</p>
+            <div class="tag">
+                <el-tag v-for="tag in displayTags" :key="tag" type="primary" effect="plain" round size="large" closable
+                    @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+                <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
+            </div>
         </div>
         <div class="create_list">
             <p>上传作业相关图片：</p>
@@ -53,7 +79,18 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
                 <img w-full :src="dialogImageUrl" alt="Preview Image" />
             </el-dialog>
         </div>
-        <editor-markdown v-model="markdownContent"></editor-markdown>
+        <div class="create_list">
+            <p>添加题目描述（可选）：</p>
+            <editor-markdown v-model="markdownContent"></editor-markdown>
+        </div>
+        <div class="create_list">
+            <p>选择题目批语：</p>
+            <el-tag v-for="comment in displayComments" :key="comment" effect="plain" closable
+                @close="handleCloseComment" class="comment-tag">
+                {{ comment }}
+            </el-tag>
+            <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button>
+        </div>
         <div class="button_submit">
             <el-button type="primary">提交</el-button>
             <router-link to="/home/task">
@@ -89,6 +126,7 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     p {
         margin: 0;
         font-size: 18px;
+        margin-bottom: 10px;
     }
 
     input {
@@ -120,5 +158,21 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
         margin-left: 10px;
         padding: 0 35px;
     }
+}
+
+.tag {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.comment-tag {
+    font-size: 18px;
+    margin: 10px 0;
+    padding-bottom: 5px;
+    color: #000;
+    border: 0;
+    border-radius: 0;
+    border-bottom: 1px solid #000;
 }
 </style>
