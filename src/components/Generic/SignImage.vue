@@ -176,12 +176,6 @@ const customTheme = {
     "colorpicker.title.color": "#fff",
 };
 
-// 定义 window.serverUrl
-window.serverUrl = {
-    IMG_SERVER: 'http://localhost:3000'
-};
-
-
 // props
 const props = defineProps({
     dialogVisible: {

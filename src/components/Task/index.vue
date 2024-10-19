@@ -6,14 +6,36 @@ import { useRouter } from "vue-router";
 
 // 导入相关ts文件
 import ListDisplay from "../../hooks/TaskHooks/ListDisplay";
-import DelAndAddList from "../../hooks/TaskHooks/DelAndAddList";
-// import FilterStatus from "../../hooks /TaskHooks/FilterStatus";
+import { PubList, DelList } from "../../hooks/TaskHooks/OperateList";
 
 //载入主要数据和事件
 const { state, handleSizeChange, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
 
+
+// 发布作业
+const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList(state.TaskList);
+const publishTask = () => {
+    state.TaskList = publishTaskOriginal();
+}
+
+
+const checkAll = ref(false)
+const isIndeterminate = ref(true)
+const checkedCities = ref(['工程1班', '工程4班'])
+const cities = ['工程1班', '工程2班', '工程3班', '工程4班']
+
+const handleCheckAllChange = (val: boolean) => {
+    checkedCities.value = val ? cities : []
+    isIndeterminate.value = false
+}
+const handleCheckedCitiesChange = (value: string[]) => {
+    const checkedCount = value.length
+    checkAll.value = checkedCount === cities.length
+    isIndeterminate.value = checkedCount > 0 && checkedCount < cities.length
+}
+
 //删除相关事件
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelAndAddList(state.TaskList);
+const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList(state.TaskList);
 
 const deleteTask = () => {
     state.TaskList = deleteTaskOriginal();
@@ -50,39 +72,45 @@ const toTaskDetail = (title: string) => {
                         <el-option label="已结束" value="2"></el-option>
                     </el-select>
                 </div>
-                <router-link to="/home/taskcreate" class="title_button"><el-button
+                <router-link to="/home/task/taskcreate" class="title_button"><el-button
                         type="primary">去创建作业</el-button></router-link>
             </div>
             <div class="list">
                 <ul>
                     <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
                         <div class="pane">
-                            <div class="pane_top">
-                                <div class="pane_rep">
+                            <div class="pane-top">
+                                <div class="pane-rep">
                                     <div class="status">
                                         <p v-if="item.PublishStatus === 0" class="unpublish">未发布</p>
                                         <p v-else-if="item.PublishStatus === 1" class="publish">已发布</p>
                                         <p v-else class="ended">已结束</p>
                                         <h5>标题：{{ item.title }}</h5>
                                     </div>
-                                    <p>描述：{{ item.description }}</p>
+                                    <div class="task-tag">
+                                        <el-tag v-for="tag in item.tags" :key="tag">
+                                            {{ tag }}
+                                        </el-tag>
+                                    </div>
                                     <p>老师：{{ item.teacher }}</p>
                                     <p>截止时间：0213</p>
                                 </div>
-                                <div class="pane_skip">
+                                <div class="pane-skip">
                                     <el-dropdown placement="bottom">
                                         <el-button> 更多 </el-button>
                                         <template #dropdown>
                                             <el-dropdown-menu>
-                                                <el-dropdown-item>立即发布</el-dropdown-item>
+                                                <el-dropdown-item @click="confirmPubTask(item.id)">
+                                                    立即发布
+                                                </el-dropdown-item>
                                                 <el-dropdown-item>立即截止</el-dropdown-item>
                                                 <el-dropdown-item @click="confirmDelTask(item.id)">
                                                     立即删除
                                                 </el-dropdown-item>
                                                 <el-dropdown-item>编辑作业</el-dropdown-item>
-                                                <el-dropdown-item>查看批语</el-dropdown-item>
-                                                <el-dropdown-item
-                                                    @click="toTaskDetail(item.title)">查看作业</el-dropdown-item>
+                                                <el-dropdown-item @click="toTaskDetail(item.title)">
+                                                    查看作业
+                                                </el-dropdown-item>
                                             </el-dropdown-menu>
                                         </template>
                                     </el-dropdown>
@@ -93,7 +121,7 @@ const toTaskDetail = (title: string) => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="pane_drop_list" v-if="item.IsDropList">
+                            <div class="pane-drop-list" v-if="item.IsDropList">
                                 <table>
                                     <thead>
                                         <tr>
@@ -116,7 +144,7 @@ const toTaskDetail = (title: string) => {
                         </div>
 
                     </li>
-                    <li v-else class="list_not_li">
+                    <li v-else class="list-not-li">
                         <h1>尚未发布作业</h1>
                     </li>
                 </ul>
@@ -130,6 +158,28 @@ const toTaskDetail = (title: string) => {
                 </el-config-provider>
             </div>
         </div>
+
+        <!-- 发布作业 -->
+        <el-dialog v-model="pubDialogVisible" title="发布作业" width="30%" center>
+            <div>请选择要发布的班级</div>
+            <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">
+                全选
+            </el-checkbox>
+            <el-checkbox-group v-model="checkedCities" @change="handleCheckedCitiesChange">
+                <el-checkbox v-for="city in cities" :key="city" :label="city" :value="city">
+                    {{ city }}
+                </el-checkbox>
+            </el-checkbox-group>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button type="primary" @click="publishTask">
+                        确定
+                    </el-button>
+                    <el-button @click="pubDialogVisible = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
         <!-- 删除作业 -->
         <el-dialog v-model="delDialogVisible" title="删除作业" width="30%" center>
             <div>确定删除该作业吗？</div>
@@ -223,7 +273,7 @@ p {
                     width: 100%;
                 }
 
-                .pane_top {
+                .pane-top {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
@@ -231,7 +281,7 @@ p {
                     width: 100%;
                     height: 128px;
 
-                    .pane_rep {
+                    .pane-rep {
                         width: 69%;
 
                         p {
@@ -272,9 +322,16 @@ p {
                                 font-weight: 600;
                             }
                         }
+
+                        .task-tag {
+                            display: flex;
+                            align-items: center;
+                            flex-wrap: wrap;
+                            gap: 10px;
+                        }
                     }
 
-                    .pane_skip {
+                    .pane-skip {
                         margin-right: 25px;
 
                         button:focus {
@@ -302,7 +359,7 @@ p {
                     }
                 }
 
-                .pane_drop_list {
+                .pane-drop-list {
                     width: 100%;
                     height: 100px;
 
@@ -332,7 +389,7 @@ p {
                 }
             }
 
-            .list_not_li {
+            .list-not-li {
                 position: absolute;
                 top: 50%;
                 left: 50%;

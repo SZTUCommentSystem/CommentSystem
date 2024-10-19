@@ -20,16 +20,15 @@ const srcList = [
 ]
 
 //////////////// 批改
-
-// 关闭弹窗
-const emits = defineEmits(["closeDialog"]);
-const closeDialog = () => {
-    emits("closeDialog");
-};
+// 图片删除
+const deleteImgShow = reactive<boolean>([]);
+const deleteImg = (index: number) => {
+    newImgs.splice(index, 1);
+}
 
 
 // 图片处理
-const newImgs = reactive([]);
+const newImgs = reactive<string[]>([]);
 const cropperObj = reactive({
     cVisible: false, // 显示切图弹框
     ctitle: "", // 弹框标题
@@ -40,12 +39,14 @@ const cropperObj = reactive({
         cropperObj.cVisible = true
     },
     // 关闭弹框所触发的事件
-    closeCropperView: (data) => {
+    closeCropperView: (data: any) => {
         cropperObj.cVisible = false
     },
     // 获取处理完的图片
-    getNewImg: (val) => {
-        newImgs.push(window.serverUrl.IMG_SERVER + val)
+    getNewImg: (val: any) => {
+        const serverUrl = 'http://localhost:3000';
+        newImgs.push(serverUrl + val);
+        deleteImgShow.push(false);
     }
 })
 
@@ -92,7 +93,7 @@ const onclick = (comment: string) => {
                 <p>相关图片：</p>
                 <ul class="demo-image__preview">
                     <li v-for="(src, index) in srcList" :key="index">
-                        <el-image style="width: 300px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
+                        <el-image style="width: 380px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
                             :preview-src-list="srcList" :initial-index="index" fit="cover" />
                     </li>
                 </ul>
@@ -104,7 +105,7 @@ const onclick = (comment: string) => {
                 <p>相关图片：</p>
                 <ul class="demo-image__preview">
                     <li v-for="(src, index) in srcList" :key="index">
-                        <el-image style="width: 300px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
+                        <el-image style="width: 380px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
                             :preview-src-list="srcList" :initial-index="index" fit="cover" />
                     </li>
                 </ul>
@@ -114,18 +115,21 @@ const onclick = (comment: string) => {
             <h4>批改作业</h4>
             <p>批改：</p>
             <div class="correct-box">
-                <!-- 处理完图片回显 -->
-                <ul>
-                    <li v-for="img in newImgs" :key="img">
-                        <el-image :src="img" fit="cover" />
-                    </li>
-                </ul>
                 <!-- 图片处理框 -->
                 <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
                     :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl" @getNewImg="cropperObj.getNewImg"
                     @closeCropperDialog="cropperObj.closeCropperView"></SignImage>
                 <!-- 点击弹出图片处理框 -->
                 <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
+                <!-- 处理完图片回显 -->
+                <ul>
+                    <li v-for="(img, index) in newImgs" :key="index">
+                        <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
+                        <div class="img-del" v-show="deleteImgShow[index]" @mouseleave="deleteImgShow[index] = false">
+                            <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
+                        </div>
+                    </li>
+                </ul>
             </div>
 
             <p>本题的批语库为：</p>
@@ -183,6 +187,10 @@ const onclick = (comment: string) => {
         &:focus {
             outline: none;
         }
+    }
+
+    ul {
+        padding-left: 0;
     }
 }
 
@@ -251,15 +259,42 @@ const onclick = (comment: string) => {
     ul {
         display: flex;
         flex-wrap: wrap;
+        margin-top: 10px;
 
         li {
-            width: 300px;
+            position: relative;
+            width: 380px;
             margin-right: 10px;
             margin-bottom: 10px;
 
             image {
                 width: 100%;
                 height: 100%;
+            }
+
+            .img-del {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 100%;
+                height: 97%;
+                background-color: #000;
+                opacity: 0;
+                transition: opacity 0.5s;
+                cursor: pointer;
+
+                img {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 40px;
+                    height: 40px;
+                }
+
+                &:hover {
+                    opacity: 0.5;
+                }
             }
         }
     }
