@@ -6,96 +6,17 @@ const testPage = reactive({
   taskList: [
     {
       id: 1,
-      title: "标题",
+      title: "工程1班",
       name: "张老师",
-      check: 287,
       people: 27,
       task: 2
     },
     {
-      id: 1,
-      title: "标题",
+      id: 2,
+      title: "工程2班",
       name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
-    }, {
-      id: 1,
-      title: "标题",
-      name: "张老师",
-      check: 287,
-      people: 27,
-      task: 2
+      people: 36,
+      task: 1
     },
   ],
   pageSize: 12,
@@ -144,7 +65,6 @@ const displayedTasks = computed(() => {
             <p style="margin-top: 10px;">{{ item.name }}</p>
           </div>
           <div class="footer">
-            <p><img src="@/assets/img/查看.png" alt="">{{ item.check }}</p>
             <p><img src="@/assets/img/人数.png" alt="">{{ item.people }}</p>
             <p><img src="@/assets/img/作业.png" alt="">{{ item.task }}</p>
           </div>
