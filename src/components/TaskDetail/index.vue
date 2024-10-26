@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { Search } from '@element-plus/icons-vue';
@@ -16,13 +16,13 @@ const route = useRoute();
 // 班级选择
 const classSelect = reactive({
     class: '全部',
-    classList: ['全部', '一班', '二班', '三班']
+    classList: ['全部', '软件工程1班', '软件工程2班', '软件工程3班']
 });
 
 //导出Excel表格
 //导出表格的数据
 const data = reactive([
-    { name: 'hyt', serct: 'hyt是sb' },
+    { 名字: 'hyt', serct: 'hyt是sb' },
 ]);
 
 
@@ -31,10 +31,16 @@ const Export = () => {
         confirmButtonText: '确认',
         callback: (action: Action) => {
             if (action === 'confirm') {
-                ExcelEport(data);
-                ElMessage({
-                    type: 'success',
-                    message: '导出成功'
+                ExcelEport(data).then(() => {
+                    ElMessage({
+                        type: 'success',
+                        message: '导出成功'
+                    })
+                }).catch(() => {
+                    ElMessage({
+                        type: 'error',
+                        message: '导出失败'
+                    })
                 })
             }
         },
@@ -42,7 +48,7 @@ const Export = () => {
 }
 
 // 学生列表
-const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, filteredStudent } = StudentList();
+const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent } = StudentList();
 
 const getStatusClass = (row: any) => {
     if (row.status === '未提交') {
@@ -55,6 +61,10 @@ const getStatusClass = (row: any) => {
         return 'isCorrect';
     }
 }
+
+watchEffect(() => {
+    searchClassQuery.value = classSelect.class;
+})
 </script>
 
 <template>

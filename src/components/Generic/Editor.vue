@@ -2,6 +2,7 @@
     <VueMarkdownEditor v-model="(modelValue)" :disabled-menus="[]" :include-level="[1, 2, 3, 4, 5, 6]"
         @upload-image="handleUploadImage" @change="change" :height="height + 'px'"></VueMarkdownEditor>
 </template>
+
 <script setup>
 import VueMarkdownEditor from "@kangc/v-md-editor";
 import "@kangc/v-md-editor/lib/style/base-editor.css";
@@ -10,6 +11,7 @@ import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
 import Prism from "prismjs";
 import { getCurrentInstance } from "vue";
 import createKatexPlugin from '@kangc/v-md-editor/lib/plugins/katex/npm'
+import 'katex/dist/katex.min.css';
 
 const { proxy } = getCurrentInstance()
 VueMarkdownEditor.use(vuepressTheme, {

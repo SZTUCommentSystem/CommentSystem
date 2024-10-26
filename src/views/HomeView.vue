@@ -2,6 +2,7 @@
 
 import NavBar from "@/components/Home/NavBar.vue";
 import { RouterView } from "vue-router";
+import Floor from "@/components/Home/Floor.vue";
 
 </script>
 
@@ -17,6 +18,7 @@ import { RouterView } from "vue-router";
         </transition>
       </router-view>
     </div>
+    <Floor></Floor>
   </div>
 </template>
 
@@ -35,11 +37,15 @@ import { RouterView } from "vue-router";
   margin: 0 auto;
   /* 设置宽度和居中 */
 }
+
 /* 定义 fade 过渡效果 */
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

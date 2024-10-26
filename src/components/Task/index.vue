@@ -5,7 +5,7 @@ import { zhCn } from "element-plus/es/locale/index.mjs";
 import { useRouter } from "vue-router";
 
 // 导入相关ts文件
-import ListDisplay from "../../hooks/TaskHooks/ListDisplay";
+import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
 import { PubList, DelList } from "../../hooks/TaskHooks/OperateList";
 
 //载入主要数据和事件
@@ -21,17 +21,17 @@ const publishTask = () => {
 
 const checkAll = ref(false)
 const isIndeterminate = ref(true)
-const checkedCities = ref(['工程1班', '工程4班'])
-const cities = ['工程1班', '工程2班', '工程3班', '工程4班']
+const checkedTags = ref(['工程1班', '工程4班'])
+const tags = ['工程1班', '工程2班', '工程3班', '工程4班']
 
 const handleCheckAllChange = (val: boolean) => {
-    checkedCities.value = val ? cities : []
+    checkedTags.value = val ? tags : []
     isIndeterminate.value = false
 }
-const handleCheckedCitiesChange = (value: string[]) => {
+const handleCheckedTagsChange = (value: string[]) => {
     const checkedCount = value.length
-    checkAll.value = checkedCount === cities.length
-    isIndeterminate.value = checkedCount > 0 && checkedCount < cities.length
+    checkAll.value = checkedCount === tags.length
+    isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length
 }
 
 //删除相关事件
@@ -165,9 +165,9 @@ const toTaskDetail = (title: string) => {
             <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">
                 全选
             </el-checkbox>
-            <el-checkbox-group v-model="checkedCities" @change="handleCheckedCitiesChange">
-                <el-checkbox v-for="city in cities" :key="city" :label="city" :value="city">
-                    {{ city }}
+            <el-checkbox-group v-model="checkedTags" @change="handleCheckedTagsChange">
+                <el-checkbox v-for="tag in tags" :key="tag" :label="tag" :value="tag">
+                    {{ tag }}
                 </el-checkbox>
             </el-checkbox-group>
             <template #footer>

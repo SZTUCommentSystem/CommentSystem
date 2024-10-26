@@ -12,11 +12,11 @@ const markdownContent = ref()
 const fileList = ref<UploadUserFile[]>([
     {
         name: 'food.jpg',
-        url: 'https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15',
+        url: 'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
     },
     {
         name: 'test.jpg',
-        url: 'src/assets/img/便签.png',
+        url: 'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
     }
 ])
 
@@ -53,20 +53,26 @@ const handleCloseComment = (comment: string) => {
 <template>
     <div class="create-wrapper">
         <h2 style="margin-bottom: 10px;">新建题目</h2>
-        <div class="create_title">
-            <p>标题：</p>
-            <input type="text" placeholder="请输入题目标题" />
+        <div class="create-title-top">
+            <div class="left">
+                <p>标题：</p>
+                <input type="text" placeholder="请输入题目标题" />
+            </div>
+            <div class="right">
+                <p>题目类型：</p>
+                <input type="text" placeholder="请输入题目类型" />
+            </div>
         </div>
-        <div class="create_list">
-            <p>选择题目标签：</p>
+        <div class="create-list">
+            <p>题目标签：</p>
             <div class="tag">
                 <el-tag v-for="tag in displayTags" :key="tag" type="primary" effect="plain" round size="large" closable
                     @close="handleCloseTag(tag)">{{ tag }}</el-tag>
                 <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
             </div>
         </div>
-        <div class="create_list">
-            <p>上传作业相关图片：</p>
+        <div class="create-list">
+            <p>作业相关图片：</p>
             <el-upload v-model:file-list="fileList"
                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
                 :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
@@ -79,12 +85,12 @@ const handleCloseComment = (comment: string) => {
                 <img w-full :src="dialogImageUrl" alt="Preview Image" />
             </el-dialog>
         </div>
-        <div class="create_list">
-            <p>添加题目描述（可选）：</p>
+        <div class="create-list">
+            <p>题目描述（可选）：</p>
             <editor-markdown v-model="markdownContent"></editor-markdown>
         </div>
-        <div class="create_list">
-            <p>选择题目批语：</p>
+        <div class="create-list">
+            <p>题目批语：</p>
             <el-tag v-for="comment in displayComments" :key="comment" effect="plain" closable
                 @close="handleCloseComment" class="comment-tag">
                 {{ comment }}
@@ -110,8 +116,49 @@ const handleCloseComment = (comment: string) => {
 
 }
 
-.create_title,
-.create_list {
+.create-title-top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 10px;
+
+
+    .left,
+    .right {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 20px;
+        background-color: #fff;
+        width: 49%;
+    }
+
+
+    .right {
+        width: 50%;
+        margin-left: 10px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    input {
+        display: inline-block;
+        width: 100%;
+        height: 45px;
+        padding-left: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
+.create-list {
     display: flex;
     /* 纵向排列 */
     flex-direction: column;
@@ -144,7 +191,7 @@ const handleCloseComment = (comment: string) => {
     }
 }
 
-.create_list {
+.create-list {
     height: auto;
 }
 

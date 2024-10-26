@@ -40,12 +40,6 @@ export default function StudentList() {
         status.pageNum = val
         window.scrollTo(0, 0)
     }
-    // 根据当前页码和每页显示数量计算当前显示的章节列表
-    const displayStudent = computed(() => {
-        const start = (status.pageNum - 1) * status.pageSize;
-        const end = start + status.pageSize;
-        return filteredStudent.value.slice(start, end);
-    });
 
     //过滤搜索数组
     const searchNameQuery = ref('');
@@ -58,5 +52,23 @@ export default function StudentList() {
         });
     });
 
-    return { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, filteredStudent }
+    //过滤班级数组
+    const searchClassQuery = ref('');
+    const filteredClass = computed(() => {
+        return filteredStudent.value.filter(student => {
+            const matchesSearchClass = searchClassQuery.value === '全部' ? true : student.class.includes(searchClassQuery.value);
+            return matchesSearchClass;
+        });
+    });
+
+    // 根据当前页码和每页显示数量计算当前显示的章节列表
+    const displayStudent = computed(() => {
+        const start = (status.pageNum - 1) * status.pageSize;
+        const end = start + status.pageSize;
+        return filteredClass.value.slice(start, end);
+    });
+
+
+
+    return { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent }
 }

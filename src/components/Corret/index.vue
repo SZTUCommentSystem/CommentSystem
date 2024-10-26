@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import SignImage from '@/components/Generic/SignImage.vue'
-import { ref, reactive, watch } from "vue";
-import testImage from "@/assets/测试1.png";
-import testImage2 from "@/assets/测试2.png";
+import { ref } from "vue";
+
+import CorrectWork from '@/hooks/CorretHooks/CorretWork';
 
 // 接受携带数据
 const route = useRoute();
 
-//////////////// 学生提交图片
+// 学生提交图片
 const srcList = [
     'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
     'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
@@ -19,49 +19,11 @@ const srcList = [
     'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
 ]
 
-//////////////// 批改
-// 图片删除
-const deleteImgShow = reactive<boolean>([]);
-const deleteImg = (index: number) => {
-    newImgs.splice(index, 1);
-}
+// 批改
+const { deleteImgShow, deleteImg, newImgs, cropperObj } = CorrectWork()
 
 
-// 图片处理
-const newImgs = reactive<string[]>([]);
-const cropperObj = reactive({
-    cVisible: false, // 显示切图弹框
-    ctitle: "", // 弹框标题
-    previewsImgUrl: [testImage, testImage2], //图片地址
-    // 开启剪切弹框
-    openCropperView: () => {
-        cropperObj.ctitle = "图片处理"
-        cropperObj.cVisible = true
-    },
-    // 关闭弹框所触发的事件
-    closeCropperView: (data: any) => {
-        cropperObj.cVisible = false
-    },
-    // 获取处理完的图片
-    getNewImg: (val: any) => {
-        const serverUrl = 'http://localhost:3000';
-        newImgs.push(serverUrl + val);
-        deleteImgShow.push(false);
-    }
-})
-
-
-// 处理文件上传，这个函数还没用到
-// const handleFileUpload = (event) => {
-//     const files = event.target.files;
-//     for (let i = 0; i < files.length; i++) {
-//         const file = files[i];
-//         const imageUrl = URL.createObjectURL(file);
-//         images.value.push(imageUrl);
-//     }
-// };
-
-/////////////// 批语
+// 批语
 const displayComments = ref([
     '你在这个项目中展现了极高的专业水平。',
     '你的思考方式为大家打开了新的视野。'
