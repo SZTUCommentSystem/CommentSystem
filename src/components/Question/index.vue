@@ -41,6 +41,8 @@ onMounted(() => {
 
       <el-input v-model="state.searchQuery" placeholder="搜索题目" style="width: 200px; font-size: 15px"
         :prefix-icon="Search" />
+      <el-input v-model="state.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px; margin-left: 10px;"
+        :prefix-icon="Search" />
       <el-button type="primary" style="margin-left: 10px;"
         @click="router.push('/home/question/questioncreate')">创建题目</el-button>
     </div>
@@ -49,7 +51,16 @@ onMounted(() => {
     <ElTable :data="paginatedQuestions" stripe>
       <ElTableColumn label="序号" type="index" width="100" />
       <ElTableColumn prop="type" label="题目类型" width="150" />
-      <ElTableColumn prop="title" label="题目" />
+      <ElTableColumn prop="title" label="题目" width="250" />
+      <ElTableColumn prop="tags">
+        <template #default="{ row }">
+          <div style="display: flex; gap: 10px;">
+            <el-tag v-for="tag in row.tags" :key="tag" closable @close="handleCloseTag(tag)" round effect="plain">
+              {{ tag }}
+            </el-tag>
+          </div>
+        </template>
+      </ElTableColumn>
       <ElTableColumn label="操作" width="200">
         <template #default="scope">
           <div class="icon-container" style="display: flex; align-items: center;">

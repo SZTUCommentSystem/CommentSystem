@@ -1,25 +1,28 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 
 import type { UploadProps, UploadUserFile } from 'element-plus'
 
 // 导入编辑器
 import EditorMarkdown from '@/components/Generic/Editor.vue'
-const markdownContent = ref()
+
+// 导入提交接口
+import { submitQuestionAPI } from '@/api/QuestionAPI/questionList'
+
+const questionContent = reactive({
+    title: '',
+    type: '',
+    tags: ['标签1', '标签2'],
+    imgs: [],
+    description: '',
+    displayComments: [
+        '你在这个项目中展现了极高的专业水平。',
+        '你的思考方式为大家打开了新的视野。',
+    ],
+})
 
 // 上传图片
-const fileList = ref<UploadUserFile[]>([
-    {
-        name: 'food.jpg',
-        url: 'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
-    },
-    {
-        name: 'test.jpg',
-        url: 'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
-    }
-])
-
 const dialogImageUrl = ref('')
 const dialogVisible = ref(false)
 
@@ -32,21 +35,30 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     dialogVisible.value = true
 }
 
-// 标签
-const displayTags = ref(['标签1', '标签2'])
+const beforeUpload = (file) => {
+    // 阻止自动上传
+    return false
+}
 
+
+// 标签
 const handleCloseTag = (tag: string) => {
-    displayTags.value.splice(displayTags.value.indexOf(tag), 1)
+    questionContent.tags.splice(questionContent.tags.indexOf(tag), 1)
 }
 
 // 批语
-const displayComments = ref([
-    '你在这个项目中展现了极高的专业水平。',
-    '你的思考方式为大家打开了新的视野。'
-])
-
 const handleCloseComment = (comment: string) => {
-    displayComments.value.splice(displayComments.value.indexOf(comment), 1)
+    questionContent.displayComments.splice(questionContent.displayComments.indexOf(comment), 1)
+}
+
+// 提交
+const submitQuestion = async () => {
+    try {
+        const res = await submitQuestionAPI(questionContent)
+        console.log(res)
+    } catch (error) {
+        console.error('提交题目失败:', error)
+    }
 }
 </script>
 
@@ -56,26 +68,27 @@ const handleCloseComment = (comment: string) => {
         <div class="create-title-top">
             <div class="left">
                 <p>标题：</p>
-                <input type="text" placeholder="请输入题目标题" />
+                <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
             </div>
             <div class="right">
                 <p>题目类型：</p>
-                <input type="text" placeholder="请输入题目类型" />
+                <input type="text" v-model="questionContent.type" placeholder="请输入题目类型" />
             </div>
         </div>
         <div class="create-list">
             <p>题目标签：</p>
             <div class="tag">
-                <el-tag v-for="tag in displayTags" :key="tag" type="primary" effect="plain" round size="large" closable
-                    @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+                <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round size="large"
+                    closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
                 <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
             </div>
         </div>
         <div class="create-list">
             <p>作业相关图片：</p>
-            <el-upload v-model:file-list="fileList"
+            <el-upload ref="upload" v-model:file-list="questionContent.imgs"
                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
-                :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
+                :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
+                :on-remove="handleRemove">
                 <el-icon>
                     <Plus />
                 </el-icon>
@@ -87,18 +100,18 @@ const handleCloseComment = (comment: string) => {
         </div>
         <div class="create-list">
             <p>题目描述（可选）：</p>
-            <editor-markdown v-model="markdownContent"></editor-markdown>
+            <editor-markdown v-model="questionContent.description"></editor-markdown>
         </div>
         <div class="create-list">
             <p>题目批语：</p>
-            <el-tag v-for="comment in displayComments" :key="comment" effect="plain" closable
+            <el-tag v-for="comment in questionContent.displayComments" :key="comment" effect="plain" closable
                 @close="handleCloseComment" class="comment-tag">
                 {{ comment }}
             </el-tag>
             <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button>
         </div>
         <div class="button_submit">
-            <el-button type="primary">提交</el-button>
+            <el-button type="primary" @click="submitQuestion">提交</el-button>
             <router-link to="/home/task">
                 <el-button>取消</el-button>
             </router-link>

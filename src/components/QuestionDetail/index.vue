@@ -8,11 +8,22 @@ import type { UploadProps, UploadUserFile } from 'element-plus'
 import { questionDetailAPI } from '@/api/QuestionAPI/questionList';
 
 const route = useRoute()
-const questionDetail = reactive({})
+const questionDetail = reactive({
+  title: '',
+  type: '',
+  tags: [],
+  imgs: [],
+  description: '',
+  displayComments: [],
+})
 
 const getDetail = async () => {
   try {
-    const res = await questionDetailAPI(route.query.itemId)
+    const itemId = Number(route.query.itemId)
+    if (isNaN(itemId)) {
+      throw new Error('Invalid itemId')
+    }
+    const res = await questionDetailAPI(itemId)
     Object.assign(questionDetail, res.data.data) // 更新对象的属性
   } catch (error) {
     console.error('获取题目详情失败:', error)
@@ -23,16 +34,6 @@ const getDetail = async () => {
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 // 上传图片
-const fileList = ref<UploadUserFile[]>([
-  {
-    name: 'food.jpg',
-    url: 'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
-  },
-  {
-    name: 'test.jpg',
-    url: 'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
-  }
-])
 
 const dialogImageUrl = ref('')
 const dialogVisible = ref(false)
@@ -69,11 +70,17 @@ watch(
 <template>
   <div class="create-wrapper">
     <h2 style="margin-bottom: 10px;">题目详情</h2>
-    <div class="create_title">
-      <p>标题：</p>
-      <input type="text" v-model="questionDetail.title" placeholder="请输入题目标题" />
+    <div class="create-title-top">
+      <div class="left">
+        <p>标题：</p>
+        <input type="text" v-model="questionDetail.title" placeholder="请输入题目标题" />
+      </div>
+      <div class="right">
+        <p>题目类型：</p>
+        <input type="text" v-model="questionDetail.type" placeholder="请输入题目类型" />
+      </div>
     </div>
-    <div class="create_list">
+    <div class="create-list">
       <p>题目标签：</p>
       <div class="tag">
         <el-tag v-for="tag in questionDetail.tags" :key="tag" type="primary" effect="plain" round size="large" closable
@@ -81,10 +88,11 @@ watch(
         <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
       </div>
     </div>
-    <div class="create_list">
+    <div class="create-list">
       <p>作业相关图片：</p>
-      <el-upload v-model:file-list="fileList" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-        list-type="picture-card" :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
+      <el-upload v-model:file-list="questionDetail.imgs"
+        action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
+        :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
         <el-icon>
           <Plus />
         </el-icon>
@@ -94,11 +102,11 @@ watch(
         <img w-full :src="dialogImageUrl" alt="Preview Image" />
       </el-dialog>
     </div>
-    <div class="create_list">
+    <div class="create-list">
       <p>题目描述（可选）：</p>
       <editor-markdown v-model="questionDetail.description"></editor-markdown>
     </div>
-    <div class="create_list">
+    <div class="create-list">
       <p>题目批语：</p>
       <el-tag v-for="comment in questionDetail.displayComments" :key="comment" effect="plain" closable
         @close="handleCloseComment" class="comment-tag">
@@ -123,8 +131,49 @@ watch(
   padding: 20px;
 }
 
-.create_title,
-.create_list {
+.create-title-top {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+
+
+  .left,
+  .right {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    background-color: #fff;
+    width: 49%;
+  }
+
+
+  .right {
+    width: 50%;
+    margin-left: 10px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  input {
+    display: inline-block;
+    width: 100%;
+    height: 45px;
+    padding-left: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.create-list {
   display: flex;
   /* 纵向排列 */
   flex-direction: column;
@@ -157,7 +206,7 @@ watch(
   }
 }
 
-.create_list {
+.create-list {
   height: auto;
 }
 

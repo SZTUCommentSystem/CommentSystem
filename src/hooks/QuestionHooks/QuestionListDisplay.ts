@@ -10,6 +10,7 @@ export default function QuestionListDisplay() {
         pageSize: 20, // 每页显示的题目数量
         selectedType: '', // 选中的题目类型
         searchQuery: '', // 搜索关键词
+        searchTag: '', // 搜索标签
     });
 
     const getList = async () => {
@@ -31,10 +32,11 @@ export default function QuestionListDisplay() {
         if (!Array.isArray(state.QuestionList) || state.QuestionList.length === 0) {
             return [];
         }
-        return state.QuestionList.filter((question: { type: string; title: string }) => {
+        return state.QuestionList.filter((question: { type: string; title: string; tags: Array<string> }) => {
             const matchesType = state.selectedType ? question.type === state.selectedType : true;
             const matchesSearch = question.title.includes(state.searchQuery);
-            return matchesType && matchesSearch;
+            const matchesTag = state.searchTag !== '' ? question.tags.includes(state.searchTag) : true;
+            return matchesType && matchesSearch && matchesTag;
         });
     });
 
