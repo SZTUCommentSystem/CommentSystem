@@ -1,36 +1,38 @@
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
+// 获取作业列表
+import { TaskListAPI } from "@/api/TaskAPI/TaskQuestionList";
 
 export default function ListDisplay() {
+    interface Task {
+        id: number;
+        title: string;
+        tags: string[];
+        teacher: string;
+        selectedQuestion: number[];
+        PublishStatus: number;
+        IsDropList: boolean;
+        DeadLine: string;
+    }
+
     const state = reactive({
-        TaskList: [
-            {
-                id: 1,
-                title: "Task 1",
-                tags: ["标签1", "标签2"],
-                teacher: '胡某',
-                PublishStatus: 2, //0代表未发布，1代表已发布，2代表已结束
-                IsDropList: false,
-            },
-            {
-                id: 2,
-                title: "Task 2",
-                tags: ["标签1", "标签2", "标签3"],
-                teacher: '张某',
-                PublishStatus: 1,
-                IsDropList: false,
-            },
-            {
-                id: 3,
-                title: "Task 3",
-                tags: ["标签1"],
-                teacher: '冯某',
-                PublishStatus: 0,
-                IsDropList: false,
-            },
-        ],
+        TaskList: [] as Task[],
         pageSize: 10,
         pageNum: 1
     });
+
+    // 获取作业列表
+    const getTaskList = async () => {
+        try {
+            const res = await TaskListAPI();
+            if (Array.isArray(res.data.data)) {
+                state.TaskList = res.data.data;
+            } else {
+                console.error('API 返回的数据不是数组:', res.data.data);
+            }
+        } catch (error) {
+            console.error('获取作业列表失败:', error);
+        }
+    }
 
     //列表展示
     const handleSizeChange = (val: number) => {
@@ -59,5 +61,5 @@ export default function ListDisplay() {
         const end = start + state.pageSize;
         return FilterStatus.value.slice(start, end);
     });
-    return { state, handleSizeChange, handleCurrentChange, selectedType, FilterStatus, displayedTasks }
+    return { state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks }
 }

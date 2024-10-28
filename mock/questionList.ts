@@ -108,5 +108,22 @@ export default [
                 message: 'success'
             }
         }
+    },
+    //根据上传的数组获取题目详情
+    {
+        url: '/api/home/taskQuestionList',
+        type: 'post',
+        response: (config: { body: { ids: number[]; }; }) => {
+            const { ids } = config.body;
+            console.log(ids);
+
+            const questionList = QuestionList();
+            const questions = questionList.filter(item => ids.includes(item.id));
+            return {
+                code: 200,
+                data: questions,
+                message: 'success'
+            }
+        }
     }
 ]

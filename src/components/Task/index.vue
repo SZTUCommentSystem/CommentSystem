@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect, computed } from "vue";
+import { ref, watchEffect, onMounted } from "vue";
 import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { useRouter } from "vue-router";
@@ -9,16 +9,16 @@ import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
 import { PubList, DelList } from "../../hooks/TaskHooks/OperateList";
 
 //载入主要数据和事件
-const { state, handleSizeChange, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
+const { state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
 
 
 // 发布作业
-const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList(state.TaskList);
+const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList();
 const publishTask = () => {
-    state.TaskList = publishTaskOriginal();
+    state.TaskList = publishTaskOriginal(state.TaskList);
 }
 
-
+// 发布班级
 const checkAll = ref(false)
 const isIndeterminate = ref(true)
 const checkedTags = ref(['工程1班', '工程4班'])
@@ -35,10 +35,9 @@ const handleCheckedTagsChange = (value: string[]) => {
 }
 
 //删除相关事件
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList(state.TaskList);
-
+const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList();
 const deleteTask = () => {
-    state.TaskList = deleteTaskOriginal();
+    state.TaskList = deleteTaskOriginal(state.TaskList);
 }
 
 //展示是否有作业
@@ -51,13 +50,20 @@ watchEffect(() => {
     }
 });
 
-//添加点击事件，带着title跳转到创建作业页面
+//添加点击事件，带着title跳转到作业情况页面
 const router = useRouter();
-const toTaskDetail = (title: string) => {
-    router.push({ path: "/home/task/taskdetail", query: { title: title } });
+const toTaskCondition = (title: string) => {
+    router.push({ path: "/home/task/taskcondition", query: { title: title } });
 }
 
+// 带着id跳转到编辑作业页面
+const toTaskDetail = (id: number) => {
+    router.push({ path: "/home/task/taskdetail", query: { id: id } });
+}
 
+onMounted(() => {
+    getTaskList();
+})
 </script>
 <template>
     <div class="all_class">
@@ -107,8 +113,8 @@ const toTaskDetail = (title: string) => {
                                                 <el-dropdown-item @click="confirmDelTask(item.id)">
                                                     立即删除
                                                 </el-dropdown-item>
-                                                <el-dropdown-item>编辑作业</el-dropdown-item>
-                                                <el-dropdown-item @click="toTaskDetail(item.title)">
+                                                <el-dropdown-item @click="toTaskDetail(item.id)">编辑作业</el-dropdown-item>
+                                                <el-dropdown-item @click="toTaskCondition(item.title)">
                                                     查看作业
                                                 </el-dropdown-item>
                                             </el-dropdown-menu>

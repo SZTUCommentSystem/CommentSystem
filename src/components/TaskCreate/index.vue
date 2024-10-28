@@ -1,7 +1,15 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { questionListAPI } from '@/api/QuestionAPI/questionList'
+
+// 作业内容
+const taskContent = reactive({
+    title: '',
+    description: '',
+    problemIds: [],
+    deadline: [],
+})
 
 // 题目
 // 展示可选择的题目
@@ -11,6 +19,7 @@ const getQuestionList = async () => {
     const res = await questionListAPI();
     questionList.value = res.data.data;
 };
+
 // 动态创建可选择数组
 const dynamicArray = ref([]);
 watch(questionList, (newVal, oldVal) => {
@@ -21,7 +30,6 @@ watch(questionList, (newVal, oldVal) => {
         });
     }
 });
-
 
 // 被选择的题目
 const problems = ref([]);
@@ -40,16 +48,13 @@ watch(problems, (newVal, oldVal) => {
 // 选择题目相关
 const selDialogVisible = ref(false);
 const selectProblem = () => {
+    taskContent.problemIds = dynamicArray.value.filter((item) => item.checked).map((item) => item.questionId);
     problems.value = dynamicArray.value.filter((item) => item.checked).map((item) => questionList.value[item.questionId - 1]);
     selDialogVisible.value = false;
-    console.log(problems.value);
+    console.log(taskContent);
 };
 
 // 题目被选择
-
-
-// 选择时间
-const date = ref('');
 
 onMounted(() => {
     getQuestionList();
@@ -61,11 +66,11 @@ onMounted(() => {
         <h2 style="margin-bottom: 10px;">新建作业</h2>
         <div class="create-title">
             <p>标题：</p>
-            <input type="text" placeholder="请输入作业标题" />
+            <input type="text" v-model="taskContent.title" placeholder="请输入作业标题" />
         </div>
         <div class="create-title">
             <p>描述（可选）：</p>
-            <input type="text" placeholder="请输入作业简介" />
+            <input type="text" v-model="taskContent.description" placeholder="请输入作业简介" />
         </div>
         <div class="create-title auto-height">
             <p>请选择本次作业的题目：</p>
@@ -95,7 +100,7 @@ onMounted(() => {
         <div class="create-title">
             <p>请选择本次作业的截止时间：</p>
             <div class="block">
-                <el-date-picker v-model="date" type="datetimerange" start-placeholder="Start date"
+                <el-date-picker v-model="taskContent.deadline" type="datetimerange" start-placeholder="Start date"
                     end-placeholder="End date" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
                     time-format="A hh:mm:ss" />
             </div>

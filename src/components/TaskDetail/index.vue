@@ -1,161 +1,195 @@
-<script setup lang="ts">
-import { reactive, watchEffect } from 'vue';
-import { useRoute } from 'vue-router';
-import { zhCn } from "element-plus/es/locale/index.mjs";
+<script lang="ts" setup>
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { Action } from 'element-plus'
+import { questionListAPI } from '@/api/QuestionAPI/questionList'
+import { TaskDetailAPI, TaskQuestionListAPI } from '@/api/TaskAPI/TaskQuestionList';
+import dayjs from 'dayjs';
 
-// 导入主要数据和事件
-import StudentList from '@/hooks/TaskDetailHooks/StudentList';
-import ExcelEport from '@/hooks/TaskDetailHooks/ExcelExport';
+// 获取传参
+const route = useRoute()
 
-const route = useRoute();
+// 作业内容
+const taskDetail = reactive({
+    title: '',
+    description: '',
+    selectedQuestion: [],
+    DeadLine: [],
+})
+const getTaskDetail = async () => {
+    const res = await TaskDetailAPI(route.query.id)
+    const data = res.data.data;
+    Object.assign(taskDetail, data);
 
-//// 作业详情
-// 班级选择
-const classSelect = reactive({
-    class: '全部',
-    classList: ['全部', '软件工程1班', '软件工程2班', '软件工程3班']
+    taskDetail.DeadLine = [
+        dayjs(data.DeadLine[0]).format('YYYY-MM-DD HH:mm:ss'),
+        dayjs(data.DeadLine[1]).format('YYYY-MM-DD HH:mm:ss')
+    ];
+    console.log(taskDetail);
+}
+
+// 根据题目id获取题目列表
+const problems = ref([])
+const tags = ref([])
+const getTaskQuestionList = async () => {
+    const res = await TaskQuestionListAPI(taskDetail.selectedQuestion)
+    problems.value = res.data.data
+    const allTags = problems.value.map((item) => item.tags).flat()
+    tags.value = Array.from(new Set(allTags))
+}
+// 判断题目是否有改变
+watch(problems, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+        const allTags = newVal.map((item) => item.tags).flat();
+        tags.value = Array.from(new Set(allTags));
+    }
+})
+
+// 展示可选择的题目
+const questionList = ref([]);
+// 获取题目列表
+const getQuestionList = async () => {
+    const res = await questionListAPI();
+    questionList.value = res.data.data;
+};
+// 动态创建可选择数组
+const dynamicArray = ref([]);
+watch(questionList, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+        // 根据 problems 列表的长度动态创建一个数组
+        dynamicArray.value = new Array(newVal.length).fill(null).map((_, index) => {
+            const checked = taskDetail.selectedQuestion.includes(questionList.value[index].id);
+            return { questionId: questionList.value[index].id, checked: checked };
+        });
+    }
 });
 
-//导出Excel表格
-//导出表格的数据
-const data = reactive([
-    { 名字: 'hyt', serct: 'hyt是sb' },
-]);
+// 选择题目相关
+const selDialogVisible = ref(false);
+const selectProblem = () => {
+    taskDetail.selectedQuestion = dynamicArray.value.filter((item) => item.checked).map((item) => item.questionId);
+    problems.value = dynamicArray.value.filter((item) => item.checked).map((item) => questionList.value.find(q => q.id === item.questionId));
+    selDialogVisible.value = false;
+    console.log(taskDetail);
+};
 
-
-const Export = () => {
-    ElMessageBox.alert(`您当前选择导出Excel表格为:${classSelect.class}`, {
-        confirmButtonText: '确认',
-        callback: (action: Action) => {
-            if (action === 'confirm') {
-                ExcelEport(data).then(() => {
-                    ElMessage({
-                        type: 'success',
-                        message: '导出成功'
-                    })
-                }).catch(() => {
-                    ElMessage({
-                        type: 'error',
-                        message: '导出失败'
-                    })
-                })
-            }
-        },
-    })
-}
-
-// 学生列表
-const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent } = StudentList();
-
-const getStatusClass = (row: any) => {
-    if (row.status === '未提交') {
-        return 'isRed';
-    }
-    else if (row.status === '已提交') {
-        return 'isSubmit';
-    }
-    else {
-        return 'isCorrect';
-    }
-}
-
-watchEffect(() => {
-    searchClassQuery.value = classSelect.class;
+onMounted(async () => {
+    await getTaskDetail();
+    getQuestionList();
+    getTaskQuestionList();
 })
+
+// 监听路由参数变化
+watch(() => route.query, async (newQuery, oldQuery) => {
+    if (newQuery.id !== oldQuery.id) {
+        await getTaskDetail();
+        getTaskQuestionList();
+        getQuestionList();
+    }
+});
+
 </script>
 
 <template>
-    <div class="container">
-        <h4 style="display: flex;align-items: center">
-            <router-link to="/home/task">
-                <img src="@/assets/img/左箭头.png" alt="" style="width: 30px; margin-right: 10px;">
-            </router-link>
-            {{ route.query.title }}
-        </h4>
-
+    <div class="create-wrapper">
+        <h2 style="margin-bottom: 10px;">作业详情</h2>
         <div class="create-title">
-            <h5 style="margin-bottom: 20px;">作业详情</h5>
-            <div class="task-details">
-                <div class="class-select">
-                    班级：
-                    <el-dropdown split-button type="primary">
-                        {{ classSelect.class }}
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item v-for="item in classSelect.classList" :key="item"
-                                    @click="classSelect.class = item">{{ item }}</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                </div>
-                <div class="submit-condition">
-                    <p>已提交：1 / 20</p>
-                    <p>已批改：1 / 1</p>
-                </div>
-                <el-button type="success" plain @click="Export">导出excel表格</el-button>
-            </div>
+            <p>标题：</p>
+            <input type="text" v-model="taskDetail.title" placeholder="请输入作业标题" />
         </div>
-
-        <div class="submit-list">
-            <div class="header">
-                <h5>学生列表</h5>
-                <div class="search">
-                    <el-input v-model="searchNameQuery" placeholder="请输入姓名"
-                        style="width: 200px; font-size: 15px; margin-right: 10px;" :prefix-icon="Search" />
-                    <el-input v-model="searchStudentIdQuery" placeholder="请输入学号" style="width: 200px; font-size: 15px"
-                        :prefix-icon="Search" />
-                </div>
-            </div>
-            <el-table :data="displayStudent" style="width: 100%"
-                :header-cell-style="{ backgroundColor: 'rgb(246, 247, 249)', textAlign: 'center' }"
-                :cell-style="{ textAlign: 'center' }" :row-style="{ height: '50px' }"
-                :header-row-style="{ height: '70px' }">
-                <el-table-column prop="id" label="序号" width="100" />
-                <el-table-column prop="class" label="班级" width="180" />
-                <el-table-column prop="name" label="姓名" width="150" />
-                <el-table-column prop="studentId" label="学号" width="180" />
-                <el-table-column prop="status" label="作业状态" width="180">
-                    <template #default="{ row }">
-                        <span :class="getStatusClass(row)">{{ row.status }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="score" label="得分" width="180" />
-                <el-table-column label="操作">
-                    <template #default="scope">
-                        <div>
-                            <router-link
-                                :to="{ path: '/home/corret', query: { name: scope.row.name } }">批改作业</router-link>
-                            <router-link to="" style="margin-left: 10px;">追加点评</router-link>
+        <div class="create-title">
+            <p>描述（可选）：</p>
+            <input type="text" v-model="taskDetail.description" placeholder="请输入作业简介" />
+        </div>
+        <div class="create-title auto-height">
+            <p>请选择本次作业的题目：</p>
+            <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
+            <ul style="padding: 0; margin-top: 10px;">
+                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problems.id">
+                    <div class="problem">
+                        <span>{{ problem.title }}</span>
+                        <span>{{ problem.type }}</span>
+                        <div class="problem-tag">
+                            <el-tag v-for="tag in problem.tags" :key="tag">
+                                {{ tag }}
+                            </el-tag>
                         </div>
-                    </template>
-                </el-table-column>
-            </el-table>
-            <div class="pageing">
-                <el-config-provider :locale="zhCn">
-                    <el-pagination :current-page="status.pageNum" background :page-size="status.pageSize"
-                        :page-sizes="[10]" v-if="filteredStudent.length > 0" layout="total, prev, pager, next, jumper"
-                        :total="filteredStudent.length" @size-change="handleSizeChange"
-                        @current-change="handleCurrentChange" />
-                </el-config-provider>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="create-title">
+            <p>根据选择的题目得到的标签为：</p>
+            <div class="problem-tag">
+                <el-tag v-for="tag in tags" :key="tag">
+                    {{ tag }}
+                </el-tag>
             </div>
         </div>
+        <div class="create-title">
+            <p>请选择本次作业的截止时间：</p>
+            <div class="block">
+                <el-date-picker v-model="taskDetail.DeadLine" type="datetimerange" start-placeholder="Start date"
+                    end-placeholder="End date" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
+                    time-format="A hh:mm:ss" />
+            </div>
+        </div>
+        <div class="button_submit">
+            <el-button type="primary">提交</el-button>
+            <router-link to="/home/task">
+                <el-button>取消</el-button>
+            </router-link>
+        </div>
 
+
+        <!-- 选择题目 -->
+        <el-dialog v-model="selDialogVisible" title="选择题目" width="30%" center>
+            <div class="select">
+                <el-input placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                <div class="select-title">
+                    <span style="margin-right: 30px;">序号</span>
+                    <span style="margin-right: 70px;">标题</span>
+                    <span>类型</span>
+                </div>
+                <ul style="margin:0;padding: 0; margin-top: 10px;">
+                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="questionList.id">
+                        <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
+                            :class="{ blue: dynamicArray[index].checked }">
+                            <span>{{ index }}</span>
+                            <span>{{ problem.title }}</span>
+                            <span>{{ problem.type }}</span>
+                            <div class="problem-tag">
+                                <el-tag v-for="tag in problem.tags" :key="tag">
+                                    {{ tag }}
+                                </el-tag>
+                            </div>
+                            <div class="selected" v-show="dynamicArray[index].checked === true">√</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button type="primary" @click="selectProblem">
+                        确定
+                    </el-button>
+                    <el-button @click="selDialogVisible = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <style scoped>
-.container {
-    display: flex;
-    flex-direction: column;
+.blue {
+    border: 1px solid #409eff !important;
 }
 
-.header {
+.create-wrapper {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    padding: 20px;
 }
 
 .create-title {
@@ -165,7 +199,7 @@ watchEffect(() => {
     /* 向左对齐 */
     align-items: flex-start;
     width: 100%;
-    height: auto;
+    height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;
     background-color: #fff;
@@ -175,63 +209,104 @@ watchEffect(() => {
         font-size: 18px;
         margin-bottom: 10px;
     }
-}
 
-.task-details {
-    display: flex;
-    align-items: center;
-    width: 100%;
+    input {
+        display: inline-block;
+        width: 100%;
+        height: 45px;
+        margin-top: 5px;
+        padding-left: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
 
-    .class-select {
-        display: flex;
-        align-items: center;
-    }
-
-    .submit-condition {
-        display: flex;
-        flex: 1;
-        align-items: center;
-        gap: 20px;
-        margin-left: 20px;
-
-        p {
-            margin-bottom: 0;
+        &:focus {
+            outline: none;
         }
     }
 }
 
-.submit-list {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 30px;
-    margin-top: 10px;
-    width: 100%;
-    min-height: calc(100vh - 100px);
-    background-color: #fff;
+.auto-height {
+    height: auto;
+}
 
-    h5 {
-        padding: 20px;
+.select-problem,
+.problem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    background-color: #f9f9f9;
+
+
+    span {
+        margin-right: 10px;
+    }
+
+    i {
+        cursor: pointer;
+        margin-left: 100px;
     }
 }
 
-.pageing {
+.select-problem {
+    position: relative;
+    width: 375px;
+    cursor: pointer;
+    border: 1px solid transparent;
+
+    &:hover {
+        border: 1px solid #409eff;
+    }
+
+    .selected {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        color: #fff;
+        text-align: center;
+        line-height: 10px;
+        font-size: 5px;
+        background-color: #409eff;
+    }
+}
+
+.problem-tag {
     display: flex;
-    justify-content: end;
-    padding: 20px;
-    padding-top: 3dvh;
-    margin-top: auto;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.isRed {
-    color: red;
+.block {
+    margin-top: 10px;
 }
 
-.isSubmit {
-    color: #409EFF;
+.button_submit {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    margin-right: 15px;
+
+    button {
+        margin-left: 10px;
+        padding: 0 35px;
+    }
 }
 
-.isCorrect {
-    color: #67C23A;
+.select {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+
+    .select-title {
+        display: flex;
+        width: 100%;
+        padding: 10px;
+        background-color: #f9f9f9;
+        margin-top: 10px;
+    }
 }
 </style>
