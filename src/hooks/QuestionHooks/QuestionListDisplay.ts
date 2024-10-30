@@ -1,5 +1,5 @@
 import { reactive, computed } from "vue";
-import { questionListAPI } from '@/api/QuestionAPI/questionList';
+import { questionListAPI, deleteQuestionAPI } from '@/api/QuestionAPI/questionList';
 
 
 export default function QuestionListDisplay() {
@@ -16,7 +16,6 @@ export default function QuestionListDisplay() {
     const getList = async () => {
         try {
             const res = await questionListAPI();
-            console.log('API 返回的数据:', res.data.data); // 调试信息
             if (Array.isArray(res.data.data)) {
                 state.QuestionList = res.data.data;
             } else {
@@ -26,6 +25,18 @@ export default function QuestionListDisplay() {
             console.error('获取题目列表失败:', error);
         }
     };
+
+    // 删除题目
+    const handleDel = async (id: number) => {
+        // 调用删除题目的 API
+        // 成功后，重新获取题目列表
+        try {
+            await deleteQuestionAPI(id);
+            await getList();
+        } catch (error) {
+            console.error('删除题目失败:', error);
+        }
+    }
 
     // 过滤后的题目列表
     const filteredQuestions = computed(() => {
@@ -59,6 +70,7 @@ export default function QuestionListDisplay() {
     return {
         state,
         getList,
+        handleDel,
         filteredQuestions,
         paginatedQuestions,
         handlePageChange,

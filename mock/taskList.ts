@@ -60,5 +60,16 @@ export default [
                 message: 'success'
             }
         }
+    },
+    {
+        url: '/api/home/submitTask',
+        type: 'post',
+        response: config => {
+            return {
+                code: 200,
+                data: null,
+                message: 'success'
+            }
+        }
     }
 ]

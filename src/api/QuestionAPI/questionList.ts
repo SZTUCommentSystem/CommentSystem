@@ -22,3 +22,11 @@ export const questionDetailAPI = (id: number) => {
         params: { id }
     })
 }
+
+export const deleteQuestionAPI = (id: number) => {
+    return request({
+        url: '/home/deleteQuestion',
+        method: "delete",
+        params: { id }
+    })
+}

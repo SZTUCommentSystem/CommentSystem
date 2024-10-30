@@ -125,5 +125,19 @@ export default [
                 message: 'success'
             }
         }
-    }
+    },
+    // 根据上传id删除题目
+    {
+        url: '/api/home/deleteQuestion',
+        type: 'delete',
+        response: (config: { query: { id: number; }; }) => {
+            const { id } = config.query;
+            console.log('删除题目id:', id);
+            return {
+                code: 200,
+                data: null,
+                message: 'success'
+            }
+        }
+    },
 ]

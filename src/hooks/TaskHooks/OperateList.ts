@@ -6,7 +6,7 @@ interface Task {
     tags: string[];
     teacher: string;
     selectedQuestion: number[];
-    PublishStatus: number;
+    PublishStatus: number; // 0: 未发布 1: 已发布 2: 已截止
     IsDropList: boolean;
 }
 
@@ -34,6 +34,29 @@ const PubList = () => {
     return { pubDialogVisible, pubTaskId, confirmPubTask, publishTask };
 }
 
+const EndList = () => {
+    // 截止作业
+    const endDialogVisible = ref(false);
+    const endTaskId = ref(0);
+
+    const confirmEndTask = (id: number) => {
+        endTaskId.value = id;
+        endDialogVisible.value = true;
+    };
+
+    const endTask = (TaskList: Task[]) => {
+        TaskList.forEach((item) => {
+            if (item.id === endTaskId.value) {
+                item.PublishStatus = 2;
+            }
+        });
+        endDialogVisible.value = false;
+
+        return TaskList;
+    }
+
+    return { endDialogVisible, endTaskId, confirmEndTask, endTask }
+}
 
 const DelList = () => {
     // 删除作业
@@ -52,4 +75,4 @@ const DelList = () => {
     return { delDialogVisible, delTaskId, confirmDelTask, deleteTask }
 }
 
-export { PubList, DelList }
+export { PubList, EndList, DelList }

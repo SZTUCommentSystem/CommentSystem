@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { zhCn } from "element-plus/es/locale/index.mjs";
-import { reactive, computed } from "vue";
+import { ref, reactive, computed } from "vue";
+import { useRouter } from "vue-router";
 
 const testPage = reactive({
   taskList: [
@@ -23,6 +24,14 @@ const testPage = reactive({
   pageNum: 1
 })
 
+// 加入班级相关
+const joinDialogVisible = ref(false)
+const joinForm = ref('')
+const joinClass = () => {
+  console.log(joinForm.value)
+  joinDialogVisible.value = false
+}
+
 //列表展示
 const handleSizeChange = (val: number) => {
   testPage.pageSize = val
@@ -37,6 +46,12 @@ const displayedTasks = computed(() => {
   const end = start + testPage.pageSize;
   return testPage.taskList.slice(start, end);
 });
+
+// 跳转班级情况
+const router = useRouter()
+const toClassCondition = (id: number) => {
+  router.push({ path: '/home/class/classcondition', query: { id } })
+}
 </script>
 
 <template>
@@ -46,7 +61,7 @@ const displayedTasks = computed(() => {
         <h2 style="margin-top: 20px;">教学班级</h2>
         <div class="teach-class">
           <el-button>新建班级</el-button>
-          <el-button>加入班级</el-button>
+          <el-button @click="joinDialogVisible = true">加入班级</el-button>
           <el-button>新手指引</el-button>
         </div>
       </div>
@@ -58,7 +73,7 @@ const displayedTasks = computed(() => {
     </div>
     <div class="teach-class-list">
       <ul>
-        <li v-for="item in displayedTasks" :key="item.id">
+        <li v-for="item in displayedTasks" :key="item.id" @click="toClassCondition(item.id)">
           <div class="header">
             <p style="margin-top: 30px;">{{ item.title }}</p>
             <img src="https://via.placeholder.com/32">
@@ -78,6 +93,19 @@ const displayedTasks = computed(() => {
           :total="testPage.taskList.length" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
       </el-config-provider>
     </div>
+
+    <!-- 加入班级 -->
+    <el-dialog v-model="joinDialogVisible" title="删除作业" width="30%" center>
+      <el-input v-model="joinForm" style="width: 420px;" placeholder="请输入班级码"></el-input>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="joinClass">
+            确定
+          </el-button>
+          <el-button @click="joinDialogVisible = false">取消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

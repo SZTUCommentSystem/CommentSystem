@@ -6,7 +6,7 @@ import { useRouter } from "vue-router";
 
 // 导入相关ts文件
 import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
-import { PubList, DelList } from "../../hooks/TaskHooks/OperateList";
+import { PubList, EndList, DelList } from "../../hooks/TaskHooks/OperateList";
 
 //载入主要数据和事件
 const { state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
@@ -32,6 +32,12 @@ const handleCheckedTagsChange = (value: string[]) => {
     const checkedCount = value.length
     checkAll.value = checkedCount === tags.length
     isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length
+}
+
+// 截止相关事件
+const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
+const endTask = () => {
+    state.TaskList = endTaskOriginal(state.TaskList);
 }
 
 //删除相关事件
@@ -109,11 +115,15 @@ onMounted(() => {
                                                 <el-dropdown-item @click="confirmPubTask(item.id)">
                                                     立即发布
                                                 </el-dropdown-item>
-                                                <el-dropdown-item>立即截止</el-dropdown-item>
+                                                <el-dropdown-item @click="confirmEndTask(item.id)">
+                                                    立即截止
+                                                </el-dropdown-item>
                                                 <el-dropdown-item @click="confirmDelTask(item.id)">
                                                     立即删除
                                                 </el-dropdown-item>
-                                                <el-dropdown-item @click="toTaskDetail(item.id)">编辑作业</el-dropdown-item>
+                                                <el-dropdown-item @click="toTaskDetail(item.id)">
+                                                    编辑作业
+                                                </el-dropdown-item>
                                                 <el-dropdown-item @click="toTaskCondition(item.title)">
                                                     查看作业
                                                 </el-dropdown-item>
@@ -182,6 +192,19 @@ onMounted(() => {
                         确定
                     </el-button>
                     <el-button @click="pubDialogVisible = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <!-- 截止作业 -->
+        <el-dialog v-model="endDialogVisible" title="截止作业" width="30%" center>
+            <div>确定立刻截止该作业吗？</div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button type="primary" @click="endTask">
+                        确定
+                    </el-button>
+                    <el-button @click="endDialogVisible = false">取消</el-button>
                 </div>
             </template>
         </el-dialog>

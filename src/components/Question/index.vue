@@ -15,6 +15,7 @@ const router = useRouter();
 const {
   state,
   getList,
+  handleDel,
   filteredQuestions,
   paginatedQuestions,
   handlePageChange,
@@ -55,7 +56,7 @@ onMounted(() => {
       <ElTableColumn prop="tags">
         <template #default="{ row }">
           <div style="display: flex; gap: 10px;">
-            <el-tag v-for="tag in row.tags" :key="tag" closable @close="handleCloseTag(tag)" round effect="plain">
+            <el-tag v-for="tag in row.tags" :key="tag" round effect="plain">
               {{ tag }}
             </el-tag>
           </div>
@@ -70,8 +71,8 @@ onMounted(() => {
             <RouterLink :to="`/comment-library/${scope.row.id}`" @click.stop>
               <Comment class="icon" style="margin-right: 23px;" />
             </RouterLink>
-            <div style="margin-right: 20px">
-              <Delete class="icon" @click.stop />
+            <div style="margin-right: 20px; cursor: pointer;">
+              <Delete class="icon" @click="handleDel(scope.row.id)" />
             </div>
           </div>
         </template>

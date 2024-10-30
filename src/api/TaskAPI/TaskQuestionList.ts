@@ -29,3 +29,12 @@ export const TaskQuestionListAPI = (ids: number[]) => {
         }
     })
 }
+
+// 提交作业
+export const SubmitTaskAPI = (data: Object) => {
+    return request({
+        url: '/home/submitTask',
+        method: 'post',
+        data: data
+    })
+}

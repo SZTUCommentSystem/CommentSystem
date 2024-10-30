@@ -58,6 +58,11 @@ const router = createRouter({
           component: () => import('../components/Class/index.vue')
         },
         {
+          path: '/home/class/classcondition',
+          name: 'classcondition',
+          component: () => import('../components/ClassCondition/index.vue')
+        },
+        {
           path: '/home/library',
           name: 'library',
           component: () => import('../components/Library/index.vue')

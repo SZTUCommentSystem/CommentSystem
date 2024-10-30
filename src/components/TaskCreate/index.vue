@@ -2,6 +2,7 @@
 import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { questionListAPI } from '@/api/QuestionAPI/questionList'
+import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList'
 
 // 作业内容
 const taskContent = reactive({
@@ -54,7 +55,16 @@ const selectProblem = () => {
     console.log(taskContent);
 };
 
-// 题目被选择
+// 提交作业
+const submitTask = async () => {
+    try {
+        const res = await SubmitTaskAPI(taskContent);
+        console.log(res);
+    } catch (error) {
+        console.log(error);
+
+    }
+}
 
 onMounted(() => {
     getQuestionList();
@@ -106,7 +116,7 @@ onMounted(() => {
             </div>
         </div>
         <div class="button_submit">
-            <el-button type="primary">提交</el-button>
+            <el-button type="primary" @click="submitTask">提交</el-button>
             <router-link to="/home/task">
                 <el-button>取消</el-button>
             </router-link>
