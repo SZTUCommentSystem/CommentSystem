@@ -19,7 +19,7 @@ const {
   filteredQuestions,
   paginatedQuestions,
   handlePageChange,
-  handlePageSizeChange
+  handlePageSizeChange,
 } = QuestionListDisplay();
 
 onMounted(() => {
@@ -68,9 +68,7 @@ onMounted(() => {
             <RouterLink :to="{ path: '/home/question/questiondetail', query: { itemId: scope.row.id } }" @click.stop>
               <Edit class="icon" style="margin-right: 20px;" />
             </RouterLink>
-            <RouterLink :to="`/comment-library/${scope.row.id}`" @click.stop>
-              <Comment class="icon" style="margin-right: 23px;" />
-            </RouterLink>
+
             <div style="margin-right: 20px; cursor: pointer;">
               <Delete class="icon" @click="handleDel(scope.row.id)" />
             </div>
@@ -82,7 +80,7 @@ onMounted(() => {
     <!-- 分页器 -->
     <div class="paging mt-4" style="display: flex;justify-content: flex-end;">
       <el-config-provider :locale="zhCn">
-        <el-pagination :current-page="currentPage" :page-size="pageSize" :total="filteredQuestions.length" background
+        <el-pagination  :total="filteredQuestions.length" background
           layout="total, prev, pager, next, sizes, jumper" :page-sizes="[5, 10, 20, 30]"
           @size-change="handlePageSizeChange" @current-change="handlePageChange" />
       </el-config-provider>
