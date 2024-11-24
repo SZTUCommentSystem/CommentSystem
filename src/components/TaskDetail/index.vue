@@ -92,7 +92,10 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 
 <template>
     <div class="create-wrapper">
-        <h2 style="margin-bottom: 10px;">作业详情</h2>
+      <div class="header">
+        <el-page-header @back="this.$router.push('/home/task')" content="编辑作业" title="返回" >
+        </el-page-header>
+      </div>
         <div class="create-title">
             <p>标题：</p>
             <input type="text" v-model="taskDetail.title" placeholder="请输入作业标题" />
@@ -184,12 +187,17 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 .blue {
     border: 1px solid #409eff !important;
 }
-
+.header {
+  font-size: 20px;
+  background-color: white;padding: 10px;
+  width: 100%;
+  margin-bottom: 10px
+}
 .create-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    
 }
 
 .create-title {

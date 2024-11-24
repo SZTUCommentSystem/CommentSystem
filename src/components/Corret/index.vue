@@ -40,6 +40,10 @@ const onclick = (comment: string) => {
 
 <template>
     <div style="position: relative;">
+      <div class="header">
+        <el-page-header @back="this.$router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回" >
+        </el-page-header>
+      </div>
         <div class="box">
             <h4>您当前批改的学生信息</h4>
             <p>学生姓名：{{ route.query.name }}</p>
@@ -119,6 +123,13 @@ const onclick = (comment: string) => {
 </template>
 
 <style scoped>
+.header {
+  font-size: 20px;
+  background-color: white;padding: 10px;
+  width: 100%;
+  margin-bottom: 10px
+}
+
 .box {
     display: flex;
     /* 纵向排列 */

@@ -2,7 +2,7 @@
 import { ref, reactive } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 
-import type { UploadProps, UploadUserFile } from 'element-plus'
+import type {ElPageHeader, UploadProps, UploadUserFile} from 'element-plus'
 
 // 导入编辑器
 import EditorMarkdown from '@/components/Generic/Editor.vue'
@@ -64,7 +64,10 @@ const submitQuestion = async () => {
 
 <template>
     <div class="create-wrapper">
-        <h2 style="margin-bottom: 10px;">新建题目</h2>
+      <div class="header">
+        <el-page-header @back="this.$router.push('/home/question')" content="创建题目" title="返回" >
+        </el-page-header>
+      </div>
         <div class="create-title-top">
             <div class="left">
                 <p>标题：</p>
@@ -112,7 +115,7 @@ const submitQuestion = async () => {
         </div>
         <div class="button_submit">
             <el-button type="primary" @click="submitQuestion">提交</el-button>
-            <router-link to="/home/task">
+            <router-link to="/home/question">
                 <el-button>取消</el-button>
             </router-link>
         </div>
@@ -124,9 +127,13 @@ const submitQuestion = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-
-
+    
+}
+.header {
+  font-size: 20px;
+  background-color: white;padding: 10px;
+  width: 100%;
+  margin-bottom: 10px
 }
 
 .create-title-top {

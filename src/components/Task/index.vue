@@ -87,7 +87,8 @@ onMounted(() => {
                 <router-link to="/home/task/taskcreate" class="title_button"><el-button
                         type="primary">去创建作业</el-button></router-link>
             </div>
-            <div class="list">
+            <transition name="fade">
+              <div class="list">
                 <ul>
                     <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
                         <div class="pane">
@@ -104,8 +105,7 @@ onMounted(() => {
                                             {{ tag }}
                                         </el-tag>
                                     </div>
-                                    <p>老师：{{ item.teacher }}</p>
-                                    <p>截止时间：0213</p>
+
                                 </div>
                                 <div class="pane-skip">
                                     <el-dropdown placement="bottom">
@@ -130,34 +130,68 @@ onMounted(() => {
                                             </el-dropdown-menu>
                                         </template>
                                     </el-dropdown>
-                                    <br>
-                                    <div class="icon" @click="item.IsDropList = !item.IsDropList">
-                                        <img v-show="item.IsDropList === false" src="@/assets/img/向下的箭头.png" alt="">
-                                        <img v-show="item.IsDropList === true" src="@/assets/img/向上的箭头.png" alt="">
-                                    </div>
+
+
                                 </div>
                             </div>
-                            <div class="pane-drop-list" v-if="item.IsDropList">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>班级</th>
-                                            <th>状态</th>
-                                            <th>提交情况</th>
-                                            <th>截止时间</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>2</td>
-                                            <td>3</td>
-                                            <td>4</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+
+<!--                          <transition name="fade">-->
+<!--                            <div class="pane-drop-list" v-if="item.IsDropList">-->
+
+<!--                                <table>-->
+<!--                                    <thead>-->
+<!--                                        <tr>-->
+<!--                                            <th>班级</th>-->
+<!--                                            <th>状态</th>-->
+<!--                                            <th>提交情况</th>-->
+<!--                                            <th>截止时间</th>-->
+<!--                                        </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody>-->
+<!--                                        <tr>-->
+<!--                                            <td>1</td>-->
+<!--                                            <td>2</td>-->
+<!--                                            <td>3</td>-->
+<!--                                            <td>4</td>-->
+<!--                                        </tr>-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+
+<!--                            </div>-->
+<!--                          </transition>-->
+                          <div class="p-4">
+                            <el-collapse v-model="activeNames" @change="handleChange">
+                              <el-collapse-item title="布置老师：胡某 截至时间：11：15" name="1">
+                                <el-row :gutter="20" >
+                                  <el-col :span="7" class="centered">
+                                    <div >
+                                      <el-statistic title="已提交" value="23/56">
+                                      </el-statistic>
+                                    </div>
+                                  </el-col>
+                                  <el-col :span="8" class="centered">
+                                    <div>
+                                      <el-statistic title="未提交" value="33/56">
+                                      </el-statistic>
+                                    </div>
+                                  </el-col >
+                                  <el-col :span="8" class="centered">
+                                    <div >
+                                    <el-statistic title="已批改" value="10/56">
+                                    </el-statistic>
+                                  </div>
+                                  </el-col>
+
+                                </el-row>
+                              </el-collapse-item>
+
+                            </el-collapse>
+                          </div>
+
+
                         </div>
+
+
 
                     </li>
                     <li v-else class="list-not-li">
@@ -165,6 +199,7 @@ onMounted(() => {
                     </li>
                 </ul>
             </div>
+            </transition>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
                     <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
@@ -279,7 +314,7 @@ p {
             margin-bottom: 30px;
             padding: 13px;
             min-height: calc(100vh - 100px);
-            background-color: #e7e7e736;
+            background-color: #ffffff;
 
 
             .list_li {
@@ -308,8 +343,8 @@ p {
                     align-items: center;
                     padding-left: 35px;
                     width: 100%;
-                    height: 128px;
-
+                    height: 70px;
+                    margin-top: 15px;
                     .pane-rep {
                         width: 69%;
 
@@ -436,5 +471,18 @@ p {
 
 .all_class ::v-deep el-icon--right svg:hover {
     cursor: pointer;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+
+.centered{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 </style>

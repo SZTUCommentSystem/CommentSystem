@@ -22,7 +22,7 @@ const classSelect = reactive({
 //导出Excel表格
 //导出表格的数据
 const data = reactive([
-    { 名字: 'hyt', serct: 'hyt是sb' },
+    { 名字: 'hyt', serct: '测试' },
 ]);
 
 
@@ -68,16 +68,15 @@ watchEffect(() => {
 </script>
 
 <template>
-    <div class="container">
-        <h4 style="display: flex;align-items: center">
-            <router-link to="/home/task">
-                <img src="@/assets/img/左箭头.png" alt="" style="width: 30px; margin-right: 10px;">
-            </router-link>
-            {{ route.query.title }}
-        </h4>
+    <div class="create-wrapper">
+      <div class="header">
+        <el-page-header @back="this.$router.push('/home/task')" content="查看作业" title="返回" >
+        </el-page-header>
+      </div>
 
-        <div class="create-title">
-            <h5 style="margin-bottom: 20px;">作业详情</h5>
+
+      <div class="create-title">
+
             <div class="task-details">
                 <div class="class-select">
                     班级：
@@ -147,9 +146,16 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.container {
+.create-wrapper {
     display: flex;
     flex-direction: column;
+}
+
+.header {
+  font-size: 20px;
+  background-color: white;padding: 10px;
+  width: 100%;
+  margin-bottom: 10px
 }
 
 .header {
@@ -166,7 +172,7 @@ watchEffect(() => {
     align-items: flex-start;
     width: 100%;
     height: auto;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     padding: 10px 20px;
     background-color: #fff;
 
@@ -205,7 +211,6 @@ watchEffect(() => {
     display: flex;
     flex-direction: column;
     padding: 30px;
-    margin-top: 10px;
     width: 100%;
     min-height: calc(100vh - 100px);
     background-color: #fff;

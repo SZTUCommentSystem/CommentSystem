@@ -73,7 +73,10 @@ onMounted(() => {
 
 <template>
     <div class="create-wrapper">
-        <h2 style="margin-bottom: 10px;">新建作业</h2>
+      <div class="header">
+        <el-page-header @back="this.$router.push('/home/task')" content="新建作业" title="返回" >
+        </el-page-header>
+      </div>
         <div class="create-title">
             <p>标题：</p>
             <input type="text" v-model="taskContent.title" placeholder="请输入作业标题" />
@@ -170,9 +173,14 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    
 }
-
+.header {
+  font-size: 20px;
+  background-color: white;padding: 10px;
+  width: 100%;
+  margin-bottom: 10px
+}
 .create-title {
     display: flex;
     /* 纵向排列 */

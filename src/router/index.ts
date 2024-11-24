@@ -72,6 +72,11 @@ const router = createRouter({
           name: 'corret',
           component: () => import('../components/Corret/index.vue')
         },
+        {
+          path: '/home/label',
+          name: 'label',
+          component: () => import('../components/Label/index.vue')
+        },
       ]
     },
   ]

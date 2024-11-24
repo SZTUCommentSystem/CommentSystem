@@ -14,7 +14,7 @@ const exportToExcel = (data) => {
         return buf;
     }
 
-    saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), '小姨的秘密.xlsx');
+    saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), '作业报告.xlsx');
 };
 
 export default exportToExcel;
