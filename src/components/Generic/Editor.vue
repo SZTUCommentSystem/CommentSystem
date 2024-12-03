@@ -34,26 +34,34 @@ const change = (markdownContent, htmlContent) => {
     emit('htmlContent', htmlContent)
 }
 const handleUploadImage = async (event, insertImage, files) => {
-    console.log(files);
-    // 这里做自定义图片上传
-    let result = await proxy.Request({
-        url: '/file/uploadImage',
-        dataType: 'file',
-        params: {
-            file: files[0],
-            type: 1,
+    try {
+        const formData = new FormData();
+        formData.append('avatarfile', files[0]);
+
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    })
-    if (!result) {
-        return
+
+        const data = await response.json();
+        if (data.url) {
+            const imageUrl = data.url;
+            insertImage({
+                url: imageUrl,
+                desc: '博客图片',
+                // width: 'auto',
+                // height: 'auto',
+            });
+        } else {
+            throw new Error('图片上传失败');
+        }
+    } catch (error) {
+        console.error(error);
     }
-    const url = proxy.globaInfo.imageUrl + result.data.fileName
-    insertImage({
-        url: url,
-        desc: '博客图片',
-        // width: 'auto',
-        // height: 'auto',
-    });
 };
 </script>
 <style></style>

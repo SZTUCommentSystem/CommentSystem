@@ -13,6 +13,9 @@ const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2)
 //便签
 const textarea = ref('');
 
+// 从本地存储中获取是否选择课程
+const SelectClass = ref(localStorage.getItem('SelectClassName'));
+
 </script>
 
 <template>
@@ -23,139 +26,150 @@ const textarea = ref('');
                 <h1>精准批改。</h1>
             </div>
         </div>
-        <div class="home-body-task">
-            <div class="title">
-                <h1>作业情况</h1>
-            </div>
-            <div class="task-content">
-                <div class="task-title">
-                    <h4>欢迎您，用户名老师</h4>
-                </div>
-                <div class="task-info">
-                    <div class="task-condition">
-                        <div class="task-condition-left">
-                            <p>距离最近发布的作业结束时间还有：<br><i>2小时14分钟</i></p>
-
-                        </div>
-                        <div class="task-condition-right">
-                            <p>当前有 <i>0</i> 个作业未发布</p>
-                            <p>当前有 <i>0</i> 个作业已发布</p>
-                            <p>当前有 <i>0</i> 个作业已批改</p>
-                        </div>
-                    </div>
-                    <div class="task-corret">
-                        <div class="task-corret-left">
-                            <div class="left">
-                                <div class="top">
-                                    <el-button type="primary">发布通知</el-button>
-                                </div>
-                                <div class="bottom">
-                                    <div class="circle">
-                                        <svg viewBox="0 0 36 36" class="circular-chart blue">
-                                            <path class="circle-bg" d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                            <path class="circle" :stroke-dasharray="submittedPercentage + ', 100'" d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                            <text x="18" y="20.35" class="percentage">{{ submittedPercentage }}%</text>
-                                        </svg>
-                                    </div>
-                                    <p>最近发布的作业提交数量为：<br><i>23 / 54</i></p>
-                                </div>
-
-                            </div>
-                            <div class="right">
-                                <div class="top">
-                                    <el-button type="primary">前往批阅</el-button>
-                                </div>
-                                <div class="bottom">
-                                    <div class="circle">
-                                        <svg viewBox="0 0 36 36" class="circular-chart green">
-                                            <path class="circle-bg" d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                            <path class="circle" :stroke-dasharray="correctedPercentage + ', 100'" d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                            <text x="18" y="20.35" class="percentage">{{ correctedPercentage }}%</text>
-                                        </svg>
-                                    </div>
-                                    <p>最近发布的作业批改数量为：<br><i>13 / 23</i></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="task-corret-right">
-                            <div class="top">
-                                <div class="left">
-                                    <img src="@/assets/img/便签.png" alt="">
-                                    <p>便签</p>
-                                </div>
-                                <el-button type="primary">保存</el-button>
-                            </div>
-                            <div class="bottom">
-                                <el-input v-model="textarea" maxlength="30" style="width: 225px;height: 157px;" rows="7"
-                                    show-word-limit type="textarea" />
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-        <div class="home-body-question-container">
-            <div class="home-body-question">
+        <div v-if="SelectClass !== null">
+            <div class="home-body-task">
                 <div class="title">
-                    <h1>学生提问</h1>
+                    <h1>课程情况</h1>
                 </div>
-                <p style="margin-left: 10vw;">当前有 <i style="font-size: 27px;">0</i> 个学生提问(注：本栏是根据学生提问列表展示前两个)</p>
-                <div class="question">
-                    <div class="question-info">
-                        <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
-                        <p>提问的学生是：<i>张学生</i></p>
-                        <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
-                        <el-button type="primary">前往回答</el-button>
+                <div class="task-content">
+                    <div class="task-title">
+                        <h4>欢迎您，用户名老师，您当前选择的课程为：{{ SelectClass }}</h4>
                     </div>
-                    <div class="question-info">
-                        <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
-                        <p>提问的学生是：<i>张学生</i></p>
-                        <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
-                        <el-button type="primary">前往回答</el-button>
+                    <div class="task-info">
+                        <div class="task-condition">
+                            <div class="task-condition-left">
+                                <p>距离最近发布的作业结束时间还有：<br><i>2小时14分钟</i></p>
+
+                            </div>
+                            <div class="task-condition-right">
+                                <p>当前有 <i>0</i> 个作业未发布</p>
+                                <p>当前有 <i>0</i> 个作业已发布</p>
+                                <p>当前有 <i>0</i> 个作业已批改</p>
+                            </div>
+                        </div>
+                        <div class="task-corret">
+                            <div class="task-corret-left">
+                                <div class="left">
+                                    <div class="top">
+                                        <el-button type="primary">发布通知</el-button>
+                                    </div>
+                                    <div class="bottom">
+                                        <div class="circle">
+                                            <svg viewBox="0 0 36 36" class="circular-chart blue">
+                                                <path class="circle-bg" d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <path class="circle" :stroke-dasharray="submittedPercentage + ', 100'"
+                                                    d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <text x="18" y="20.35" class="percentage">{{ submittedPercentage
+                                                    }}%</text>
+                                            </svg>
+                                        </div>
+                                        <p>最近发布的作业提交数量为：<br><i>23 / 54</i></p>
+                                    </div>
+
+                                </div>
+                                <div class="right">
+                                    <div class="top">
+                                        <el-button type="primary">前往批阅</el-button>
+                                    </div>
+                                    <div class="bottom">
+                                        <div class="circle">
+                                            <svg viewBox="0 0 36 36" class="circular-chart green">
+                                                <path class="circle-bg" d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <path class="circle" :stroke-dasharray="correctedPercentage + ', 100'"
+                                                    d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <text x="18" y="20.35" class="percentage">{{ correctedPercentage
+                                                    }}%</text>
+                                            </svg>
+                                        </div>
+                                        <p>最近发布的作业批改数量为：<br><i>13 / 23</i></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="task-corret-right">
+                                <div class="top">
+                                    <div class="left">
+                                        <img src="@/assets/img/便签.png" alt="">
+                                        <p>便签</p>
+                                    </div>
+                                    <el-button type="primary">保存</el-button>
+                                </div>
+                                <div class="bottom">
+                                    <el-input v-model="textarea" maxlength="30" style="width: 225px;height: 157px;"
+                                        rows="7" show-word-limit type="textarea" />
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
+                </div>
+            </div>
+            <div class="home-body-question-container">
+                <div class="home-body-question">
+                    <div class="title">
+                        <h1>学生提问</h1>
+                    </div>
+                    <p style="margin-left: 10vw;">当前有 <i style="font-size: 27px;">0</i> 个学生提问(注：本栏是根据学生提问列表展示前两个)</p>
+                    <div class="question">
+                        <div class="question-info">
+                            <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
+                            <p>提问的学生是：<i>张学生</i></p>
+                            <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
+                            <el-button type="primary">前往回答</el-button>
+                        </div>
+                        <div class="question-info">
+                            <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
+                            <p>提问的学生是：<i>张学生</i></p>
+                            <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
+                            <el-button type="primary">前往回答</el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="home-body-library">
+                <div class="title">
+                    <h1>详情内容</h1>
+                </div>
+                <div class="info">
+                    <ul>
+                        <li>
+                            <div class="top">
+                                <img src="@/assets/img/指南.png" alt="">
+                                <h4>指南</h4>
+                                <p>我们的在线作业批改平台专为教师和学生设计，提供便捷的作业上传、自动批改和个性化反馈服务。</p>
+                            </div>
+                            <div class="bottom">查看详情</div>
+                        </li>
+                        <li>
+                            <div class="top">
+                                <img src="@/assets/img/交流.png" alt="">
+                                <h4>交流</h4>
+                                <p>教师便捷批改，学生即时反馈，促进高效教学互动。</p>
+                            </div>
+                            <div class="bottom">查看详情</div>
+                        </li>
+                        <li>
+                            <div class="top">
+                                <img src="@/assets/img/作业批改.png" alt="">
+                                <h4>批改</h4>
+                                <p>智能批改，即时反馈，提升学习效率，简化教学流程。</p>
+                            </div>
+                            <div class="bottom">查看详情</div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-        <div class="home-body-library">
+        <div v-else>
             <div class="title">
-                <h1>详情内容</h1>
-            </div>
-            <div class="info">
-                <ul>
-                    <li>
-                        <div class="top">
-                            <img src="@/assets/img/指南.png" alt="">
-                            <h4>指南</h4>
-                            <p>我们的在线作业批改平台专为教师和学生设计，提供便捷的作业上传、自动批改和个性化反馈服务。</p>
-                        </div>
-                        <div class="bottom">查看详情</div>
-                    </li>
-                    <li>
-                        <div class="top">
-                            <img src="@/assets/img/交流.png" alt="">
-                            <h4>交流</h4>
-                            <p>教师便捷批改，学生即时反馈，促进高效教学互动。</p>
-                        </div>
-                        <div class="bottom">查看详情</div>
-                    </li>
-                    <li>
-                        <div class="top">
-                            <img src="@/assets/img/作业批改.png" alt="">
-                            <h4>批改</h4>
-                            <p>智能批改，即时反馈，提升学习效率，简化教学流程。</p>
-                        </div>
-                        <div class="bottom">查看详情</div>
-                    </li>
-                </ul>
+                <h1>请选择课程</h1>
             </div>
         </div>
     </div>

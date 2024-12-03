@@ -1,3 +1,4 @@
+import { ElMessage } from 'element-plus'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -53,14 +54,14 @@ const router = createRouter({
           component: () => import('../components/QuestionCreate/index.vue')
         },
         {
+          path: '/home/course',
+          name: 'course',
+          component: () => import('../components/Course/index.vue')
+        },
+        {
           path: '/home/class',
           name: 'class',
           component: () => import('../components/Class/index.vue')
-        },
-        {
-          path: '/home/class/classcondition',
-          name: 'classcondition',
-          component: () => import('../components/ClassCondition/index.vue')
         },
         {
           path: '/home/library',
@@ -79,7 +80,23 @@ const router = createRouter({
         },
       ]
     },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue')
+    }
   ]
+})
+
+// 登录检验
+router.beforeEach((to, from, next) => {
+  let isLogin = localStorage.getItem('isLogin')
+  if (to.name !== 'login' && to.name !== 'homepage' && isLogin === 'false') {
+    ElMessage.warning('请先登录')
+    next({ name: from.name })
+  } else {
+    next()
+  }
 })
 
 export default router

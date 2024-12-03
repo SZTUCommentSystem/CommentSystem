@@ -1,3 +1,5 @@
+import { id } from "element-plus/es/locales.mjs";
+
 function createUserList() {
     return [
         {
@@ -5,10 +7,13 @@ function createUserList() {
             // avatar: '../src/assets/image/man.png',   // 头像
             username: 'admin',   // 用户名
             password: '111111',   // 用户密码
-            desc: '平台管理员',   //角色
-            roles: ['平台管理员'],
-            buttons: ['cuser.detail'],   // 按钮权限
-            routes: ['home'],   // 路由权限
+            roles: [
+                {
+                    id: 1,
+                    name: '工程设计',
+                    people: 14, // 人数
+                }
+            ], //课程
             token: 'Admin Token',
         },
         {
@@ -16,10 +21,13 @@ function createUserList() {
             // avatar: '../src/assets/image/man.png',   // 头像
             username: 'system',   // 用户名
             password: '111111',   // 用户密码
-            desc: '系统管理员',   //角色
-            roles: ['系统管理员'],
-            buttons: ['cuser.detail', 'cuser.user'],   // 按钮权限
-            routes: ['home'],   // 路由权限
+            roles: [
+                {
+                    id: 1,
+                    name: '工程力学',
+                    people: 13, // 人数
+                }
+            ],
             token: 'System Token',
         },
     ]
@@ -47,7 +55,7 @@ export default [
 
             // 返回成功信息
             const { token } = checkUser
-            return { code: 200, data: { token } }
+            return { code: 200, data: { checkUser } }
 
         },
     },
