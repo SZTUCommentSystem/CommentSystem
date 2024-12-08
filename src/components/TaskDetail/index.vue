@@ -1,77 +1,24 @@
 <script lang="ts" setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue';
-import { questionListAPI } from '@/api/QuestionAPI/questionList'
-import { TaskDetailAPI, TaskQuestionListAPI } from '@/api/TaskAPI/TaskQuestionList';
-import dayjs from 'dayjs';
+import { useTaskDetail } from '@/hooks/TaskDetailHooks/useTaskDetail'
+import { useQuestionList } from '@/hooks/TaskDetailHooks/useQuestionList'
 
-// 获取传参
 const route = useRoute()
 
-// 作业内容
-const taskDetail = reactive({
-    title: '',
-    description: '',
-    selectedQuestion: [],
-    DeadLine: [],
-})
-const getTaskDetail = async () => {
-    const res = await TaskDetailAPI(route.query.id)
-    const data = res.data.data;
-    Object.assign(taskDetail, data);
-
-    taskDetail.DeadLine = [
-        dayjs(data.DeadLine[0]).format('YYYY-MM-DD HH:mm:ss'),
-        dayjs(data.DeadLine[1]).format('YYYY-MM-DD HH:mm:ss')
-    ];
-    console.log(taskDetail);
-}
-
-// 根据题目id获取题目列表
-const problems = ref([])
-const tags = ref([])
-const getTaskQuestionList = async () => {
-    const res = await TaskQuestionListAPI(taskDetail.selectedQuestion)
-    problems.value = res.data.data
-    const allTags = problems.value.map((item) => item.tags).flat()
-    tags.value = Array.from(new Set(allTags))
-}
-// 判断题目是否有改变
-watch(problems, (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-        const allTags = newVal.map((item) => item.tags).flat();
-        tags.value = Array.from(new Set(allTags));
-    }
-})
-
-// 展示可选择的题目
-const questionList = ref([]);
-// 获取题目列表
-const getQuestionList = async () => {
-    const res = await questionListAPI();
-    questionList.value = res.data.data;
-};
-// 动态创建可选择数组
-const dynamicArray = ref([]);
-watch(questionList, (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-        // 根据 problems 列表的长度动态创建一个数组
-        dynamicArray.value = new Array(newVal.length).fill(null).map((_, index) => {
-            const checked = taskDetail.selectedQuestion.includes(questionList.value[index].id);
-            return { questionId: questionList.value[index].id, checked: checked };
-        });
-    }
-});
-
-// 选择题目相关
-const selDialogVisible = ref(false);
-const selectProblem = () => {
-    taskDetail.selectedQuestion = dynamicArray.value.filter((item) => item.checked).map((item) => item.questionId);
-    problems.value = dynamicArray.value.filter((item) => item.checked).map((item) => questionList.value.find(q => q.id === item.questionId));
-    selDialogVisible.value = false;
-    console.log(taskDetail);
-};
+const { getTaskDetail, taskDetail } = useTaskDetail()
+const {
+    search,
+    problems,
+    tags,
+    getTaskQuestionList,
+    filteredQuestionList,
+    getQuestionList,
+    dynamicArray,
+    selDialogVisible,
+    selectProblem
+} = useQuestionList(taskDetail)
 
 onMounted(async () => {
     await getTaskDetail();
@@ -92,10 +39,10 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 
 <template>
     <div class="create-wrapper">
-      <div class="header">
-        <el-page-header @back="this.$router.push('/home/task')" content="编辑作业" title="返回" >
-        </el-page-header>
-      </div>
+        <div class="header">
+            <el-page-header @back="$router.push('/home/task')" content="编辑作业" title="返回">
+            </el-page-header>
+        </div>
         <div class="create-title">
             <p>标题：</p>
             <input type="text" v-model="taskDetail.title" placeholder="请输入作业标题" />
@@ -108,7 +55,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
             <p>请选择本次作业的题目：</p>
             <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
             <ul style="padding: 0; margin-top: 10px;">
-                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problems.id">
+                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.id">
                     <div class="problem">
                         <span>{{ problem.title }}</span>
                         <span>{{ problem.type }}</span>
@@ -146,16 +93,38 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 
 
         <!-- 选择题目 -->
-        <el-dialog v-model="selDialogVisible" title="选择题目" width="30%" center>
+        <el-dialog v-model="selDialogVisible" title="选择题目" width="60%" center>
             <div class="select">
-                <el-input placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                <ul class="select-header">
+                    <li>
+                        <el-select v-model="search.searchType" placeholder="选择题目类型"
+                            style="margin-right: 10px; width: 200px;">
+                            <el-option label="全部" value=""></el-option>
+                            <el-option label="选择题" value="选择题"></el-option>
+                            <el-option label="填空题" value="填空题"></el-option>
+                            <el-option label="判断题" value="判断题"></el-option>
+                            <el-option label="编程题" value="编程题"></el-option>
+                            <el-option label="工程制图" value="工程制图"></el-option>
+                            <el-option label="工程设计" value="工程设计"></el-option>
+                        </el-select>
+
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchQuestion" placeholder="搜索题目"
+                            style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px"
+                            :prefix-icon="Search" />
+                    </li>
+                </ul>
                 <div class="select-title">
                     <span style="margin-right: 30px;">序号</span>
                     <span style="margin-right: 70px;">标题</span>
                     <span>类型</span>
                 </div>
-                <ul style="margin:0;padding: 0; margin-top: 10px;">
-                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="questionList.id">
+                <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
+                    <li style="margin-bottom: 10px;" v-for="(problem, index) in filteredQuestionList" :key="index">
                         <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
                             :class="{ blue: dynamicArray[index].checked }">
                             <span>{{ index }}</span>
@@ -187,17 +156,20 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 .blue {
     border: 1px solid #409eff !important;
 }
+
 .header {
-  font-size: 20px;
-  background-color: white;padding: 10px;
-  width: 100%;
-  margin-bottom: 10px
+    font-size: 20px;
+    background-color: white;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px
 }
+
 .create-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
 }
 
 .create-title {
@@ -259,7 +231,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 
 .select-problem {
     position: relative;
-    width: 375px;
+    width: 100%;
     cursor: pointer;
     border: 1px solid transparent;
 
@@ -308,6 +280,14 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     flex-direction: column;
     align-items: flex-start;
     padding: 10px 20px;
+
+    .select-header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
 
     .select-title {
         display: flex;

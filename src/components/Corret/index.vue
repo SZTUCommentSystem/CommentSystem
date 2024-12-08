@@ -1,28 +1,53 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
-import SignImage from '@/components/Generic/SignImage.vue'
-import { ref } from "vue";
-
+import { useRoute, watchEffecte, useRouter } from 'vue-router';
+import { ref, onMounted, watch } from "vue";
 import CorrectWork from '@/hooks/CorretHooks/CorretWork';
+import { ElMessage } from 'element-plus';
+
+import SignImage from '@/components/Generic/SignImage.vue'
+import SideBorder from '@/components/Generic/SideBorder.vue'
+
+import { studentInfoAPI } from '@/api/TaskAPI/studentList'
 
 // 接受携带数据
 const route = useRoute();
 const router = useRouter();
 
-// 学生提交图片
-const srcList = [
-    'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
-    'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
-    'https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg',
-    'https://fuss10.elemecdn.com/9/bb/e27858e973f5d7d3904835f46abbdjpeg.jpeg',
-    'https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg',
-    'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
-    'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
-]
+// 题目情况
+interface Student {
+    id: number;
+    name: string;
+    class: string;
+    studentId: string;
+    status: string;
+    score: number;
+}
+const student = ref<Student | null>(null)
+
+// 根据路由参数获取学生信息
+const getStudentInfo = async () => {
+    const res = await studentInfoAPI(route.query.id);
+    student.value = res.data.data;
+}
+
+// 从子组件获取学生数量
+const studentNumber = ref(0);
+const updateStudentNumber = (num: number) => {
+    studentNumber.value = num;
+}
+
+
+const nowTask = ref(1);
+const taskNumber = ref(3);
+const statusData = ref(new Array(taskNumber.value).fill(0).map(() => new Array(4).fill(0)));
 
 // 批改
 const { deleteImgShow, deleteImg, newImgs, cropperObj } = CorrectWork()
 
+// 更新学生批改状态
+const updateCorretStatus = (taskIndex: number, studentIndex: number) => {
+    statusData.value[taskIndex][studentIndex] = 1;
+}
 
 // 批语
 const displayComments = ref([
@@ -35,94 +60,114 @@ const onclick = (comment: string) => {
     textarea.value += comment;
 }
 
+const LastOne = () => {
+    if (route.query.id > 1)
+        router.push(`/home/corret?id=${student.value.id - 1}`);
+    else
+        ElMessage.error('已经是第一个学生了');
+}
+const NextOne = () => {
+    if (route.query.id < studentNumber.value)
+        router.push(`/home/corret?id=${student.value.id + 1}`);
+    else
+        ElMessage.error('已经是最后一个学生了');
+}
 
+onMounted(() => {
+    getStudentInfo();
+})
 
+watch(() => route.query.id, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        getStudentInfo();
+    }
+})
 </script>
 
 <template>
     <div style="position: relative;">
+        <!-- 左边学生列表组件 -->
+        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData"
+            @updateCorretStatus="updateCorretStatus" @updateStudentNumber="updateStudentNumber">
+        </SideBorder>
         <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
         </el-page-header>
 
-        <div class="box">
-            <h4>您当前批改的学生信息</h4>
-            <p>学生姓名：{{ route.query.name }}</p>
-            <p>学生班级：工程2班</p>
-        </div>
-        <div class="box">
-            <h4>题目描述</h4>
-            <p>
-                标题：
-                <i style="font-size: 25px;">工程制图题目 1</i>
-            </p>
-            <div class="picture">
-                <p>相关图片：</p>
-                <ul class="demo-image__preview">
-                    <li v-for="(src, index) in srcList" :key="index">
-                        <el-image style="width: 380px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
-                            :preview-src-list="srcList" :initial-index="index" fit="cover" />
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="box">
-            <h4>学生答案</h4>
-            <div class="picture">
-                <p>相关图片：</p>
-                <ul class="demo-image__preview">
-                    <li v-for="(src, index) in srcList" :key="index">
-                        <el-image style="width: 380px;" :src="src" :zoom-rate="1.2" :max-scale="7" :min-scale="0.2"
-                            :preview-src-list="srcList" :initial-index="index" fit="cover" />
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="box">
-            <h4>批改作业</h4>
-            <p>批改：</p>
-            <div class="correct-box">
-                <!-- 图片处理框 -->
-                <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
-                    :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl" @getNewImg="cropperObj.getNewImg"
-                    @closeCropperDialog="cropperObj.closeCropperView"></SignImage>
-                <!-- 点击弹出图片处理框 -->
-                <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
-                <!-- 处理完图片回显 -->
-                <ul>
-                    <li v-for="(img, index) in newImgs" :key="index">
-                        <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
-                        <div class="img-del" v-show="deleteImgShow[index]" @mouseleave="deleteImgShow[index] = false">
-                            <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
-                        </div>
-                    </li>
-                </ul>
-            </div>
+        <div class="base">
+            <div class="left">
+                <div class="student-message" v-if="student">
+                    <h4>您当前批改的学生信息</h4>
+                    <p>学生姓名：{{ student.name }}</p>
+                    <p>学生班级：{{ student.class }}</p>
+                    <p>当前批改的题目为：第 {{ nowTask }} 题，共 {{ taskNumber }} 题</p>
+                </div>
+                <div class="student-corret">
+                    <h4>批改作业</h4>
+                    <p>批改：</p>
+                    <div class="correct-box">
+                        <!-- 图片处理框 -->
+                        <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
+                            :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl"
+                            @getNewImg="cropperObj.getNewImg" @closeCropperDialog="cropperObj.closeCropperView">
+                        </SignImage>
+                        <!-- 点击弹出图片处理框 -->
+                        <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
+                        <el-button>查看原题</el-button>
 
-            <p>本题的批语库为：</p>
-            <el-check-tag checked @click="onclick(comment)" v-for="comment in displayComments" :key="comment"
-                class="comment-tag">{{
-                    comment }}</el-check-tag>
-            <p>批语：</p>
-            <el-input v-model="textarea" :autosize="{ minRows: 8 }" type="textarea"
-                style="width: 1180px; font-size: 18px;" />
+                        <!-- 处理完图片回显 -->
+                        <ul>
+                            <li v-for="(img, index) in newImgs" :key="index">
+                                <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
+                                <div class="img-del" v-show="deleteImgShow[index]"
+                                    @mouseleave="deleteImgShow[index] = false">
+                                    <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="student-comments">
+                    <p>批语：</p>
+                    <el-input v-model="textarea" :autosize="{ minRows: 8 }" type="textarea"
+                        style="width: 100%; font-size: 18px;" />
+                    <p>得分：</p>
+                    <input type="number" placeholder="请输入分数" />
+
+                </div>
+            </div>
+            <div class="right">
+                <p>本题的批语库为：</p>
+                <el-check-tag checked @click="onclick(comment)" v-for="comment in displayComments" :key="comment"
+                    class="comment-tag">{{
+                        comment }}</el-check-tag>
+            </div>
         </div>
-        <div class="box">
-            <h4>评分</h4>
-            <p>
-                <input type="number" placeholder="请输入分数" />
-            </p>
-        </div>
-        <div class="left-button">&lt;</div>
-        <div class="right-button">&gt;</div>
+        <div class="left-button" @click="LastOne">&lt;</div>
+        <div class="right-button" @click="NextOne">&gt;</div>
         <div class="bottom-button">
             <el-button type="primary" plain style="width: 100px;">上一份</el-button>
             <el-button type="primary" plain style="width: 100px;">下一份</el-button>
-            <el-button type="success" style="width: 100px;">保存</el-button>
+            <el-button type="success" style="width: 100px;" @click="updateCorretStatus(nowTask - 1, 0)">保存</el-button>
         </div>
     </div>
 </template>
 
 <style scoped>
+.base {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .left,
+    .right {
+        width: 49%;
+        height: auto;
+        background-color: #fff;
+        margin-bottom: 5px;
+        padding: 10px 20px;
+    }
+}
+
 .header {
     font-size: 20px;
     background-color: white;
@@ -131,42 +176,6 @@ const onclick = (comment: string) => {
     margin-bottom: 10px
 }
 
-.box {
-    display: flex;
-    /* 纵向排列 */
-    flex-direction: column;
-    /* 向左对齐 */
-    align-items: flex-start;
-    width: 100%;
-    height: auto;
-    margin-bottom: 5px;
-    padding: 10px 20px;
-    background-color: #fff;
-
-    p {
-        margin: 0;
-        font-size: 18px;
-        margin-bottom: 10px;
-    }
-
-    input {
-        display: inline-block;
-        width: 100%;
-        height: 45px;
-        margin-top: 5px;
-        padding-left: 10px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-
-        &:focus {
-            outline: none;
-        }
-    }
-
-    ul {
-        padding-left: 0;
-    }
-}
 
 .left-button,
 .right-button {

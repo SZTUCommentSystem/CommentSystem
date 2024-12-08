@@ -69,14 +69,11 @@ watchEffect(() => {
 
 <template>
     <div class="create-wrapper">
-      <div class="header">
-        <el-page-header @back="this.$router.push('/home/task')" content="查看作业" title="返回" >
-        </el-page-header>
-      </div>
-
-
-      <div class="create-title">
-
+        <div class="header">
+            <el-page-header @back="this.$router.push('/home/task')" content="查看作业" title="返回">
+            </el-page-header>
+        </div>
+        <div class="create-title">
             <div class="task-details">
                 <div class="class-select">
                     班级：
@@ -125,8 +122,7 @@ watchEffect(() => {
                 <el-table-column label="操作">
                     <template #default="scope">
                         <div>
-                            <router-link
-                                :to="{ path: '/home/corret', query: { name: scope.row.name } }">批改作业</router-link>
+                            <router-link :to="{ path: '/home/corret', query: { id: scope.row.id } }">批改作业</router-link>
                             <router-link to="" style="margin-left: 10px;">追加点评</router-link>
                         </div>
                     </template>
@@ -152,10 +148,11 @@ watchEffect(() => {
 }
 
 .header {
-  font-size: 20px;
-  background-color: white;padding: 10px;
-  width: 100%;
-  margin-bottom: 10px
+    font-size: 20px;
+    background-color: white;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px
 }
 
 .header {

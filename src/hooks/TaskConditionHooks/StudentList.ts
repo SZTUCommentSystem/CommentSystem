@@ -1,36 +1,40 @@
-import { reactive, computed, ref } from 'vue';
+import { reactive, computed, ref, onMounted } from 'vue';
+import { studentListAPI } from '@/api/TaskAPI/studentList';
 
 export default function StudentList() {
+    interface Student {
+        id: number;
+        name: string;
+        class: string;
+        studentId: string;
+        status: string;
+        score: number;
+    }
+
     const status = reactive({
-        studentList: [
-            {
-                id: 1,
-                name: '张三',
-                class: '软件工程1班',
-                studentId: '201800102312',
-                status: '未提交',
-                score: 0,
-            },
-            {
-                id: 2,
-                name: '李四',
-                class: '软件工程2班',
-                studentId: '201922522312',
-                status: '已提交',
-                score: 0,
-            },
-            {
-                id: 3,
-                name: '王五',
-                class: '软件工程2班',
-                studentId: '201922522312',
-                status: '已批改',
-                score: 100,
-            },
-        ],
+        studentList: [] as Student[],
         pageSize: 20,
         pageNum: 1
     });
+
+    // 获取学生列表
+    const getStudentList = async () => {
+        try {
+            const res = await studentListAPI();
+            if (res.status === 200) {
+                if (Array.isArray(res.data.data)) {
+                    status.studentList = res.data.data;
+                } else {
+                    console.error('Expected an array but got:', res.data);
+                }
+            } else {
+                console.error('Failed to fetch student list:', res.status);
+            }
+        } catch (error) {
+            console.error('Error fetching student list:', error);
+        }
+    };
+
 
     //列表展示
     const handleSizeChange = (val: number) => {
@@ -69,6 +73,9 @@ export default function StudentList() {
     });
 
 
+    onMounted(() => {
+        getStudentList();
+    })
 
     return { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent }
 }
