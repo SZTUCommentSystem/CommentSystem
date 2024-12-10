@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, watchEffecte, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, watch } from "vue";
 import CorrectWork from '@/hooks/CorretHooks/CorretWork';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -27,7 +27,7 @@ const student = ref<Student | null>(null)
 
 // 根据路由参数获取学生信息
 const getStudentInfo = async () => {
-    const res = await studentInfoAPI(route.query.id);
+    const res = await studentInfoAPI(Number(route.query.id));
     student.value = res.data.data;
 }
 
@@ -62,6 +62,24 @@ const onclick = (comment: string) => {
 }
 
 // 批语分类
+interface Category {
+    id: number;
+    name: string;
+    comments: string[];
+    isEditing: boolean;
+    spreadIndex: boolean;
+    subcategories: Subcategory[];
+}
+
+interface Subcategory {
+    id: number;
+    name: string;
+    comments: string[];
+    isEditing: boolean;
+    spreadIndex: boolean;
+    subcategories: Subcategory[];
+}
+
 const category = ref([
     {
         id: 1,
@@ -109,15 +127,6 @@ const category = ref([
         subcategories: []
     }
 ]);
-
-// 切换编辑状态
-const toggleEdit = (category, subcategory = null) => {
-    if (subcategory) {
-        subcategory.isEditing = !subcategory.isEditing;
-    } else {
-        category.isEditing = !category.isEditing;
-    }
-};
 
 // 切换展开状态
 const spreadIndex = ref(false);
@@ -265,7 +274,7 @@ watch(() => route.query.id, (newValue, oldValue) => {
                     <el-button class="new-create" @click="createCategory">新建分类</el-button>
                 </div>
                 <div class="right-body">
-                    <CategoryList :categories="category" @toggleEdit="toggleEdit" @onclick="onclick" />
+                    <CategoryList :categories="category" @onclick="onclick" />
                 </div>
             </div>
         </div>
