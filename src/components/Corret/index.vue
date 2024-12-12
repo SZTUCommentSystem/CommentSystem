@@ -302,13 +302,29 @@ watch(() => route.query.id, (newValue, oldValue) => {
     justify-content: space-between;
     margin-bottom: 10px;
 
-    .left,
-    .right {
+    .left {
         width: 49%;
         height: auto;
         background-color: #fff;
         margin-bottom: 5px;
         padding: 10px 20px;
+    }
+
+    .right {
+        position: fixed;
+        top: 101px;
+        right: 151px;
+        /* 距离页面右侧的距离 */
+        width: 40%;
+        /* 确保宽度合适 */
+        height: auto;
+        /* 根据内容自动调整高度 */
+        background-color: #fff;
+        margin-bottom: 5px;
+        padding: 10px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        /* 添加阴影效果 */
+        z-index: 1000;
     }
 
     .right-header {

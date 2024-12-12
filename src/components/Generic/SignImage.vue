@@ -260,7 +260,7 @@ const save = () => {
     }
     const blob = new Blob([ia], { type: 'image/png' }) // blob 文件
     const form = new FormData()
-    form.append("avatarfile", blob);
+    form.append("avatarfile", blob)
 
     // 上传图片
     uploadFile(form).then(res => {

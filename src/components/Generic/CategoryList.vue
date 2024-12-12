@@ -30,7 +30,6 @@ const onEnd = (event: any) => {
 
 <template>
     <div class="comments">
-        <el-button class="new-create">新建分类</el-button>
         <draggable :list="categories" tag="ul" animation="1000" @end="onEnd" ghost-class="ghost" chosen-class="chosen"
             drag-class="drag">
             <template #item="{ element, index }">

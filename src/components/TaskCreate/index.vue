@@ -14,6 +14,11 @@ const taskContent = reactive({
 
 // 题目
 // 展示可选择的题目
+const search = reactive({
+    searchType: '',
+    searchQuestion: '',
+    searchTag: '',
+});
 const questionList = ref([]);
 // 获取题目列表
 const getQuestionList = async () => {
@@ -73,10 +78,10 @@ onMounted(() => {
 
 <template>
     <div class="create-wrapper">
-      <div class="header">
-        <el-page-header @back="this.$router.push('/home/task')" content="新建作业" title="返回" >
-        </el-page-header>
-      </div>
+        <div class="header">
+            <el-page-header @back="this.$router.push('/home/task')" content="新建作业" title="返回">
+            </el-page-header>
+        </div>
         <div class="create-title">
             <p>标题：</p>
             <input type="text" v-model="taskContent.title" placeholder="请输入作业标题" />
@@ -121,22 +126,44 @@ onMounted(() => {
         <div class="button_submit">
             <el-button type="primary" @click="submitTask">提交</el-button>
             <router-link to="/home/task">
-                <el-button>取消</el-button>
+                <el-button type="success">保存</el-button>
             </router-link>
         </div>
 
 
         <!-- 选择题目 -->
-        <el-dialog v-model="selDialogVisible" title="选择题目" width="30%" center>
+        <el-dialog v-model="selDialogVisible" title="选择题目" width="60%" center>
             <div class="select">
-                <el-input placeholder="搜索题目" style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                <ul class="select-header">
+                    <li>
+                        <el-select v-model="search.searchType" placeholder="选择题目类型"
+                            style="margin-right: 10px; width: 200px;">
+                            <el-option label="全部" value=""></el-option>
+                            <el-option label="选择题" value="选择题"></el-option>
+                            <el-option label="填空题" value="填空题"></el-option>
+                            <el-option label="判断题" value="判断题"></el-option>
+                            <el-option label="编程题" value="编程题"></el-option>
+                            <el-option label="工程制图" value="工程制图"></el-option>
+                            <el-option label="工程设计" value="工程设计"></el-option>
+                        </el-select>
+
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchQuestion" placeholder="搜索题目"
+                            style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px"
+                            :prefix-icon="Search" />
+                    </li>
+                </ul>
                 <div class="select-title">
                     <span style="margin-right: 30px;">序号</span>
                     <span style="margin-right: 70px;">标题</span>
                     <span>类型</span>
                 </div>
-                <ul style="margin:0;padding: 0; margin-top: 10px;">
-                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="questionList.id">
+                <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
+                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="index">
                         <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
                             :class="{ blue: dynamicArray[index].checked }">
                             <span>{{ index }}</span>
@@ -173,14 +200,17 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
 }
+
 .header {
-  font-size: 20px;
-  background-color: white;padding: 10px;
-  width: 100%;
-  margin-bottom: 10px
+    font-size: 20px;
+    background-color: white;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px
 }
+
 .create-title {
     display: flex;
     /* 纵向排列 */
@@ -289,6 +319,14 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     padding: 10px 20px;
+
+    .select-header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
 
     .select-title {
         display: flex;
