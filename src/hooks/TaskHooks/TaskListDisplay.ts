@@ -2,17 +2,55 @@ import { ref, reactive, computed, onMounted } from "vue";
 // 获取作业列表
 import { TaskListAPI } from "@/api/TaskAPI/TaskQuestionList";
 
+interface Task {
+    id: number;
+    title: string;
+    tags: string[];
+    teacher: string;
+    selectedQuestion: number[];
+    PublishStatus: number;
+    IsDropList: boolean;
+    DeadLine: string;
+}
+
+interface State {
+    TaskList: Task[];
+    pageSize: number;
+    pageNum: number;
+}
+
 export default function ListDisplay() {
-    interface Task {
-        id: number;
-        title: string;
-        tags: string[];
-        teacher: string;
-        selectedQuestion: number[];
-        PublishStatus: number;
-        IsDropList: boolean;
-        DeadLine: string;
-    }
+
+    const category = reactive([
+        {
+            id: 1,
+            name: '分类A',
+            TaskList: {} as Task,
+            isEditing: false,
+            spreadIndex: false,
+        },
+        {
+            id: 2,
+            name: '分类A',
+            TaskList: {} as Task,
+            isEditing: false,
+            spreadIndex: false,
+        },
+        {
+            id: 3,
+            name: '分类A',
+            TaskList: {} as Task,
+            isEditing: false,
+            spreadIndex: false,
+        },
+        {
+            id: 4,
+            name: '分类A',
+            TaskList: {} as Task,
+            isEditing: false,
+            spreadIndex: false,
+        }
+    ])
 
     const state = reactive({
         TaskList: [] as Task[],
@@ -26,6 +64,11 @@ export default function ListDisplay() {
             const res = await TaskListAPI();
             if (Array.isArray(res.data.data)) {
                 state.TaskList = res.data.data;
+                category.map(item => {
+                    item.TaskList = res.data.data;
+                })
+                console.log(category[0].TaskList);
+
             } else {
                 console.error('API 返回的数据不是数组:', res.data.data);
             }
@@ -61,5 +104,5 @@ export default function ListDisplay() {
         const end = start + state.pageSize;
         return FilterStatus.value.slice(start, end);
     });
-    return { state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks }
+    return { category, state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks }
 }

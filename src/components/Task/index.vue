@@ -9,8 +9,7 @@ import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
 import { PubList, EndList, DelList } from "../../hooks/TaskHooks/OperateList";
 
 //载入主要数据和事件
-const { state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
-
+const { category, state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
 
 // 发布作业
 const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList();
@@ -70,6 +69,13 @@ const toTaskDetail = (id: number) => {
 onMounted(() => {
     getTaskList();
 })
+
+
+////////////////临时
+
+const toggleEdit = (item: any) => {
+    item.isEditing = !item.isEditing;
+};
 </script>
 <template>
     <div class="all_class">
@@ -81,116 +87,111 @@ onMounted(() => {
                 <router-link to="/home/task/taskcreate" class="title_button"><el-button
                         type="primary">去创建作业</el-button></router-link>
             </div>
-            <transition name="fade">
-                <div class="list">
-                    <ul>
-                        <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
-                            <div class="pane">
-                                <div class="pane-top">
-                                    <div class="pane-rep">
-                                        <div class="status">
-                                            <h5>标题：{{ item.title }}</h5>
-                                        </div>
-                                        <div class="task-tag">
-                                            <el-tag v-for="tag in item.tags" :key="tag">
-                                                {{ tag }}
-                                            </el-tag>
-                                        </div>
-
-                                    </div>
-                                    <div class="pane-skip">
-                                        <el-dropdown placement="bottom">
-                                            <el-button> 更多 </el-button>
-                                            <template #dropdown>
-                                                <el-dropdown-menu>
-                                                    <el-dropdown-item @click="confirmPubTask(item.id)">
-                                                        立即发布
-                                                    </el-dropdown-item>
-                                                    <el-dropdown-item @click="confirmEndTask(item.id)">
-                                                        立即截止
-                                                    </el-dropdown-item>
-                                                    <el-dropdown-item @click="confirmDelTask(item.id)">
-                                                        立即删除
-                                                    </el-dropdown-item>
-                                                    <el-dropdown-item @click="toTaskDetail(item.id)">
-                                                        编辑作业
-                                                    </el-dropdown-item>
-                                                    <el-dropdown-item @click="toTaskCondition(item.title)">
-                                                        查看作业
-                                                    </el-dropdown-item>
-                                                </el-dropdown-menu>
-                                            </template>
-                                        </el-dropdown>
-
-
-                                    </div>
+            <div class="task-body">
+                <ul>
+                    <li v-for="cate in category" :key="cate.id">
+                        <div class="task-main-body">
+                            <div class="task-left">
+                                <div v-if="cate.isEditing">
+                                    <el-input v-model="cate.name" @blur="toggleEdit(cate)" />
                                 </div>
-
-                                <!--                          <transition name="fade">-->
-                                <!--                            <div class="pane-drop-list" v-if="item.IsDropList">-->
-
-                                <!--                                <table>-->
-                                <!--                                    <thead>-->
-                                <!--                                        <tr>-->
-                                <!--                                            <th>班级</th>-->
-                                <!--                                            <th>状态</th>-->
-                                <!--                                            <th>提交情况</th>-->
-                                <!--                                            <th>截止时间</th>-->
-                                <!--                                        </tr>-->
-                                <!--                                    </thead>-->
-                                <!--                                    <tbody>-->
-                                <!--                                        <tr>-->
-                                <!--                                            <td>1</td>-->
-                                <!--                                            <td>2</td>-->
-                                <!--                                            <td>3</td>-->
-                                <!--                                            <td>4</td>-->
-                                <!--                                        </tr>-->
-                                <!--                                    </tbody>-->
-                                <!--                                </table>-->
-
-                                <!--                            </div>-->
-                                <!--                          </transition>-->
-                                <div class="p-4">
-                                    <el-collapse v-model="activeNames" @change="handleChange">
-                                        <el-collapse-item title="布置老师：胡某 截至时间：11：15" name="1">
-                                            <el-row :gutter="20">
-                                                <el-col :span="7" class="centered">
-                                                    <div>
-                                                        <el-statistic title="已提交" value="23/56">
-                                                        </el-statistic>
-                                                    </div>
-                                                </el-col>
-                                                <el-col :span="8" class="centered">
-                                                    <div>
-                                                        <el-statistic title="未提交" value="33/56">
-                                                        </el-statistic>
-                                                    </div>
-                                                </el-col>
-                                                <el-col :span="8" class="centered">
-                                                    <div>
-                                                        <el-statistic title="已批改" value="10/56">
-                                                        </el-statistic>
-                                                    </div>
-                                                </el-col>
-
-                                            </el-row>
-                                        </el-collapse-item>
-
-                                    </el-collapse>
+                                <div v-else style="margin: 3px 0;">
+                                    <span>{{ cate.name }}</span>
                                 </div>
-
-
+                                <img src="@/assets/img/编辑.png" alt="" @click="toggleEdit(cate)">
                             </div>
+                            <div>
+                                <img src="@/assets/img/向上的箭头.png" alt="" v-if="cate.spreadIndex"
+                                    @click="cate.spreadIndex = !cate.spreadIndex">
+                                <img src="@/assets/img/向下的箭头.png" alt="" v-else
+                                    @click="cate.spreadIndex = !cate.spreadIndex">
+                            </div>
+                        </div>
+                        <div v-if="cate.spreadIndex">
+                            <transition name="fade">
+                                <div class="list">
+                                    <ul>
+                                        <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
+                                            <div class="pane">
+                                                <div class="pane-top">
+                                                    <div class="pane-rep">
+                                                        <div class="status">
+                                                            <h5>标题：{{ item.title }}</h5>
+                                                        </div>
+                                                        <div class="task-tag">
+                                                            <el-tag v-for="tag in item.tags" :key="tag">
+                                                                {{ tag }}
+                                                            </el-tag>
+                                                        </div>
+                                                    </div>
+                                                    <div class="pane-skip">
+                                                        <el-dropdown placement="bottom">
+                                                            <el-button> 更多 </el-button>
+                                                            <template #dropdown>
+                                                                <el-dropdown-menu>
+                                                                    <el-dropdown-item @click="confirmPubTask(item.id)">
+                                                                        立即发布
+                                                                    </el-dropdown-item>
+                                                                    <el-dropdown-item @click="confirmEndTask(item.id)">
+                                                                        立即截止
+                                                                    </el-dropdown-item>
+                                                                    <el-dropdown-item @click="confirmDelTask(item.id)">
+                                                                        立即删除
+                                                                    </el-dropdown-item>
+                                                                    <el-dropdown-item @click="toTaskDetail(item.id)">
+                                                                        编辑作业
+                                                                    </el-dropdown-item>
+                                                                    <el-dropdown-item
+                                                                        @click="toTaskCondition(item.title)">
+                                                                        查看作业
+                                                                    </el-dropdown-item>
+                                                                </el-dropdown-menu>
+                                                            </template>
+                                                        </el-dropdown>
+                                                    </div>
+                                                </div>
+                                                <div class="p-4">
+                                                    <el-collapse v-model="activeNames" @change="handleChange">
+                                                        <el-collapse-item title="布置老师：胡某 截至时间：11：15" name="1">
+                                                            <el-row :gutter="20">
+                                                                <el-col :span="7" class="centered">
+                                                                    <div>
+                                                                        <el-statistic title="已提交" value="23/56">
+                                                                        </el-statistic>
+                                                                    </div>
+                                                                </el-col>
+                                                                <el-col :span="8" class="centered">
+                                                                    <div>
+                                                                        <el-statistic title="未提交" value="33/56">
+                                                                        </el-statistic>
+                                                                    </div>
+                                                                </el-col>
+                                                                <el-col :span="8" class="centered">
+                                                                    <div>
+                                                                        <el-statistic title="已批改" value="10/56">
+                                                                        </el-statistic>
+                                                                    </div>
+                                                                </el-col>
+
+                                                            </el-row>
+                                                        </el-collapse-item>
+
+                                                    </el-collapse>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li v-else class="list-not-li">
+                                            <h1>尚未发布作业</h1>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </transition>
+                        </div>
+                    </li>
+                </ul>
+            </div>
 
 
-
-                        </li>
-                        <li v-else class="list-not-li">
-                            <h1>尚未发布作业</h1>
-                        </li>
-                    </ul>
-                </div>
-            </transition>
             <div class="paging">
                 <el-config-provider :locale="zhCn">
                     <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
@@ -298,13 +299,50 @@ p {
 
     }
 
+    .task-body {
+
+        width: 100%;
+        height: 94%;
+
+        ul {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            padding: 0;
+
+            li {
+                width: 92%;
+                margin: 5px;
+
+                .task-main-body {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 5px 10px;
+                    border: 1px solid #ccc;
+                }
+
+                .task-left {
+                    display: flex;
+                    align-items: center;
+                }
+
+                img {
+                    width: 15px;
+                    margin-left: 10px;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+
     .list {
         ul {
             position: relative;
             margin: 10px;
-            margin-bottom: 30px;
             padding: 13px;
-            min-height: calc(100vh - 100px);
             background-color: #ffffff;
 
 

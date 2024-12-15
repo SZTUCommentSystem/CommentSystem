@@ -43,13 +43,15 @@ watch(() => route.query, async (newQuery, oldQuery) => {
             <el-page-header @back="$router.push('/home/task')" content="编辑作业" title="返回">
             </el-page-header>
         </div>
-        <div class="create-title">
-            <p>标题：</p>
-            <input type="text" v-model="taskDetail.title" placeholder="请输入作业标题" />
-        </div>
-        <div class="create-title">
-            <p>描述（可选）：</p>
-            <input type="text" v-model="taskDetail.description" placeholder="请输入作业简介" />
+        <div class="create-title-top">
+            <div class="left">
+                <p>标题：</p>
+                <input type="text" v-model="taskDetail.title" placeholder="请输入题目标题" />
+            </div>
+            <div class="right">
+                <p>目录：</p>
+                <input type="text" v-model="taskDetail.title" placeholder="请输入作业要放入的目录" />
+            </div>
         </div>
         <div class="create-title auto-height">
             <p>请选择本次作业的题目：</p>
@@ -119,9 +121,10 @@ watch(() => route.query, async (newQuery, oldQuery) => {
                     </li>
                 </ul>
                 <div class="select-title">
-                    <span style="margin-right: 30px;">序号</span>
-                    <span style="margin-right: 70px;">标题</span>
-                    <span>类型</span>
+                    <span style="margin-right: 22%;">序号</span>
+                    <span style="margin-right: 27%;">标题</span>
+                    <span style="margin-right: 31%;">类型</span>
+                    <span>标签</span>
                 </div>
                 <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
                     <li style="margin-bottom: 10px;" v-for="(problem, index) in filteredQuestionList" :key="index">
@@ -170,6 +173,48 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     flex-direction: column;
     align-items: center;
 
+}
+
+.create-title-top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 10px;
+
+
+    .left,
+    .right {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 20px;
+        background-color: #fff;
+        width: 49%;
+    }
+
+
+    .right {
+        width: 50%;
+        margin-left: 10px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    input {
+        display: inline-block;
+        width: 100%;
+        height: 45px;
+        padding-left: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+
+        &:focus {
+            outline: none;
+        }
+    }
 }
 
 .create-title {

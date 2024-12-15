@@ -220,8 +220,8 @@ watch(() => route.query.id, (newValue, oldValue) => {
 <template>
     <div style="position: relative;">
         <!-- 左边学生列表组件 -->
-        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData"
-            @updateCorretStatus="updateCorretStatus" @updateStudentNumber="updateStudentNumber">
+        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData" :nowCorrect="route.query.id"
+            @updateStudentNumber="updateStudentNumber">
         </SideBorder>
         <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
         </el-page-header>
@@ -271,7 +271,10 @@ watch(() => route.query.id, (newValue, oldValue) => {
             <div class="right">
                 <div class="right-header">
                     <p>本题的批语库为：</p>
-                    <el-button class="new-create" @click="createCategory">新建分类</el-button>
+                    <div class="left">
+                        <el-button class="new-create" @click="createCategory">新建分类</el-button>
+                        <el-button type="primary" plain>添加批语</el-button>
+                    </div>
                 </div>
                 <div class="right-body">
                     <CategoryList :categories="category" @onclick="onclick" />
@@ -283,7 +286,8 @@ watch(() => route.query.id, (newValue, oldValue) => {
         <div class="bottom-button">
             <el-button type="primary" plain style="width: 100px;">上一份</el-button>
             <el-button type="primary" plain style="width: 100px;">下一份</el-button>
-            <el-button type="success" style="width: 100px;" @click="updateCorretStatus(nowTask - 1, 0)">保存</el-button>
+            <el-button type="success" style="width: 100px;"
+                @click="updateCorretStatus(nowTask - 1, route.query.id - 1)">保存</el-button>
         </div>
     </div>
 </template>

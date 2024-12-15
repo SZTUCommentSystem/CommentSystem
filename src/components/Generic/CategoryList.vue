@@ -75,7 +75,6 @@ const onEnd = (event: any) => {
     ul {
         padding: 0;
         list-style: none;
-        /* 确保 ul 元素没有默认的列表样式 */
     }
 
     .new-create {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { studentListAPI } from '@/api/TaskAPI/studentList';
 
 // 定义 `StatusData` 的类型
@@ -14,7 +15,7 @@ const props = defineProps<{
     statusData: StatusData;
 }>();
 
-const emit = defineEmits(['updateCorretStatus', 'updateStudentNumber']);
+const emit = defineEmits(['updateStudentNumber']);
 
 interface Student {
     id: number;
@@ -34,19 +35,18 @@ const getudentList = async () => {
     emit('updateStudentNumber', studentList.value.length);
 }
 
-
 const isSidebarVisible = ref(false);
 
 const toggleSidebar = () => {
     isSidebarVisible.value = !isSidebarVisible.value;
 };
 
-// 监听 nowTask 的变化，确保 statusData 的长度足够
-watch(() => props.nowTask, (newVal) => {
-    if (newVal > Object.keys(props.statusData).length) {
-        emit('updateCorretStatus', newVal - 1, 0); // 确保数组长度足够
-    }
-});
+// 跳转到对应的学生
+const router = useRouter();
+const jumpToStudent = (row: Student) => {
+    router.push({ path: '/home/corret', query: { id: row.id } });
+    window.location.reload();
+};
 
 onMounted(() => {
     getudentList();
@@ -58,7 +58,7 @@ onMounted(() => {
         <div class="overlay" v-if="isSidebarVisible" @click="toggleSidebar"></div>
         <div class="sidebar" :class="{ 'sidebar-visible': isSidebarVisible }">
             <button class="close-btn" @click="toggleSidebar">x</button>
-            <el-table :data="studentList" style="width: 100%">
+            <el-table :data="studentList" style="width: 100%" @row-click="jumpToStudent" row-style="cursor:pointer">
                 <el-table-column prop="class" label="班级" width="150" />
                 <el-table-column prop="name" label="姓名" width="90" />
                 <el-table-column label="本题状态">
@@ -109,7 +109,7 @@ onMounted(() => {
     background-color: white;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
     transition: left 0.3s ease;
-    z-index: 1001;
+    z-index: 2001;
 }
 
 .sidebar-visible {
@@ -131,7 +131,7 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
+    z-index: 2000;
 }
 
 .selected {
