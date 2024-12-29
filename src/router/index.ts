@@ -78,6 +78,11 @@ const router = createRouter({
           name: 'label',
           component: () => import('../components/Label/index.vue')
         },
+        {
+          path: '/home/classdetail/1',
+          name: 'classdetail',
+          component: () => import('../components/Class/ClassDetail.vue')
+        },
       ]
     },
     {
