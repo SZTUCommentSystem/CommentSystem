@@ -83,6 +83,11 @@ const router = createRouter({
           name: 'classdetail',
           component: () => import('../components/Class/ClassDetail.vue')
         },
+        {
+          path: '/home/questionpage/1',
+          name: 'questionpage',
+          component: () => import('../components/QuestionPage/index.vue')
+        },
       ]
     },
     {

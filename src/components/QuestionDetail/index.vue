@@ -370,12 +370,23 @@ const handleRowClick = (row: string) => {
     questionDetail.displayComments.push(row)
   }
 }
+const drawer3 = ref(false);
+const newCategoryName = ref('');
+
+const addCategory = () => {
+  if (newCategoryName.value.trim()) {
+    // Add the new category logic here
+    console.log('New Category:', newCategoryName.value);
+    drawer3.value = false;
+  }
+};
+const selectedOption = ref('')
 </script>
 
 <template>
   <div class="create-wrapper">
     <div class="header">
-      <el-page-header @back="this.$router.push('/home/question')" content="题目详情" title="返回" />
+      <el-page-header @back="this.$router.push('/home/question')" content="修改题目" title="返回" />
     </div>
 
     <div class="create-title-top">
@@ -428,16 +439,27 @@ const handleRowClick = (row: string) => {
       <editor-markdown v-model="questionDetail.description"></editor-markdown>
     </div>
     <div class="create-list">
-      <p>题目批语：</p>
+      <div class="flex-between" style="display: flex; justify-content: space-between; align-items: center;width: 100%">
+        <p>题目批语：</p>
+        <el-button type="primary" style="border-radius: 10px;margin-right: 0;" @click="drawer3=true">+ 添加分类</el-button>
+      </div>
       <el-tag v-for="comment in questionDetail.displayComments" :key="comment" effect="plain" closable
               @close="handleCloseComment" class="comment-tag">
         {{ comment }}
       </el-tag>
-      <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;" @click="drawer2=true">+ 添加</el-button>
+      <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;" @click="drawer2=true">+ 添加批语</el-button>
       <el-drawer v-model="drawer2" title="题目批语选择">
         <div class="mb-4">
           <span>选择批语章节：</span>
           <el-cascader :options="options" clearable />
+        </div>
+        <div class="mb-4">
+          <span>选择分类：</span>
+          <el-select v-model="selectedOption" placeholder="请选择" style="width: 200px">
+            <el-option label="图1" value="图1"></el-option>
+            <el-option label="图2" value="图2"></el-option>
+            <el-option label="图3" value="图3"></el-option>
+          </el-select>
         </div>
         <div class="flex">
           <el-table
@@ -452,6 +474,16 @@ const handleRowClick = (row: string) => {
           </el-table>
         </div>
       </el-drawer>
+      <el-dialog v-model="drawer3" title="添加分类" style="width: 600px">
+        <div style="display: flex; justify-content: center;">
+          <span class="mt-1">输入分类名称：</span>
+          <el-input v-model="newCategoryName" style="width: 300px" placeholder="分类名称"></el-input>
+        </div>
+        <div slot="footer" class="dialog-footer mt-3" style="display: flex; justify-content: center;">
+          <el-button @click="drawer3=false">取消</el-button>
+          <el-button type="primary" @click="addCategory">确定</el-button>
+        </div>
+      </el-dialog>
     </div>
     <div class="button_submit">
       <el-button type="primary">提交</el-button>

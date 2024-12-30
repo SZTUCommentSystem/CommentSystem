@@ -25,6 +25,9 @@ const {
 onMounted(() => {
   getList();
 });
+const rowClick = (row) => {
+  router.push('/home/questionpage/1');
+};
 </script>
 
 <template>
@@ -49,7 +52,7 @@ onMounted(() => {
     </div>
 
     <!-- 题目列表展示 -->
-    <ElTable :data="paginatedQuestions" stripe>
+    <ElTable :data="paginatedQuestions" stripe style="cursor: pointer;" @row-click="rowClick">
       <ElTableColumn label="序号" type="index" width="100" />
       <ElTableColumn prop="type" label="题目类型" width="150" />
       <ElTableColumn prop="title" label="题目" width="250" />
