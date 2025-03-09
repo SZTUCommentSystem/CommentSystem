@@ -390,7 +390,7 @@ const SelectClass = ref(localStorage.getItem('SelectClassName'));
                 background-color: #fff;
                 height: 100%;
                 width: 45%;
-                margin-right: 26px;
+                margin-right: 12px;
                 box-shadow: 0 0 10px rgb(0, 0, 0, 0.2);
                 border-radius: 10px;
 
@@ -589,5 +589,130 @@ const SelectClass = ref(localStorage.getItem('SelectClassName'));
     fill: #666;
     font-size: 0.5em;
     text-anchor: middle;
+}
+
+@media (max-width: 768px) {
+    .home-header {
+        h1 {
+            font-size: 30px;
+
+            &:first-child {
+                top: 1em;
+                left: 2em;
+            }
+
+            &:last-child {
+                top: 3em;
+                left: 3em;
+            }
+        }
+    }
+
+    .title {
+        h1 {
+            font-size: 30px;
+
+            &::before,
+            &::after {
+                height: 15px;
+                width: 15px;
+                margin: 0 20px;
+            }
+        }
+    }
+
+    .task-title {
+        h4 {
+            font-size: 14px;
+        }
+    }
+
+    .task-condition {
+        height: 10em !important;
+    }
+
+    .task-condition-left {
+        p {
+            font-size: 14px !important;
+
+            i {
+                font-size: 20px !important;
+            }
+        }
+    }
+
+    .task-condition-right {
+        p {
+            font-size: 14px !important;
+
+            i {
+                font-size: 20px !important;
+            }
+        }
+    }
+
+    .task-corret {
+        justify-content: start;
+    }
+
+    .task-corret-left {
+        width: 100% !important;
+
+        p {
+            font-size: 14px !important;
+
+            i {
+                font-size: 20px !important;
+            }
+        }
+    }
+
+    .task-corret-right {
+        display: none;
+    }
+
+    .bottom {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .circular-chart {
+        width: 80px !important;
+    }
+
+    .home-body-question-container {
+        .home-body-question {
+            .question {
+                .question-info {
+                    padding: 5px;
+
+                    p {
+                        font-size: 12px;
+
+                        i {
+                            font-size: 15px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .home-body-library {
+        ul {
+            li {
+                .top {
+                    p {
+                        margin: 0;
+                        font-size: 12px;
+                    }
+                }
+
+                .bottom {
+                    font-size: 12px;
+                }
+            }
+        }
+    }
 }
 </style>

@@ -9,12 +9,15 @@ import Logo from '@/assets/img/logo.png'
 </template>
 
 <style scoped>
-
-
-
-/* 控制 logo 图片大小 */
 .logo-image {
-  width: 250px; /* 自定义宽度 */
-  height: auto; /* 确保图片不变形 */
+  width: 250px;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .logo-image {
+    width: 200px;
+    /* 移动端宽度 */
+  }
 }
 </style>

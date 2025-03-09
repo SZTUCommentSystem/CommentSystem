@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -30,26 +30,22 @@ const createClass = () => {
   <div class="flex-container bg-white p-4">
     <div class="filter-container mb-3 d-flex justify-content-between flex-row align-items-center">
       <div class="d-flex flex-row align-items-center">
-        <el-select v-model="selectedStatus" style="width: 150px">
+        <el-select v-model="selectedStatus" class="inputclass" placeholder="班级状态" clearable>
           <el-option label="全部" value=""></el-option>
           <el-option label="授课中" value="授课中"></el-option>
           <el-option label="已结课" value="已结课"></el-option>
         </el-select>
-        <el-input v-model="searchQuery" placeholder="搜索班级名字" class="ms-2" style="width: 150px" clearable />
+        <el-input v-model="searchQuery" placeholder="搜索班级名字" class="ms-2 inputclass" clearable />
       </div>
       <el-button type="primary" @click="createClass">新建班级</el-button>
     </div>
     <div class="card-container">
-      <el-card
-          v-for="(classItem, index) in filteredClasses"
-          :key="index"
-          :class="['custom-card', { 'teaching': classItem.status === '授课中', 'completed': classItem.status === '已结课' }]"
-          style="text-align: center; cursor: pointer;"
-          @click="$router.push(`/home/classdetail/${index + 1}`)"
-      >
+      <el-card v-for="(classItem, index) in filteredClasses" :key="index"
+        :class="['custom-card', { 'teaching': classItem.status === '授课中', 'completed': classItem.status === '已结课' }]"
+        style="text-align: center; cursor: pointer;" @click="$router.push(`/home/classdetail/${index + 1}`)">
         <template #header>
           <div class="card-header">
-            <span style="font-size: large; font-weight: bold">{{ classItem.name }}</span>
+            <span>{{ classItem.name }}</span>
           </div>
         </template>
         <el-statistic title="学生成员" :value="classItem.students" />
@@ -76,10 +72,14 @@ const createClass = () => {
   align-items: center;
 }
 
+.inputclass {
+  width: 150px;
+}
+
 .card-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 50px;
+  gap: 40px;
 }
 
 .custom-card {
@@ -100,5 +100,30 @@ const createClass = () => {
 
 .custom-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+  font-size: large;
+  font-weight: bold
+}
+
+@media (max-width: 768px) {
+  .custom-card {
+    width: 160px;
+  }
+
+  .card-container {
+    gap: 20px;
+  }
+
+  .inputclass {
+    width: 100px;
+
+    font-size: 12px;
+  }
+
+  .card-header {
+    font-size: medium;
+  }
 }
 </style>

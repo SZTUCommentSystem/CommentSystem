@@ -9,12 +9,14 @@ import Logo from '@/assets/img/notice.svg'
 </template>
 
 <style scoped>
-
-
-
-/* 控制 logo 图片大小 */
 .logo-image {
-  width: 30px; /* 自定义宽度 */
-  height: auto; /* 确保图片不变形 */
+  width: 30px;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .logo-image {
+    width: 20px;
+  }
 }
 </style>

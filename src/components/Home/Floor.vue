@@ -60,4 +60,18 @@
     align-items: center;
     padding: 10px;
 }
+
+@media (max-width:768px) {
+    .footer {
+        font-size: 10px;
+    }
+
+    .up_footer {
+        ul {
+            li {
+                padding: 0 5px;
+            }
+        }
+    }
+}
 </style>

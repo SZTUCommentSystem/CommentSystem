@@ -2,7 +2,7 @@
 import { ref, reactive } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 
-import type {ElPageHeader, UploadProps, UploadUserFile} from 'element-plus'
+import type { ElPageHeader, UploadProps, UploadUserFile } from 'element-plus'
 
 // 导入编辑器
 import EditorMarkdown from '@/components/Generic/Editor.vue'
@@ -64,55 +64,60 @@ const submitQuestion = async () => {
 
 <template>
     <div class="create-wrapper">
-      <div class="header">
-        <el-page-header @back="this.$router.push('/home/question')" content="创建题目" title="返回" >
-        </el-page-header>
-      </div>
+        <div class="header">
+            <el-page-header @back="this.$router.push('/home/question')" content="创建题目" title="返回">
+            </el-page-header>
+        </div>
         <div class="create-title-top">
             <div class="left">
-                <p>标题：</p>
-                <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
+                <div class="create-list">
+                    <p>题目批语：</p>
+                    <el-tag v-for="comment in questionContent.displayComments" :key="comment" effect="plain" closable
+                        @close="handleCloseComment" class="comment-tag">
+                        {{ comment }}
+                    </el-tag>
+                    <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button>
+                </div>
             </div>
             <div class="right">
-                <p>题目类型：</p>
-                <input type="text" v-model="questionContent.type" placeholder="请输入题目类型" />
-            </div>
-        </div>
-        <div class="create-list">
-            <p>题目标签：</p>
-            <div class="tag">
-                <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round size="large"
-                    closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
-                <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
-            </div>
-        </div>
-        <div class="create-list">
-            <p>作业相关图片：</p>
-            <el-upload ref="upload" v-model:file-list="questionContent.imgs"
-                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
-                :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
-                :on-remove="handleRemove">
-                <el-icon>
-                    <Plus />
-                </el-icon>
-            </el-upload>
+                <div class="create-list">
+                    <p>标题：</p>
+                    <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
+                </div>
+                <div class="create-list">
+                    <p>题目类型：</p>
+                    <input type="text" v-model="questionContent.type" placeholder="请输入题目类型" />
+                </div>
+                <div class="create-list">
+                    <p>题目标签：</p>
+                    <div class="tag">
+                        <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round
+                            size="large" closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+                        <el-button type="primary" plain style="border-radius: 20px; ">+ 添加</el-button>
+                    </div>
+                </div>
+                <div class="create-list">
+                    <p>作业相关图片：</p>
+                    <el-upload ref="upload" v-model:file-list="questionContent.imgs"
+                        action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
+                        :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
+                        :on-remove="handleRemove">
+                        <el-icon>
+                            <Plus />
+                        </el-icon>
+                    </el-upload>
 
-            <el-dialog v-model="dialogVisible">
-                <img w-full :src="dialogImageUrl" alt="Preview Image" />
-            </el-dialog>
+                    <el-dialog v-model="dialogVisible">
+                        <img w-full :src="dialogImageUrl" alt="Preview Image" />
+                    </el-dialog>
+                </div>
+                <div class="create-list">
+                    <p>题目描述（可选）：</p>
+                    <editor-markdown v-model="questionContent.description"></editor-markdown>
+                </div>
+            </div>
         </div>
-        <div class="create-list">
-            <p>题目描述（可选）：</p>
-            <editor-markdown v-model="questionContent.description"></editor-markdown>
-        </div>
-        <div class="create-list">
-            <p>题目批语：</p>
-            <el-tag v-for="comment in questionContent.displayComments" :key="comment" effect="plain" closable
-                @close="handleCloseComment" class="comment-tag">
-                {{ comment }}
-            </el-tag>
-            <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button>
-        </div>
+
         <div class="button_submit">
             <el-button type="primary" @click="submitQuestion">提交</el-button>
             <router-link to="/home/question">
@@ -127,13 +132,15 @@ const submitQuestion = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
 }
+
 .header {
-  font-size: 20px;
-  background-color: white;padding: 10px;
-  width: 100%;
-  margin-bottom: 10px
+    font-size: 20px;
+    background-color: white;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px
 }
 
 .create-title-top {
@@ -149,7 +156,7 @@ const submitQuestion = async () => {
         flex-direction: column;
         padding: 10px 20px;
         background-color: #fff;
-        width: 49%;
+        width: 50%;
     }
 
 

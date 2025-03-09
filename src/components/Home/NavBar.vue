@@ -85,7 +85,7 @@ watchEffect(() => {
             <div v-if="isLogin !== false">
               <div class="d-flex align-items-center">
                 <!-- 通知图标 -->
-                <nav-bar_-notice class="me-3" @click="showNotification"></nav-bar_-notice>
+                <!-- <nav-bar_-notice class="d-done me-3" @click="showNotification"></nav-bar_-notice> -->
 
                 <!-- 用户信息 -->
                 <div class="d-none d-md-block text-start">
@@ -176,5 +176,32 @@ watchEffect(() => {
 
 .active {
   color: #000;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .nav-link {
+    margin: 0 5px;
+    font-size: 3.5vw;
+  }
+
+  .login-button {
+    padding: 8px 12px;
+    font-size: 3.5vw;
+  }
+
+  .navbar {
+    padding: 10px;
+  }
+
+  .d-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ms-auto {
+    margin-left: 0;
+    margin-top: 10px;
+  }
 }
 </style>

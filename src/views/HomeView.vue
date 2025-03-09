@@ -48,4 +48,13 @@ import Floor from "@/components/Home/Floor.vue";
 .fade-leave-to {
   opacity: 0;
 }
+
+
+@media (max-width: 768px) {
+  .router-view-div {
+    width: 100%;
+    /* 移动端宽度 */
+  }
+
+}
 </style>

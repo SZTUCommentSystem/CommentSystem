@@ -338,12 +338,12 @@ onMounted(() => {
 
 // 监听路由参数变化
 watch(
-    () => route.query.itemId,
-    (newItemId, oldItemId) => {
-      if (newItemId !== oldItemId) {
-        getDetail()
-      }
+  () => route.query.itemId,
+  (newItemId, oldItemId) => {
+    if (newItemId !== oldItemId) {
+      getDetail()
     }
+  }
 )
 //临时批语数据
 const tableData = ref([
@@ -391,100 +391,106 @@ const selectedOption = ref('')
 
     <div class="create-title-top">
       <div class="left">
-        <p>标题：</p>
-        <input type="text" v-model="questionDetail.title" placeholder="请输入题目标题" />
+        <div class="create-list">
+          <div class="flex-between"
+            style="display: flex; justify-content: space-between; align-items: center;width: 100%">
+            <p>题目批语：</p>
+            <el-button type="primary" style="border-radius: 10px;margin-right: 0;" @click="drawer3 = true">+
+              添加分类</el-button>
+          </div>
+          <el-tag v-for="comment in questionDetail.displayComments" :key="comment" effect="plain" closable
+            @close="handleCloseComment" class="comment-tag">
+            {{ comment }}
+          </el-tag>
+          <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;" @click="drawer2 = true">+
+            添加批语</el-button>
+          <el-drawer v-model="drawer2" title="题目批语选择">
+            <div class="mb-4">
+              <span>选择批语章节：</span>
+              <el-cascader :options="options" clearable />
+            </div>
+            <div class="mb-4">
+              <span>选择分类：</span>
+              <el-select v-model="selectedOption" placeholder="请选择" style="width: 200px">
+                <el-option label="图1" value="图1"></el-option>
+                <el-option label="图2" value="图2"></el-option>
+                <el-option label="图3" value="图3"></el-option>
+              </el-select>
+            </div>
+            <div class="flex">
+              <el-table :data="tableData" style="width: 100%;cursor: pointer;" @row-click="handleRowClick">
+                <el-table-column>
+                  <template #default="{ row }">
+                    <div class="list_item">{{ row }}</div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-drawer>
+          <el-dialog v-model="drawer3" title="添加分类" style="width: 600px">
+            <div style="display: flex; justify-content: center;">
+              <span class="mt-1">输入分类名称：</span>
+              <el-input v-model="newCategoryName" style="width: 300px" placeholder="分类名称"></el-input>
+            </div>
+            <div slot="footer" class="dialog-footer mt-3" style="display: flex; justify-content: center;">
+              <el-button @click="drawer3 = false">取消</el-button>
+              <el-button type="primary" @click="addCategory">确定</el-button>
+            </div>
+          </el-dialog>
+        </div>
       </div>
       <div class="right">
-        <p>题目类型：</p>
-        <input type="text" v-model="questionDetail.type" placeholder="请输入题目类型" />
-      </div>
-    </div>
-    <div class="create-list">
-      <p>题目标签：</p>
-      <div class="tag">
-        <el-tag v-for="tag in questionDetail.tags" :key="tag" type="primary" effect="plain" round size="large" closable
-                @close="handleCloseTag(tag)">{{ tag }}</el-tag>
-        <el-button type="primary" plain style="border-radius: 20px;" @click="drawer1=true">+ 添加</el-button>
-        <el-drawer v-model="drawer1" title="题目标签选择">
-          <div class="mb-4">
-            <span>选择标签章节：</span>
-            <el-cascader :options="options" clearable />
+        <div class="create-list">
+          <p>标题：</p>
+          <input type="text" v-model="questionDetail.title" placeholder="请输入题目标题" />
+        </div>
+        <div class="create-list">
+          <p>题目类型：</p>
+          <input type="text" v-model="questionDetail.type" placeholder="请输入题目类型" />
+        </div>
+        <div class="create-list">
+          <p>题目标签：</p>
+          <div class="tag">
+            <el-tag v-for="tag in questionDetail.tags" :key="tag" type="primary" effect="plain" round size="large"
+              closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+            <el-button type="primary" plain style="border-radius: 20px;" @click="drawer1 = true">+ 添加</el-button>
+            <el-drawer v-model="drawer1" title="题目标签选择">
+              <div class="mb-4">
+                <span>选择标签章节：</span>
+                <el-cascader :options="options" clearable />
+              </div>
+              <div class="flex">
+                <el-tag type="primary" class="me-2 tag-hover" size="large" @click="addTag('Tag 1')">Tag 1</el-tag>
+                <el-tag type="success" class="me-2 tag-hover" size="large" @click="addTag('Tag 2')">Tag 2</el-tag>
+                <el-tag type="info" class="me-2 tag-hover" size="large" @click="addTag('Tag 3')">Tag 3</el-tag>
+                <el-tag type="warning" class="me-2 tag-hover" size="large" @click="addTag('Tag 4')">Tag 4</el-tag>
+                <el-tag type="danger" class="me-2 tag-hover" size="large" @click="addTag('Tag 5')">Tag 5</el-tag>
+              </div>
+            </el-drawer>
           </div>
-          <div class="flex">
-            <el-tag type="primary" class="me-2 tag-hover" size="large" @click="addTag('Tag 1')">Tag 1</el-tag>
-            <el-tag type="success" class="me-2 tag-hover" size="large" @click="addTag('Tag 2')">Tag 2</el-tag>
-            <el-tag type="info" class="me-2 tag-hover" size="large" @click="addTag('Tag 3')">Tag 3</el-tag>
-            <el-tag type="warning" class="me-2 tag-hover" size="large" @click="addTag('Tag 4')">Tag 4</el-tag>
-            <el-tag type="danger" class="me-2 tag-hover" size="large" @click="addTag('Tag 5')">Tag 5</el-tag>
-          </div>
-        </el-drawer>
-      </div>
-    </div>
-    <div class="create-list">
-      <p>作业相关图片：</p>
-      <el-upload v-model:file-list="questionDetail.imgs"
-                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
-                 :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
-        <el-icon>
-          <Plus />
-        </el-icon>
-      </el-upload>
+        </div>
+        <div class="create-list">
+          <p>作业相关图片：</p>
+          <el-upload v-model:file-list="questionDetail.imgs"
+            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
+            :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
+            <el-icon>
+              <Plus />
+            </el-icon>
+          </el-upload>
 
-      <el-dialog v-model="dialogVisible">
-        <img w-full :src="dialogImageUrl" alt="Preview Image" />
-      </el-dialog>
-    </div>
-    <div class="create-list">
-      <p>题目描述（可选）：</p>
-      <editor-markdown v-model="questionDetail.description"></editor-markdown>
-    </div>
-    <div class="create-list">
-      <div class="flex-between" style="display: flex; justify-content: space-between; align-items: center;width: 100%">
-        <p>题目批语：</p>
-        <el-button type="primary" style="border-radius: 10px;margin-right: 0;" @click="drawer3=true">+ 添加分类</el-button>
+          <el-dialog v-model="dialogVisible">
+            <img w-full :src="dialogImageUrl" alt="Preview Image" />
+          </el-dialog>
+        </div>
+        <div class="create-list">
+          <p>题目描述（可选）：</p>
+          <editor-markdown v-model="questionDetail.description"></editor-markdown>
+        </div>
       </div>
-      <el-tag v-for="comment in questionDetail.displayComments" :key="comment" effect="plain" closable
-              @close="handleCloseComment" class="comment-tag">
-        {{ comment }}
-      </el-tag>
-      <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;" @click="drawer2=true">+ 添加批语</el-button>
-      <el-drawer v-model="drawer2" title="题目批语选择">
-        <div class="mb-4">
-          <span>选择批语章节：</span>
-          <el-cascader :options="options" clearable />
-        </div>
-        <div class="mb-4">
-          <span>选择分类：</span>
-          <el-select v-model="selectedOption" placeholder="请选择" style="width: 200px">
-            <el-option label="图1" value="图1"></el-option>
-            <el-option label="图2" value="图2"></el-option>
-            <el-option label="图3" value="图3"></el-option>
-          </el-select>
-        </div>
-        <div class="flex">
-          <el-table
-              :data="tableData"
-              style="width: 100%;cursor: pointer;"
-              @row-click="handleRowClick">
-            <el-table-column>
-              <template #default="{ row }">
-                <div class="list_item">{{ row }}</div>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </el-drawer>
-      <el-dialog v-model="drawer3" title="添加分类" style="width: 600px">
-        <div style="display: flex; justify-content: center;">
-          <span class="mt-1">输入分类名称：</span>
-          <el-input v-model="newCategoryName" style="width: 300px" placeholder="分类名称"></el-input>
-        </div>
-        <div slot="footer" class="dialog-footer mt-3" style="display: flex; justify-content: center;">
-          <el-button @click="drawer3=false">取消</el-button>
-          <el-button type="primary" @click="addCategory">确定</el-button>
-        </div>
-      </el-dialog>
     </div>
+
+
     <div class="button_submit">
       <el-button type="primary">提交</el-button>
       <router-link to="/home/question">
@@ -498,14 +504,17 @@ const selectedOption = ref('')
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  
+
 }
+
 .header {
   font-size: 20px;
-  background-color: white;padding: 10px;
+  background-color: white;
+  padding: 10px;
   width: 100%;
   margin-bottom: 10px
 }
+
 .create-title-top {
   display: flex;
   justify-content: space-between;
@@ -519,7 +528,7 @@ const selectedOption = ref('')
     flex-direction: column;
     padding: 10px 20px;
     background-color: #fff;
-    width: 49%;
+    width: 50%;
   }
 
 
@@ -602,11 +611,13 @@ const selectedOption = ref('')
   flex-wrap: wrap;
   gap: 10px;
 }
+
 .tag-hover:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border: 1px solid #ccc;
   cursor: pointer;
 }
+
 .comment-tag {
   font-size: 18px;
   margin: 10px 0;

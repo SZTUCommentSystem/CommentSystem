@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import {defineProps, defineEmits, ref} from 'vue';
-import { ElMenu, ElMenuItem, ElMenuItemGroup,ElSubMenu } from 'element-plus';
+import { defineProps, defineEmits, ref } from 'vue';
+import { ElMenu, ElMenuItem, ElMenuItemGroup, ElSubMenu } from 'element-plus';
 import Edit from "@/components/icons/library/edit.vue";
+import { json } from 'stream/consumers';
 
 
 const props = defineProps();
@@ -37,11 +38,11 @@ const handleMouseLeave = () => {
   isHovered.value = false;
 };
 
-const handleOpen = (key:any, keyPath:any) => {
+const handleOpen = (key: any, keyPath: any) => {
   console.log(key, keyPath);
 };
 
-const handleClose = (key:any, keyPath:any) => {
+const handleClose = (key: any, keyPath: any) => {
   console.log(key, keyPath);
 };
 
@@ -166,7 +167,7 @@ const addComment = () => {
 
 </script>
 
-<template >
+<template>
 
 
   <el-row class="con">
@@ -175,13 +176,8 @@ const addComment = () => {
         <span class="h5">批语库分类</span>
 
       </div>
-      <el-menu
-          default-active="1"
-          class="el-menu-vertical-demo mt-4"
-          @open="handleOpen"
-          @close="handleClose"
-          text-color="#333"
-          active-text-color="#51a7ff">
+      <el-menu default-active="1" class="el-menu-vertical-demo mt-4" @open="handleOpen" @close="handleClose"
+        text-color="#333" active-text-color="#51a7ff">
 
         <ElMenu default-active="1-1" class="el-menu-vertical-demo">
           <!-- 工程制图基础 -->
@@ -324,26 +320,16 @@ const addComment = () => {
     <el-col :span="18">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库列表</span>
-        <edit
-            class="pb-2 me-5 edit-icon"
-            :style="{ opacity: isHovered ? 1 : 0.3,transition: 'opacity 0.3s ease' }"
-            @click="dialogVisible = true">
+        <edit class="pb-2 me-5 edit-icon" :style="{ opacity: isHovered ? 1 : 0.3, transition: 'opacity 0.3s ease' }"
+          @click="dialogVisible = true">
         </edit>
-        <el-dialog
-            v-model="dialogVisible"
-            title="添加批语列表"
-            width="1000"
-        >
+        <el-dialog v-model="dialogVisible" title="添加批语列表" width="1000">
           <div class="mb-4">
             <span>选择批语章节：</span>
             <el-cascader :options="options" clearable placeholder="选择" />
           </div>
           <div>
-            <el-input
-                v-model="newComment"
-                style="width: 80%"
-                placeholder="请输入批语内容"
-            />
+            <el-input v-model="newComment" style="width: 80%" placeholder="请输入批语内容" />
           </div>
           <template #footer>
             <div class="dialog-footer">
@@ -356,10 +342,8 @@ const addComment = () => {
         </el-dialog>
       </div>
       <div class="right-container">
-        <el-table
-            :data="tableData"
-            style="width: 100%">
-          <el-table-column >
+        <el-table :data="tableData" style="width: 100%">
+          <el-table-column>
             <template #default="{ row }">
               <div class="list_item">{{ row }}</div>
             </template>
@@ -370,9 +354,6 @@ const addComment = () => {
       <div class="pagination">
         <el-pagination background layout="prev, pager, next" :total="100" />
       </div>
-
-
-
     </el-col>
   </el-row>
 
@@ -395,58 +376,100 @@ const addComment = () => {
 }
 
 .header-container {
-  display: flex; /* 使用 Flexbox */
-  justify-content: space-between; /* 元素两端对齐 */
-  align-items: center; /* 垂直居中 */
+  display: flex;
+  /* 使用 Flexbox */
+  justify-content: space-between;
+  /* 元素两端对齐 */
+  align-items: center;
+  /* 垂直居中 */
 
 }
 
 .h5 {
-  flex: 1; /* 使文字占满可用空间 */
-  text-align: center; /* 使文字居中 */
+  flex: 1;
+  /* 使文字占满可用空间 */
+  text-align: center;
+  /* 使文字居中 */
 }
 
 .right-container {
   display: flex;
-  justify-content: center; /* 使列表居中 */
+  justify-content: center;
+  /* 使列表居中 */
 }
 
 
 
 .right-container {
-  padding: 0 20px; /* 内边距 */
+  padding: 0 20px;
+  /* 内边距 */
   margin: 10px;
 }
 
-.el-menu .el-submenu  {
+.el-menu .el-submenu {
   .span {
     font-size: 24px;
   }
-  font-size: 16px; /* 调整标题字体大小 */
+
+  font-size: 16px;
+  /* 调整标题字体大小 */
 }
 
 
-.el-menu  {
-  .el-menu-item{
-    font-size: 18px; /* 调整菜单项字体大小 */
+.el-menu {
+  .el-menu-item {
+    font-size: 18px;
+    /* 调整菜单项字体大小 */
   }
 
 }
+
 .span {
   font-size: 20px;
 }
+
 .list_item {
   font-size: 18px;
 }
 
 .edit-icon {
-  cursor: pointer; /* 设置鼠标样式为指针 */
+  cursor: pointer;
+  /* 设置鼠标样式为指针 */
 }
-.pagination{
+
+.pagination {
   justify-content: flex-end;
   align-items: center;
   width: 100%;
   margin-top: 50px;
   bottom: 0;
+}
+
+@media (max-width:768px) {
+
+  span {
+    font-size: 16px;
+  }
+
+  .span {
+    font-size: 13px;
+  }
+
+  .list_item {
+    font-size: 13px;
+  }
+
+  .con {
+    padding: 0;
+    padding-top: 10px;
+  }
+
+  ::v-deep .con el-sub-menu__title {
+    padding: 0;
+  }
+
+  ::v-deep .con .el-menu .el-menu-item {
+    font-size: 12px !important;
+  }
 }
 </style>
