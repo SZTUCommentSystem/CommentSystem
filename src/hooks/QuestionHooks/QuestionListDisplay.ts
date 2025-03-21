@@ -27,10 +27,14 @@ export default function QuestionListDisplay() {
     };
 
     // 删除题目
-    const handleDel = async (id: number) => {
+    const handleDel = async (event:any , id: number) => {
+        // 阻止事件冒泡
+        event.stopPropagation();
         // 调用删除题目的 API
         // 成功后，重新获取题目列表
         try {
+            console.log(111);
+            
             await deleteQuestionAPI(id);
             await getList();
         } catch (error) {

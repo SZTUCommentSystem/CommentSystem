@@ -1,8 +1,14 @@
 <script lang="ts" setup>
+import { ElMessageBox, ElMessage } from 'element-plus';
+import dayjs from 'dayjs';
 import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
-import { questionListAPI } from '@/api/QuestionAPI/questionList'
-import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList'
+import { questionListAPI } from '@/api/QuestionAPI/questionList';
+import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
+import { useRouter } from 'vue-router';
+
+// 路由
+const router = useRouter();
 
 // 作业内容
 const taskContent = reactive({
@@ -10,6 +16,7 @@ const taskContent = reactive({
     description: '',
     problemIds: [],
     deadline: [],
+    teacher: '', // 添加 teacher 字段
 })
 
 // 题目
@@ -24,6 +31,7 @@ const questionList = ref([]);
 const getQuestionList = async () => {
     const res = await questionListAPI();
     questionList.value = res.data.data;
+    console.log("获取的题目列表:", questionList.value); // 检查题目数据是否正确
 };
 
 // 动态创建可选择数组
@@ -34,6 +42,7 @@ watch(questionList, (newVal, oldVal) => {
         dynamicArray.value = new Array(newVal.length).fill(null).map((_, index) => {
             return { questionId: questionList.value[index].id, checked: false };
         });
+        console.log("动态数组更新:", dynamicArray.value); // 确保动态数组正确更新
     }
 });
 
@@ -54,22 +63,88 @@ watch(problems, (newVal, oldVal) => {
 // 选择题目相关
 const selDialogVisible = ref(false);
 const selectProblem = () => {
-    taskContent.problemIds = dynamicArray.value.filter((item) => item.checked).map((item) => item.questionId);
-    problems.value = dynamicArray.value.filter((item) => item.checked).map((item) => questionList.value[item.questionId - 1]);
-    selDialogVisible.value = false;
-    console.log(taskContent);
-};
+    console.log("选择前的 dynamicArray:", dynamicArray.value); // 先打印动态数组的状态
 
+    taskContent.problemIds = dynamicArray.value
+        .filter((item) => item.checked)
+        .map((item) => item.questionId);
+
+    problems.value = dynamicArray.value
+        .filter((item) => item.checked)
+        .map((item) => questionList.value.find(q => q.id === item.questionId));
+
+    selDialogVisible.value = false;
+
+    console.log("选中的题目 ID:", taskContent.problemIds);
+    console.log("选中的题目信息:", problems.value);
+};
 // 提交作业
 const submitTask = async () => {
     try {
-        const res = await SubmitTaskAPI(taskContent);
-        console.log(res);
-    } catch (error) {
-        console.log(error);
+        if (!taskContent.title) {
+            ElMessageBox.alert('标题不能为空！', '错误', {
+                confirmButtonText: '确定',
+                type: 'error',
+            });
+            return;
+        }
+        if (!taskContent.teacher) {
+            ElMessageBox.alert('老师名字不能为空！', '错误', {
+                confirmButtonText: '确定',
+                type: 'error',
+            });
+            return;
+        }
+        if (!tags.value.length) {
+            ElMessageBox.alert('题目跟标签不能为空！', '错误', {
+                confirmButtonText: '确定',
+                type: 'error',
+            });
+            return;
+        }
 
+        // 格式化日期
+        taskContent.deadline = taskContent.deadline.map((date: Date) =>
+            dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+        );
+
+        // 将 tags 添加到 taskContent
+        taskContent.tags = tags.value;
+
+        // 获取选中的题目 ID
+        taskContent.selectedQuestion = dynamicArray.value
+            .filter(item => item.checked)
+            .map(item => item.questionId);
+
+        console.log("提交时的任务内容:", taskContent); // 确保数据正确
+
+        // 提交
+        const res = await SubmitTaskAPI(taskContent);
+
+        if (res.code === 200) {
+            ElMessageBox.alert('提交成功！', '成功', {
+                confirmButtonText: '确定',
+                type: 'success',
+                callback: () => {
+                    router.push('/home/task');
+                }
+            });
+        } else {
+            ElMessageBox.alert('提交失败，请重试！', '错误', {
+                confirmButtonText: '确定',
+                type: 'error',
+            });
+        }
+
+        console.log("提交结果:", res);
+    } catch (error) {
+        console.log("提交错误:", error);
+        ElMessageBox.alert('提交过程中发生错误，请重试！', '错误', {
+            confirmButtonText: '确定',
+            type: 'error',
+        });
     }
-}
+};
 
 onMounted(() => {
     getQuestionList();
@@ -79,7 +154,7 @@ onMounted(() => {
 <template>
     <div class="create-wrapper">
         <div class="header">
-            <el-page-header @back="this.$router.push('/home/task')" content="新建作业" title="返回">
+            <el-page-header @back="router.push('/home/task')" content="新建作业" title="返回">
             </el-page-header>
         </div>
         <div class="create-title-top">
@@ -88,8 +163,8 @@ onMounted(() => {
                 <input type="text" v-model="taskContent.title" placeholder="请输入题目标题" />
             </div>
             <div class="right">
-                <p>目录：</p>
-                <input type="text" v-model="taskContent.title" placeholder="请输入题目要放入的目录" />
+                <p>老师名字：</p> <!-- 将“目录”改为“老师名字” -->
+                <input type="text" v-model="taskContent.teacher" placeholder="请输入老师名字" /> <!-- 改为绑定到 teacher 字段 -->
             </div>
         </div>
         <div class="create-title">
@@ -136,7 +211,6 @@ onMounted(() => {
             </router-link>
         </div>
 
-
         <!-- 选择题目 -->
         <el-dialog v-model="selDialogVisible" title="选择题目" width="60%" center>
             <div class="select">
@@ -152,7 +226,6 @@ onMounted(() => {
                             <el-option label="工程制图" value="工程制图"></el-option>
                             <el-option label="工程设计" value="工程设计"></el-option>
                         </el-select>
-
                     </li>
                     <li>
                         <el-input v-model="search.searchQuestion" placeholder="搜索题目"

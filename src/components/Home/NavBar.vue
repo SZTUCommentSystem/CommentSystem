@@ -91,10 +91,8 @@ watchEffect(() => {
                 <div class="d-none d-md-block text-start">
                   <el-dropdown>
                     <div class="d-flex align-items-center">
-                      <img src="https://via.placeholder.com/32" alt="User Avatar" class="rounded-circle me-2">
                       <div>
                         <div class="username">用户名</div>
-                        <div class="user-id">ID: 123456</div>
                       </div>
                     </div>
                     <template #dropdown>
@@ -150,12 +148,8 @@ watchEffect(() => {
 }
 
 .username {
+  font-size: 17px;
   font-weight: bold;
-}
-
-.user-id {
-  font-size: 1em;
-  color: #6c757d;
 }
 
 .d-flex {

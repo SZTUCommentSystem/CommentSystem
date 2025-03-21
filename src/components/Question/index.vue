@@ -26,7 +26,7 @@ onMounted(() => {
   getList();
 });
 const rowClick = (row) => {
-  router.push('/home/questionpage/1');
+  router.push(`/home/questionpage/${row.id}`);
 };
 </script>
 
@@ -73,7 +73,7 @@ const rowClick = (row) => {
             </RouterLink>
 
             <div style="margin-right: 20px; cursor: pointer;">
-              <Delete class="icon" @click="handleDel(scope.row.id)" />
+              <Delete class="icon" @click="handleDel($event, scope.row.id)" />
             </div>
           </div>
         </template>

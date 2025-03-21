@@ -1,9 +1,25 @@
 <script setup lang="ts">
 
 import type {ElPageHeader} from "element-plus";
-import router from "@/router";
-import {ref} from "vue";
+import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from "vue";
+///////
+// 这里写你的接口请求引入就行了,不一定是这个地址，你写哪里的接口请求就引入哪里的
+import { getQuestionDetailAPI } from "@/api/question";
+//////
 
+const route = useRoute();
+const router = useRouter();
+const que = ref();
+
+const getQuestionDetail = async () => {
+  const { data } = await getQuestionDetailAPI(route.query.itemId);
+  que.value = data;
+  // 这里可以调试
+  console.log(que.value);
+}
+
+// 你调试完了就把que名字换成question就可以了，然后把下面的注释掉
 
 const question = {
   title: '编程题1',
@@ -21,19 +37,8 @@ const question = {
     分类B: ['需要改进的地方有很多。', '请注意代码风格。']
   }
 };
-const commentsVisible = ref(true);
 
-const categoryAVisible = ref(true);
-const categoryBVisible = ref(true);
-
-const categoryVisible = ref({
-  categoryA: true,
-  categoryB: true,
-});
-
-function toggleCategory(category: keyof typeof categoryVisible.value) {
-  categoryVisible.value[category] = !categoryVisible.value[category];
-}
+onMounted(() => getQuestionDetail());
 </script>
 
 <template>
