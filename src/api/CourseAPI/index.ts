@@ -17,20 +17,20 @@ export const getCourseDetailAPI = (id: number) => {
 }
 
 // 新增课程
-export const addCourseAPI = (params: object) => {
+export const addCourseAPI = (data: object) => {
     return request({
         url: 'function/course',
         method: 'post',
-        params
+        data
     })
 }
 
 // 修改课程
-export const changeCourseAPI = (params: object) => {
+export const changeCourseAPI = (data: object) => {
     return request({
         url: 'function/course',
         method: 'put',
-        params
+        data
     })
 }
 

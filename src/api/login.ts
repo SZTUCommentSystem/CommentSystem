@@ -1,19 +1,19 @@
 import request from "@/utils/https";
 
 // 登录
-export const loginAPI = (params: object) => {
+export const loginAPI = (data: object) => {
     return request({
         url: '/login',
         method: 'post',
-        params
+        data
     })
 }
 
 // 注册
-export const registerAPI = (params: object) => {
+export const registerAPI = (data: object) => {
     return request({
         url: '/register',
         method: 'post',
-        params
+        data
     })
 }
