@@ -84,7 +84,7 @@ const router = createRouter({
           component: () => import('../components/Class/ClassDetail.vue')
         },
         {
-          path: '/home/questionpage/1',
+          path: '/home/questionpage',
           name: 'questionpage',
           component: () => import('../components/QuestionPage/index.vue')
         },

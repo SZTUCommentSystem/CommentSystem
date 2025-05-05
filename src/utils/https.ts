@@ -6,17 +6,38 @@ const request = axios.create({
     timeout: 5000
 })
 
-//axios拦截器
-// 前端示例（Axios）
-axios.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response?.data?.code === 'NOT_LOGIN') {
-            router.push('/login') // 跳转登录页
+// 请求拦截器
+request.interceptors.request.use(
+    config => {
+        const token = localStorage.getItem('token')
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
-        return Promise.reject(error)
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
     }
 )
-//暂定
+
+// 响应拦截器
+request.interceptors.response.use(
+    response => {
+        return response;
+    },
+    error => {
+        if (error.response) {
+            const { status, data } = error.response;
+
+            if (status === 401 || data?.code === 'NOT_LOGIN') {
+                localStorage.removeItem('token');
+                router.push('/login');
+            } else {
+                console.error(data?.message || '请求失败');
+            }
+        }
+        return Promise.reject(error);
+    }
+)
 
 export default request;

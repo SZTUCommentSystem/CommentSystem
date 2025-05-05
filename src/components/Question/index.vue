@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useRouter } from 'vue-router'; // 引入useRouter钩子
+import { onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router'; // 引入useRouter钩子
 import { ElTable, ElTableColumn, ElSelect, ElOption, ElInput } from 'element-plus';
 import Edit from "@/components/icons/question/edit.vue";
 import Delete from "@/components/icons/question/delete.vue";
@@ -10,6 +10,7 @@ import { zhCn } from "element-plus/es/locale/index.mjs";
 import QuestionListDisplay from "@/hooks/QuestionHooks/QuestionListDisplay";
 
 const router = useRouter();
+const route = useRoute();
 
 // 模拟题目数据
 const {
@@ -28,6 +29,13 @@ onMounted(() => {
 const rowClick = (row) => {
   router.push(`/home/questionpage/${row.id}`);
 };
+
+watch(
+  () => route.query.forceRefresh,
+  () => {
+    getList();
+  }
+)
 </script>
 
 <template>
@@ -52,7 +60,7 @@ const rowClick = (row) => {
     </div>
 
     <!-- 题目列表展示 -->
-    <ElTable :data="paginatedQuestions" stripe style="cursor: pointer;" @row-click="rowClick">
+    <ElTable :data="paginatedQuestions" stripe style="cursor: pointer;" @row-click="">
       <ElTableColumn label="序号" type="index" width="100" />
       <ElTableColumn prop="type" label="题目类型" width="150" />
       <ElTableColumn prop="title" label="题目" width="250" />

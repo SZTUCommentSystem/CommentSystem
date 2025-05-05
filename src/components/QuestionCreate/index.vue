@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 
 import type { ElPageHeader, UploadProps, UploadUserFile } from 'element-plus'
 
@@ -9,6 +10,8 @@ import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 // 导入提交接口
 import { submitQuestionAPI } from '@/api/QuestionAPI/questionList'
+
+const router = useRouter();
 
 const questionContent = reactive({
     title: '',
@@ -55,7 +58,13 @@ const handleCloseComment = (comment: string) => {
 const submitQuestion = async () => {
     try {
         const res = await submitQuestionAPI(questionContent)
-        console.log(res)
+
+        router.push({
+            path: '/home/question',
+            query: {
+                forceRefresh: Date.now(),
+            },
+        })
     } catch (error) {
         console.error('提交题目失败:', error)
     }
