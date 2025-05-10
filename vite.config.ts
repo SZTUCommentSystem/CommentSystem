@@ -1,5 +1,3 @@
-import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import path from 'path'
 import vue from '@vitejs/plugin-vue'
@@ -25,11 +23,20 @@ export default defineConfig(({ command }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          // target: 'http://localhost:8080',
+          target: 'http://47.103.49.29:9024/',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          configure: (proxy, options) => {
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
+            });
+          }
         }
-      }
+      },
+      // headers: {
+      //   'Cache-Control': 'no-store' // 禁用缓存
+      // }
     }
   }
 })

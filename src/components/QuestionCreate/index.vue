@@ -9,7 +9,7 @@ import type { ElPageHeader, UploadProps, UploadUserFile } from 'element-plus'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 // 导入提交接口
-import { submitQuestionAPI } from '@/api/QuestionAPI/questionList'
+import { submitQuestionAPI } from '@/api/QuestionAPI'
 
 const router = useRouter();
 

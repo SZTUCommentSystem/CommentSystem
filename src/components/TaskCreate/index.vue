@@ -3,7 +3,7 @@ import { ElMessageBox, ElMessage } from 'element-plus';
 import dayjs from 'dayjs';
 import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
-import { questionListAPI } from '@/api/QuestionAPI/questionList';
+import { questionListAPI } from '@/api/QuestionAPI';
 import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
 import { useRouter } from 'vue-router';
 

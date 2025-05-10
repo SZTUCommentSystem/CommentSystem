@@ -1,5 +1,8 @@
 import axios from 'axios';
 import router from '../router';
+import { useUserStore } from '@/store/user';
+
+const userStore = useUserStore();
 
 const request = axios.create({
     baseURL: '/api',
@@ -9,7 +12,7 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
     config => {
-        const token = localStorage.getItem('token')
+        let token = userStore.token;
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -30,7 +33,7 @@ request.interceptors.response.use(
             const { status, data } = error.response;
 
             if (status === 401 || data?.code === 'NOT_LOGIN') {
-                localStorage.removeItem('token');
+                userStore.clearUser();
                 router.push('/login');
             } else {
                 console.error(data?.message || '请求失败');

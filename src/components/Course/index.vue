@@ -2,6 +2,9 @@
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import useUserStore from "@/store/user";
+
+const userStore = useUserStore();
 
 interface taskList {
   id: number,
@@ -34,7 +37,7 @@ const displayedTasks = computed(() => {
 const router = useRouter();
 // 从本地存储获取课程列表
 const getTaskList = () => {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userInfo = useUserStore.getUserInfo;
   const taskList = userInfo.checkUser.roles;
   console.log(taskList);
 

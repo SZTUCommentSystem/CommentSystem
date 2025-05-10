@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { ElNotification } from 'element-plus';
-import NavBar_Notice from "@/components/icons/navbar/NavBar_Notice.vue";
 import NavBar_Logo from "@/components/icons/navbar/NavBar_Logo.vue";
 import { RouterLink } from 'vue-router';
+import {useUserStore} from "../../store/user";
+
+const userStore = useUserStore();
 
 // 示例通知功能的函数
 const showNotification = () => {
@@ -31,24 +33,19 @@ const navList2 = [
 ];
 
 // 是否选择课程
-const userInfo = ref(null);
-const isLogin = ref(false);
 const SelectClass = ref<string | null>(null);
+
 // 退出登录
 const logout = () => {
-  localStorage.removeItem('userInfo');
-  localStorage.removeItem('token');
-  localStorage.removeItem('SelectClassName');
-  localStorage.isLogin = false;
+  userStore.clearUser();
 
   // 刷新
   location.reload();
 };
 
+const isLogin = userStore.isLoggedIn;
 watchEffect(() => {
   // 获取本地存储的用户信息和token，检测是否登录，如果没有用户信息则为null
-  userInfo.value = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  isLogin.value = userInfo.value !== null && Object.keys(userInfo.value).length > 0;
   SelectClass.value = localStorage.getItem('SelectClassName');
 })
 

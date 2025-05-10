@@ -3,6 +3,7 @@ import request from "@/utils/https";
 // 登录
 export const loginAPI = (data: object) => {
     return request({
+        // url: '/user/login',
         url: '/login',
         method: 'post',
         data
@@ -15,5 +16,13 @@ export const registerAPI = (data: object) => {
         url: '/register',
         method: 'post',
         data
+    })
+}
+
+// 获取用户信息
+export const getUserInfoAPI = () => {
+    return request({
+        url: '/getInfo',
+        method: 'get'
     })
 }

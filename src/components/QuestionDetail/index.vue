@@ -3,7 +3,7 @@ import { ref, reactive, onMounted, watch, defineComponent } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 import type { UploadProps } from 'element-plus'
-import { questionDetailAPI } from '@/api/QuestionAPI/questionList'
+import { questionDetailAPI } from '@/api/QuestionAPI'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 const route = useRoute()

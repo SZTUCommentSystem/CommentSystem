@@ -1,5 +1,5 @@
 import { reactive, computed } from "vue";
-import { questionListAPI, deleteQuestionAPI } from '@/api/QuestionAPI/questionList';
+import { questionListAPI, deleteQuestionAPI } from '../../api/QuestionAPI';
 
 
 export default function QuestionListDisplay() {

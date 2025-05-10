@@ -1,5 +1,7 @@
 import { ElMessage } from 'element-plus'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '../store/user'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -100,8 +102,9 @@ const router = createRouter({
 
 // 登录检验
 router.beforeEach((to, from, next) => {
-  let isLogin = localStorage.getItem('isLogin')
-  if (to.name !== 'login' && to.name !== 'homepage' && isLogin === 'false') {
+  const useStore = useUserStore()
+  let isLogin = useStore.isLoggedIn;
+  if (to.name !== 'login' && to.name !== 'homepage' && isLogin) {
     ElMessage.warning('请先登录')
     next({ name: from.name })
   } else {

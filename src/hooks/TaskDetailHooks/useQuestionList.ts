@@ -1,5 +1,5 @@
 import { reactive, ref, watch, computed } from 'vue'
-import { questionListAPI } from '@/api/QuestionAPI/questionList'
+import { questionListAPI } from '../../api/QuestionAPI'
 import { TaskQuestionListAPI } from '@/api/TaskAPI/TaskQuestionList';
 
 // 根据题目id获取题目列表
