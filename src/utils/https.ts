@@ -1,6 +1,6 @@
 import axios from 'axios';
 import router from '../router';
-import { useUserStore } from '@/store/user';
+import { useUserStore } from '../store/user';
 
 const userStore = useUserStore();
 

@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
+import { useUserStore } from '@/store/user';
+
+const userStore = useUserStore();
 
 //圆环进度条
 const submittedCount = 23;
@@ -13,8 +16,11 @@ const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2)
 //便签
 const textarea = ref('');
 
+const SelectClass = ref('');
 // 从本地存储中获取是否选择课程
-const SelectClass = ref(localStorage.getItem('SelectClassName'));
+watchEffect(() => {
+    SelectClass.value = userStore.selectClass;
+})
 
 </script>
 
@@ -26,14 +32,14 @@ const SelectClass = ref(localStorage.getItem('SelectClassName'));
                 <h1>精准批改。</h1>
             </div>
         </div>
-        <div v-if="SelectClass !== null">
+        <div v-if="SelectClass !== ''">
             <div class="home-body-task">
                 <div class="title">
                     <h1>课程情况</h1>
                 </div>
                 <div class="task-content">
                     <div class="task-title">
-                        <h4>欢迎您，用户名老师，您当前选择的课程为：{{ SelectClass }}</h4>
+                        <h4>欢迎您，{{ userStore.userInfo.nickName }}老师，您当前选择的课程为：{{ SelectClass }}</h4>
                     </div>
                     <div class="task-info">
                         <div class="task-condition">

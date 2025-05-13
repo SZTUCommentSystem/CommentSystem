@@ -104,10 +104,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const useStore = useUserStore()
   let isLogin = useStore.isLoggedIn;
-  if (to.name !== 'login' && to.name !== 'homepage' && isLogin) {
+  console.log('token:', useStore.token)
+  console.log('isLogin:', isLogin)
+  if (to.name !== 'login' && to.name !== 'homepage' && !isLogin) {
     ElMessage.warning('请先登录')
     next({ name: from.name })
   } else {
+    console.log('to:', to)
     next()
   }
 })

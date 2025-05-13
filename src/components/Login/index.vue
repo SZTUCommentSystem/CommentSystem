@@ -53,10 +53,9 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                 const loginSuccess = await handleLogin()
                 if (loginSuccess) {
                     await fetchUserInfo()
-                    // setTimeout(() => {
-                    //     router.push({ path: '/home/homepage' })
-                    //     location.reload()
-                    // }, 1000)
+                    setTimeout(() => {
+                        router.push({ path: '/home/homepage' })
+                    }, 1000)
                 }
             }
             // 注册
@@ -64,10 +63,9 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                 const registerSuccess = await handleRegister()
                 if (registerSuccess) {
                     await fetchUserInfo()
-                    // setTimeout(() => {
-                    //     router.push({ path: '/home/homepage' })
-                    //     location.reload()
-                    // }, 1000)
+                    setTimeout(() => {
+                        router.push({ path: '/home/homepage' })
+                    }, 1000)
                 }
             }
 
@@ -110,8 +108,8 @@ const handleRegister = async () => {
 const fetchUserInfo = async () => {
     const ret = await getUserInfoAPI();
     if (ret.data.code === 200) {
-        userStore.setUserInfo(ret.data.data); // 保存用户信息
-        console.log('获取用户信息成功');
+        userStore.setUserInfo(ret.data.user); // 保存用户信息
+        console.log('获取用户信息成功:', userStore.userInfo);
     } else {
         console.log('获取用户信息失败');
         ElMessage.error('获取用户信息失败');

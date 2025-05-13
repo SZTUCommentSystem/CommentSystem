@@ -33,7 +33,6 @@ const navList2 = [
 ];
 
 // 是否选择课程
-const SelectClass = ref<string | null>(null);
 
 // 退出登录
 const logout = () => {
@@ -43,10 +42,12 @@ const logout = () => {
   location.reload();
 };
 
-const isLogin = userStore.isLoggedIn;
+const isLogin = ref();
+const SelectClass = ref('');
 watchEffect(() => {
   // 获取本地存储的用户信息和token，检测是否登录，如果没有用户信息则为null
-  SelectClass.value = localStorage.getItem('SelectClassName');
+  SelectClass.value = userStore.selectClass;
+  isLogin.value = userStore.isLoggedIn;
 })
 
 </script>
@@ -66,7 +67,7 @@ watchEffect(() => {
           <nav-bar_-logo class="me-4"></nav-bar_-logo>
 
           <!-- 导航链接 -->
-          <ul class="navbar-nav d-flex flex-row mb-0" v-if="SelectClass === null">
+          <ul class="navbar-nav d-flex flex-row mb-0" v-if="SelectClass === ''">
             <li v-for="item in navList1" :key="item.path" class="nav-item">
               <RouterLink class="nav-link" :to="item.path" active-class="active">{{ item.name }}</RouterLink>
             </li>
@@ -79,7 +80,7 @@ watchEffect(() => {
 
           <!-- 中间右侧内容区域 -->
           <div class="ms-auto">
-            <div v-if="isLogin !== false">
+            <div v-if="isLogin">
               <div class="d-flex align-items-center">
                 <!-- 通知图标 -->
                 <!-- <nav-bar_-notice class="d-done me-3" @click="showNotification"></nav-bar_-notice> -->
@@ -89,7 +90,7 @@ watchEffect(() => {
                   <el-dropdown>
                     <div class="d-flex align-items-center">
                       <div>
-                        <div class="username">用户名</div>
+                        <div class="username">{{ userStore.userInfo.nickName }}</div>
                       </div>
                     </div>
                     <template #dropdown>

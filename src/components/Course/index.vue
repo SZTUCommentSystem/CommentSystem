@@ -2,13 +2,14 @@
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import useUserStore from "@/store/user";
+import { useUserStore } from "../../store/user";
+import { getCourseListAPI } from "@/api/CourseAPI";
 
 const userStore = useUserStore();
 
 interface taskList {
-  id: number,
-  name: string,
+  courseId: number,
+  courseName: string,
   people: number,
 }
 
@@ -35,25 +36,25 @@ const displayedTasks = computed(() => {
 
 // 跳转课程情况
 const router = useRouter();
+const userInfo = userStore.userInfo;
 // 从本地存储获取课程列表
-const getTaskList = () => {
-  const userInfo = useUserStore.getUserInfo;
-  const taskList = userInfo.checkUser.roles;
-  console.log(taskList);
+const getTaskList = async () => {
+  const res = await getCourseListAPI();
 
-  if (taskList) {
-    testPage.taskList = taskList;
-
-    console.log(testPage.taskList);
+  if(res.data.code === 200) {
+    testPage.taskList = res.data.rows;
+    // localStorage.setItem('taskList', JSON.stringify(res.data.rows));
+  } else {
+    console.log('获取课程列表失败');
   }
 }
 
 // 选择课程函数
 const SelectClass = (name: string) => {
-  localStorage.setItem('SelectClassName', name);
-
-  // 跳转到首页页面并刷新
-  router.push({ path: '/home/homepage' }).then(() => { window.location.reload(); })
+  // localStorage.setItem('SelectClassName', name);
+  userStore.setSelectClass(name);
+  // 跳转到首页页面
+  router.push('/home/homepage');
 }
 
 onMounted(() => {
@@ -79,13 +80,14 @@ onMounted(() => {
     </div>
     <div class="teach-class-list">
       <ul>
-        <li v-for="item in displayedTasks" :key="item.id" @click="SelectClass(item.name)">
+        <li v-for="item in displayedTasks" :key="item.courseId" @click="SelectClass(item.courseName)">
           <div class="header">
             <!-- 这里展示本课程的最新作业的情况，但是还没做 -->
-            <p style="margin-top: 10px;">{{ item.name }}</p>
+            <p style="margin-top: 10px;">{{ item.courseName }}</p>
           </div>
           <div class="footer">
-            <p><img src="@/assets/img/人数.png" alt="">{{ item.people }}</p>
+            <p><img src="@/assets/img/人数.png" alt="">7</p>
+            <!-- <p><img src="@/assets/img/人数.png" alt="">{{ item.people }}</p> -->
           </div>
         </li>
       </ul>
