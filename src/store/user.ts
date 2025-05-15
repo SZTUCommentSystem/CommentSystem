@@ -10,8 +10,7 @@ export const useUserStore = defineStore('user', {
     actions: {
         setToken(token: string) {
             this.token = token;
-            Cookies.set('token', token, { expires: 7 }); // 设置cookie过期时间为7天
-            console.log('Token set:', token);
+            Cookies.set('token', token, { expires: 7 });
         },
         setUserInfo(userInfo: any) {
             this.userInfo = userInfo;
@@ -23,10 +22,14 @@ export const useUserStore = defineStore('user', {
             this.token = '';
             this.userInfo = null;
             this.selectClass = '';
-            Cookies.remove('token'); // 清除cookie
+            Cookies.remove('token');
         },
     },
     getters: {
         isLoggedIn: (state) => !!state.token,
-    }
+    },
+    persist: {
+        // enabled: true,
+        storage: sessionStorage
+    },
 });
