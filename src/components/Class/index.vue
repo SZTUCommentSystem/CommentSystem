@@ -1,22 +1,28 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { classListAPI } from '@/api/ClassAPI/index';
 
-const route = useRoute();
+defineOptions({ name: 'class' })
 
-const classes = ref([
-  { name: '23商务环设', students: 95, averageScore: 72, deadline: Date.now() + 1000 * 60 * 60 * 7, status: '授课中' },
-  { name: '23新媒体艺科', students: 102, averageScore: 65, deadline: Date.now() + 1000 * 60 * 60 * 8.5, status: '授课中' },
-  { name: '23工设', students: 98, averageScore: 78, deadline: Date.now() + 1000 * 60 * 60 * 12, status: '授课中' },
-  { name: '23商英', students: 110, averageScore: 55, status: '已结课' },
-  { name: '23计科', students: 90, averageScore: 60, status: '已结课' },
-]);
+// 定义班级数据类型
+interface ClassItem {
+  classId: string //班级id（唯一）“非空”
+  courseIds: string //课程id
+	className: string   //班级名称
+	classState: string  //班级状态（1 未开课，2 授课中，3已结课）
+  lastTime: string  //最近作业截止时间
+  svgNum: number  //平均分
+}
+// 班级状态数组
+const classStates = ['', '未开课', '授课中', '已结课'];
+
+const classes = ref([]);
 const searchQuery = ref('');
 const selectedStatus = ref('');
 const filteredClasses = computed(() => {
-  return classes.value.filter(classItem => {
-    const matchesStatus = selectedStatus.value ? classItem.status === selectedStatus.value : true;
-    const matchesSearch = classItem.name.includes(searchQuery.value);
+  return classes.value?.filter(classItem => {
+    const matchesStatus = selectedStatus.value ? classItem.classState === selectedStatus.value : true;
+    const matchesSearch = classItem.className.includes(searchQuery.value);
     return matchesStatus && matchesSearch;
   });
 });
@@ -24,6 +30,20 @@ const filteredClasses = computed(() => {
 const createClass = () => {
   // 新建班级的逻辑
 };
+
+const getClassList = async () => {
+  try {
+    const res = await classListAPI();
+    classes.value = res.data.rows;
+    console.log('获取班级列表成功:', classes.value);
+  } catch (error) {
+    console.error('获取班级列表失败:', error);
+  }
+};
+
+onMounted(() => {
+  getClassList();
+});
 </script>
 
 <template>
@@ -32,8 +52,9 @@ const createClass = () => {
       <div class="d-flex flex-row align-items-center">
         <el-select v-model="selectedStatus" class="inputclass" placeholder="班级状态" clearable>
           <el-option label="全部" value=""></el-option>
-          <el-option label="授课中" value="授课中"></el-option>
-          <el-option label="已结课" value="已结课"></el-option>
+          <el-option label="未开课" value="1"></el-option>
+          <el-option label="授课中" value="2"></el-option>
+          <el-option label="已结课" value="3"></el-option>
         </el-select>
         <el-input v-model="searchQuery" placeholder="搜索班级名字" class="ms-2 inputclass" clearable />
       </div>
@@ -41,18 +62,17 @@ const createClass = () => {
     </div>
     <div class="card-container">
       <el-card v-for="(classItem, index) in filteredClasses" :key="index"
-        :class="['custom-card', { 'teaching': classItem.status === '授课中', 'completed': classItem.status === '已结课' }]"
-        style="text-align: center; cursor: pointer;" @click="$router.push(`/home/classdetail/${index + 1}`)">
+        :class="['custom-card', { 'teaching': classItem.classState === '1' || '2', 'completed': classItem.classState === '3' }]"
+        style="text-align: center; cursor: pointer;" @click="$router.push({ name: 'classdetail', query: { classId: classItem.classId } })">
         <template #header>
           <div class="card-header">
-            <span>{{ classItem.name }}</span>
+            <span>{{ classItem.className }}</span>
           </div>
         </template>
-        <el-statistic title="学生成员" :value="classItem.students" />
-        <el-statistic title="班级平均分" :value="classItem.averageScore" />
-        <el-countdown title="最近作业截止时间" :value="classItem.deadline" />
+        <el-statistic title="班级平均分" :value="classItem.svgNum" />
+        <el-countdown v-if="classItem.lastTime" title="最近作业截止时间" :value="classItem.lastTime" />
         <template #footer>
-          {{ classItem.status }}
+          {{ classStates[classItem.classState] }}
         </template>
       </el-card>
     </div>

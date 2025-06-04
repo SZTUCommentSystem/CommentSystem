@@ -43,3 +43,20 @@ export const deleteQuestionAPI = (id: number) => {
         params: { id }
     })
 }
+
+// 获取问题类型列表
+export const questionTypeAPI = () => {
+    return request({
+        url: 'function/topictype/list',
+        method: "get",
+    })
+}
+
+// 获取单个问题类型
+export const questionTypeDetailAPI = (id: number) => {
+    return request({
+        url: 'function/topictype',
+        method: "get",
+        params: { id }
+    })
+}

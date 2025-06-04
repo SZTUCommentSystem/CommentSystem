@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ElPageHeader } from "element-plus";
-import {computed, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import { useTransition } from '@vueuse/core'
 import { ChatLineRound, Male } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { classDetailAPI } from '@/api/ClassAPI/index'
 
 const source = ref(0)
 const outputValue = useTransition(source, {
@@ -12,6 +13,7 @@ const outputValue = useTransition(source, {
 source.value = 72
 
 const router = useRouter()
+const route = useRoute()
 //数据拟定
 const students = ref(Array.from({ length: 50 }, (_, i) => ({
   id: `2022002020${String(i + 1).padStart(2, '0')}`,
@@ -20,6 +22,17 @@ const students = ref(Array.from({ length: 50 }, (_, i) => ({
   phone: `1380000${String(i + 1).padStart(4, '0')}`,
   email: `student${i + 1}@example.com`
 })))
+// 获取学生列表
+const getStudentsList = async () => {
+  try {
+    const res = await classDetailAPI(route.query.classId as string)
+    students.value = res.data.rows
+    console.log('获取学生列表成功:', students.value)
+  } catch (error) {
+    console.error('获取学生列表失败:', error)
+  }
+}
+
 
 const currentPage = ref(1)
 const pageSize = 10
@@ -50,6 +63,15 @@ const tasks = ref([
 const viewTask = (taskId: number) => {
   console.log('查看作业:', taskId);
 };
+
+// 发布作业
+const publishTask = () => {
+  console.log('发布作业');
+};
+
+onMounted(() => {
+  getStudentsList()
+})
 </script>
 
 <template>
@@ -74,18 +96,6 @@ const viewTask = (taskId: number) => {
                  </div>
                </template>
                <template #suffix>/100</template>
-             </el-statistic>
-           </el-col>
-           <el-col :span="6">
-             <el-statistic title="最近作业交付份数" :value="outputValue" />
-           </el-col>
-           <el-col :span="6">
-             <el-statistic title="学生提问" :value="26">
-               <template #suffix>
-                 <el-icon style="vertical-align: -0.125em">
-                   <ChatLineRound />
-                 </el-icon>
-               </template>
              </el-statistic>
            </el-col>
          </el-row>
@@ -127,7 +137,7 @@ const viewTask = (taskId: number) => {
               <div v-for="tag in task.tags" :key="tag" class="task-tag">{{ tag }}</div>
             </div>
             <div class="p-4" @click.stop>
-              <el-collapse v-model="activeNames" @change="handleChange">
+              <el-collapse>
                 <el-collapse-item title="布置老师：胡某 截至时间：11：15" name="1">
                   <el-row :gutter="20">
                     <el-col :span="7" class="centered">

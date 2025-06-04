@@ -66,6 +66,11 @@ const router = createRouter({
           component: () => import('../components/Class/index.vue')
         },
         {
+          path: '/home/classdetail',
+          name: 'classdetail',
+          component: () => import('../components/Class/ClassDetail.vue')
+        },
+        {
           path: '/home/library',
           name: 'library',
           component: () => import('../components/Library/index.vue')
@@ -79,11 +84,6 @@ const router = createRouter({
           path: '/home/label',
           name: 'label',
           component: () => import('../components/Label/index.vue')
-        },
-        {
-          path: '/home/classdetail/1',
-          name: 'classdetail',
-          component: () => import('../components/Class/ClassDetail.vue')
         },
         {
           path: '/home/questionpage',
@@ -111,6 +111,21 @@ router.beforeEach((to, from, next) => {
     next({ name: from.name })
   } else {
     console.log('to:', to)
+    next()
+  }
+})
+
+// 如果打开页面时无token，直接跳转到登录页面
+router.beforeResolve((to, from, next) => {
+  const useStore = useUserStore()
+  if (to.name === 'login') {
+    next()
+    return
+  }
+  if (!useStore.token || !useStore.userInfo) {
+    ElMessage.warning('请先登录')
+    next({ name: 'login' })
+  } else {
     next()
   }
 })

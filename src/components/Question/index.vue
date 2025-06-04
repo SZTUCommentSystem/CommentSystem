@@ -15,7 +15,9 @@ const route = useRoute();
 // 模拟题目数据
 const {
   state,
+  questionTypeList,
   getList,
+  getTypeList,
   handleDel,
   filteredQuestions,
   paginatedQuestions,
@@ -23,12 +25,16 @@ const {
   handlePageSizeChange,
 } = QuestionListDisplay();
 
+const getTypeName = (typeId: number) => {
+  console.log(typeId)
+  return questionTypeList.value.find(item => item.topicTypeId == typeId).topicTypeName;
+};
+
 onMounted(() => {
   getList();
+  getTypeList();
+  console.log("paginatedQuestions", paginatedQuestions);
 });
-const rowClick = (row) => {
-  router.push(`/home/questionpage/${row.id}`);
-};
 
 watch(
   () => route.query.forceRefresh,
@@ -43,12 +49,8 @@ watch(
     <div class="filter-container">
       <el-select v-model="state.selectedType" placeholder="选择题目类型" style="margin-right: 10px; width: 200px;">
         <el-option label="全部" value=""></el-option>
-        <el-option label="选择题" value="选择题"></el-option>
-        <el-option label="填空题" value="填空题"></el-option>
-        <el-option label="判断题" value="判断题"></el-option>
-        <el-option label="编程题" value="编程题"></el-option>
-        <el-option label="工程制图" value="工程制图"></el-option>
-        <el-option label="工程设计" value="工程设计"></el-option>
+        <el-option v-for="(item, index) in questionTypeList" :key="index" :label="item.topicTypeName"
+          :value="item.topicTypeId"></el-option>
       </el-select>
 
       <el-input v-model="state.searchQuery" placeholder="搜索题目" style="width: 200px; font-size: 15px"
@@ -60,10 +62,16 @@ watch(
     </div>
 
     <!-- 题目列表展示 -->
-    <ElTable :data="paginatedQuestions" stripe style="cursor: pointer;" @row-click="">
+    <ElTable :data="paginatedQuestions" stripe>
       <ElTableColumn label="序号" type="index" width="100" />
-      <ElTableColumn prop="type" label="题目类型" width="150" />
-      <ElTableColumn prop="title" label="题目" width="250" />
+      <ElTableColumn prop="topicTypeId" label="题目类型" width="150">
+        <template #default="{ row }">
+          <div style="display: flex; gap: 10px;">
+            {{ getTypeName(row.topicTypeId) }}
+          </div>
+        </template>
+      </ElTableColumn>
+      <ElTableColumn prop="topicTitle" label="题目" width="450" />
       <ElTableColumn prop="tags">
         <template #default="{ row }">
           <div style="display: flex; gap: 10px;">
@@ -91,9 +99,8 @@ watch(
     <!-- 分页器 -->
     <div class="paging mt-4" style="display: flex;justify-content: flex-end;">
       <el-config-provider :locale="zhCn">
-        <el-pagination  :total="filteredQuestions.length" background
-          layout="total, prev, pager, next, sizes, jumper" :page-sizes="[5, 10, 20, 30]"
-          @size-change="handlePageSizeChange" @current-change="handlePageChange" />
+        <el-pagination :total="filteredQuestions.length" background layout="total, prev, pager, next, sizes, jumper"
+          :page-sizes="[5, 10, 20, 30]" @size-change="handlePageSizeChange" @current-change="handlePageChange" />
       </el-config-provider>
     </div>
   </div>

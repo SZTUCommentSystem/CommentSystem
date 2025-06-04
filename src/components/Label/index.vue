@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {nextTick,ref} from "vue";
 import { ElInput } from "element-plus";
-import type { InputInstance,TagProps  } from "element-plus";
+import type { InputInstance, TagProps } from "element-plus";
+import { labelListAPI } from "@/api/LabelAPI";
 
 const inputValue=ref('')
 const dynamicTags=ref(['Tag1','Tag2','Tag3','Tag4','Tag5','Tag6','Tag7'])
