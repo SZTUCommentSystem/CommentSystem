@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import {nextTick,ref} from "vue";
+import {nextTick,onMounted,ref} from "vue";
 import { ElInput } from "element-plus";
 import type { InputInstance, TagProps } from "element-plus";
+
 import { labelListAPI } from "@/api/LabelAPI";
+import { getChapterListAPI } from "@/api/ChapterAPI";
 
 const inputValue=ref('')
 const dynamicTags=ref(['Tag1','Tag2','Tag3','Tag4','Tag5','Tag6','Tag7'])
@@ -35,6 +37,33 @@ const items = ref<Array<Item>>([
   { type: 'warning', label: 'Tag 4' },
   { type: 'danger', label: 'Tag 5' },
 ])
+// 获取章节
+const getChapterList = async () => {
+  try {
+    const res = await getChapterListAPI();
+    if (res.data.code === 200) {
+      // 处理获取到的章节数据
+      console.log(res.data);
+      let root = [];
+
+      res.data.rows.forEach((item: any) => {
+        item.children = [];
+        if(item.parentId === null) {
+          root.push(item);
+        } else {
+          const parent = res.data.rows.find((parentItem: any) => parentItem.id === item.parentId);
+          if (parent) {
+            parent.children.push(item);
+          }
+        }
+      })
+    } else {
+      console.error('获取章节列表失败:', res.data.message);
+    }
+  } catch (error) {
+    console.error('请求错误:', error);
+  }
+};
 //抽屉select临时数据
 const options = [
   {
@@ -304,6 +333,11 @@ const options = [
     ],
   },
 ]
+
+onMounted(() => {
+  // 在组件挂载后获取章节列表
+  getChapterList();
+});
 </script>
 
 <template>

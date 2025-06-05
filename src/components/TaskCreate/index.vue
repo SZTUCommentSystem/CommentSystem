@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ElMessageBox, ElMessage } from 'element-plus';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import { questionListAPI } from '@/api/QuestionAPI';
@@ -10,14 +10,23 @@ import { useRouter } from 'vue-router';
 // 路由
 const router = useRouter();
 
+interface TaskContent {
+    title: string;
+    description: string;
+    problemIds: number[];
+    deadline: Date[];
+    catalogue: string; // 添加 目录 字段
+    tags?: string[]; // 可选的标签字段
+}
+
 // 作业内容
-const taskContent = reactive({
+const taskContent = reactive<TaskContent>({
     title: '',
     description: '',
     problemIds: [],
     deadline: [],
-    teacher: '', // 添加 teacher 字段
-})
+    catalogue: '', // 初始化 catalogue 字段
+});
 
 // 题目
 // 展示可选择的题目
@@ -88,8 +97,8 @@ const submitTask = async () => {
             });
             return;
         }
-        if (!taskContent.teacher) {
-            ElMessageBox.alert('老师名字不能为空！', '错误', {
+        if (!taskContent.catalogue) {
+            ElMessageBox.alert('目录不能为空！', '错误', {
                 confirmButtonText: '确定',
                 type: 'error',
             });
@@ -104,7 +113,7 @@ const submitTask = async () => {
         }
 
         // 格式化日期
-        taskContent.deadline = taskContent.deadline.map((date: Date) =>
+        const formattedDeadline = taskContent.deadline.map((date: Date) =>
             dayjs(date).format('YYYY-MM-DD HH:mm:ss')
         );
 
@@ -112,16 +121,21 @@ const submitTask = async () => {
         taskContent.tags = tags.value;
 
         // 获取选中的题目 ID
-        taskContent.selectedQuestion = dynamicArray.value
+        taskContent.problemIds = dynamicArray.value
             .filter(item => item.checked)
             .map(item => item.questionId);
 
-        console.log("提交时的任务内容:", taskContent); // 确保数据正确
+        // 构造提交对象，避免类型冲突
+        const submitData = {
+            ...taskContent,
+            deadline: formattedDeadline
+        };
+
+        console.log("提交时的任务内容:", submitData); // 确保数据正确
 
         // 提交
-        const res = await SubmitTaskAPI(taskContent);
-
-        if (res.code === 200) {
+        const res = await SubmitTaskAPI(submitData);
+        if (res.data.code === 200) {
             ElMessageBox.alert('提交成功！', '成功', {
                 confirmButtonText: '确定',
                 type: 'success',
@@ -163,8 +177,8 @@ onMounted(() => {
                 <input type="text" v-model="taskContent.title" placeholder="请输入题目标题" />
             </div>
             <div class="right">
-                <p>老师名字：</p> <!-- 将“目录”改为“老师名字” -->
-                <input type="text" v-model="taskContent.teacher" placeholder="请输入老师名字" /> <!-- 改为绑定到 teacher 字段 -->
+                <p>目录：</p>
+                <input type="text" v-model="taskContent.catalogue" placeholder="请输入目标目录，若无该目录则新建目录" />
             </div>
         </div>
         <div class="create-title">
@@ -175,7 +189,7 @@ onMounted(() => {
             <p>请选择本次作业的题目：</p>
             <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
             <ul style="padding: 0; margin-top: 10px;">
-                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problems.id">
+                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.id">
                     <div class="problem">
                         <span>{{ problem.title }}</span>
                         <span>{{ problem.type }}</span>

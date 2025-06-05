@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import type { ElPageHeader } from "element-plus";
 import {computed, onMounted, ref} from 'vue'
-import { useTransition } from '@vueuse/core'
-import { ChatLineRound, Male } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import { classDetailAPI } from '@/api/ClassAPI/index'
 
 const source = ref(0)
-const outputValue = useTransition(source, {
-  duration: 1500,
-})
 source.value = 72
 
 const router = useRouter()
@@ -66,7 +61,7 @@ const viewTask = (taskId: number) => {
 
 // 发布作业
 const publishTask = () => {
-  console.log('发布作业');
+  router.push('/home/task')
 };
 
 onMounted(() => {

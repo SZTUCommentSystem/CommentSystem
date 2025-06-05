@@ -9,7 +9,7 @@ import type { ElPageHeader, UploadProps, UploadUserFile } from 'element-plus'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 // 导入提交接口
-import { submitQuestionAPI } from '@/api/QuestionAPI'
+import { addQuestionAPI } from '@/api/QuestionAPI'
 
 const router = useRouter();
 
@@ -57,7 +57,7 @@ const handleCloseComment = (comment: string) => {
 // 提交
 const submitQuestion = async () => {
     try {
-        const res = await submitQuestionAPI(questionContent)
+        const res = await addQuestionAPI(questionContent)
 
         router.push({
             path: '/home/question',
@@ -74,7 +74,7 @@ const submitQuestion = async () => {
 <template>
     <div class="create-wrapper">
         <div class="header">
-            <el-page-header @back="this.$router.push('/home/question')" content="创建题目" title="返回">
+            <el-page-header @back="$router.push('/home/question')" content="创建题目" title="返回">
             </el-page-header>
         </div>
         <div class="create-title-top">
