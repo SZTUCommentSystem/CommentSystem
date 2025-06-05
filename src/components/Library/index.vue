@@ -1,16 +1,68 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
-import Edit from "@/components/icons/library/edit.vue";
 import CategoryMenu from './components/CategoryMenu.vue';
 import { getCommentList, getTypeListAPI } from "@/api/CommentsAPI";
+import { ElMessageBox, ElMessage } from 'element-plus';
+
 
 // 分类树和批语内容
 const typeList = ref<any[]>([]);
 const commentList = ref<any[]>([]);
 
+// 新增批语弹窗
 const dialogVisible = ref(false);
+// 修改批语分类名称弹窗
+const editDialogVisible = ref(false);
+const changeComment = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要修改该分类名称吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了确定，执行修改逻辑
+
+
+
+
+    // ...你的修改代码...
+    ElMessage.success('修改成功');
+    editDialogVisible.value = false;
+  } catch {
+    // 用户点击了取消
+    ElMessage.info('已取消修改');
+  }
+}
+// 删除分类弹窗
+const deleteDialogVisible = ref(false);
+const deleteComment = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该分类吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了确定，执行删除逻辑
+
+    
+    // ...你的删除代码...
+    ElMessage.success('删除成功');
+    deleteDialogVisible.value = false;
+  } catch {
+    // 用户点击了取消
+    ElMessage.info('已取消删除');
+  }
+};
+
 const newComment = ref('');
-const options = [];
 
 const isHovered = ref(false);
 const handleMouseEnter = () => { isHovered.value = true; };
@@ -61,6 +113,7 @@ const fillCommentsToBase = (typeList: any[], commentList: any[]) => {
   });
 };
 
+// 获取类型列表
 const getTypeList = async () => {
   const res = await getTypeListAPI();
   if (res.data.code == 200) {
@@ -71,6 +124,7 @@ const getTypeList = async () => {
   }
 };
 
+// 获取批语列表
 const getList = async () => {
   const res = await getCommentList();
   if (res.data.code == 200) {
@@ -145,6 +199,8 @@ onMounted(async () => {
     <el-col :span="6">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库分类</span>
+        <el-button @click="editDialogVisible = true">修改分类名称</el-button>
+        <el-button @click="deleteDialogVisible = true">删除分类</el-button>
       </div>
       <el-menu :default-active="activeMenu" class="el-menu-vertical-demo mt-4" @select="handleMenuSelect"
         text-color="#333" active-text-color="#51a7ff">
@@ -159,13 +215,11 @@ onMounted(async () => {
     <el-col :span="18">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库列表</span>
-        <edit class="pb-2 me-5 edit-icon" :style="{ opacity: isHovered ? 1 : 0.3, transition: 'opacity 0.3s ease' }"
-          @click="dialogVisible = true">
-        </edit>
+        <el-button @click="dialogVisible = true">新增批语</el-button>
         <el-dialog v-model="dialogVisible" title="添加批语" width="600">
           <div>
             <span>目标章节：</span>
-            <el-input v-model="newComment" style="width: 80%" placeholder="请输入目标章节，若无该章节，则新建该章节" />
+            <el-input v-model="newComment" style="width: 80%" placeholder="请输入目标章节（如：第一章/第一节），若无该章节，则新建该章节" />
           </div>
           <div style="margin-top: 20px;">
             <span>批语内容：</span>
@@ -182,7 +236,7 @@ onMounted(async () => {
         </el-dialog>
       </div>
       <div class="right-container">
-        <el-table :data="selectedBaseComments" style="width: 100%">
+        <el-table :data="selectedBaseComments" style="width: 100%" empty-text="暂无批语内容">
           <el-table-column label="批语内容">
             <template #default="{ row }">
               <div class="list_item">{{ row }}</div>
@@ -190,6 +244,41 @@ onMounted(async () => {
           </el-table-column>
         </el-table>
       </div>
+
+      <el-dialog v-model="editDialogVisible" title="修改分类名称" width="600">
+        <div class="dialog-row">
+          <span class="dialog-label">原章节名称：</span>
+          <el-input v-model="newComment" style="width: 80%" placeholder="请输入章节原名称（如：第一章/第一节）" />
+        </div>
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">目标章节名称：</span>
+          <el-input v-model="newComment" style="width: 80%" placeholder="请输入修改名称" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="changeComment">
+              修改
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <el-dialog v-model="deleteDialogVisible" title="删除分类" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">目标章节名称：</span>
+          <el-input v-model="newComment" style="width: 80%" placeholder="请输入章节名称（如：第一章/第一节）" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="deleteDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="deleteComment">
+              删除
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+      
       <div class="pagination" v-if="selectedBaseComments.length">
         <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
       </div>
@@ -219,6 +308,13 @@ onMounted(async () => {
   align-items: center;
   /* 垂直居中 */
 
+    h5 {
+      margin-bottom: 0;
+    }
+
+    button {
+      font-size: 12px;
+    }
 }
 
 .h5 {
@@ -307,5 +403,18 @@ onMounted(async () => {
   ::v-deep .con .el-menu .el-menu-item {
     font-size: 12px !important;
   }
+}
+
+.dialog-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+.dialog-label {
+  min-width: 110px;
+  text-align: left;
+  margin-right: 10px;
+  color: #333;
 }
 </style>
