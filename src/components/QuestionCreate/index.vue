@@ -4,9 +4,11 @@ import { Plus } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 import type { ElPageHeader, UploadProps, UploadUserFile } from 'element-plus'
+import draggable from 'vuedraggable';
 
 // 导入编辑器
 import EditorMarkdown from '@/components/Generic/Editor.vue'
+import CategoryList from '@/components/Generic/CategoryList.vue'
 
 // 导入提交接口
 import { addQuestionAPI } from '@/api/QuestionAPI'
@@ -19,10 +21,7 @@ const questionContent = reactive({
     tags: ['标签1', '标签2'],
     imgs: [],
     description: '',
-    displayComments: [
-        '你在这个项目中展现了极高的专业水平。',
-        '你的思考方式为大家打开了新的视野。',
-    ],
+    displayComments: [],
 })
 
 // 上传图片
@@ -50,8 +49,69 @@ const handleCloseTag = (tag: string) => {
 }
 
 // 批语
-const handleCloseComment = (comment: string) => {
-    questionContent.displayComments.splice(questionContent.displayComments.indexOf(comment), 1)
+// const handleCloseComment = (comment: string) => {
+//     questionContent.displayComments.splice(questionContent.displayComments.indexOf(comment), 1)
+// }
+interface Category {
+    id: number;
+    name: string;
+    comments: string[];
+    isEditing: boolean;
+    spreadIndex: boolean;
+    subcategories?: Category[];
+}
+
+const category = ref([
+    {
+        id: 1,
+        name: '分类A',
+        comments: [
+            '你在这个项目中展现了极高的专业水平。',
+            '你的思考方式为大家打开了新的视野。'
+        ],
+        isEditing: false,
+        spreadIndex: false,
+        subcategories: [
+            {
+                id: 4,
+                name: '子分类A1',
+                comments: [
+                    '子分类A1的评论1。',
+                    '子分类A1的评论2。'
+                ],
+                isEditing: false,
+                spreadIndex: false,
+                subcategories: []
+            }
+        ]
+    },
+    {
+        id: 2,
+        name: '分类B',
+        comments: [
+            '你在这个项目中展现了极高的专业水平。',
+            '你的思考方式为大家打开了新的视野。'
+        ],
+        isEditing: false,
+        spreadIndex: false,
+        subcategories: []
+    },
+    {
+        id: 3,
+        name: '分类C',
+        comments: [
+            '你在这个项目中展现了极高的专业水平。',
+            '你的思考方式为大家打开了新的视野。'
+        ],
+        isEditing: false,
+        spreadIndex: false,
+        subcategories: []
+    }
+]);
+
+// 添加批语
+const addComment = () => {
+    console.log('添加批语')
 }
 
 // 提交
@@ -80,12 +140,16 @@ const submitQuestion = async () => {
         <div class="create-title-top">
             <div class="left">
                 <div class="create-list">
-                    <p>题目批语：</p>
-                    <el-tag v-for="comment in questionContent.displayComments" :key="comment" effect="plain" closable
+                    <div class="create-title">
+                        <p>题目批语：</p>
+                        <el-button @click="addComment">添加批语</el-button>
+                    </div>
+                    <!-- <el-tag v-for="comment in questionContent.displayComments" :key="comment" effect="plain" closable
                         @close="handleCloseComment" class="comment-tag">
                         {{ comment }}
                     </el-tag>
-                    <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button>
+                    <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;">+ 添加</el-button> -->
+                    <CategoryList :categories="category" />
                 </div>
             </div>
             <div class="right">
@@ -95,7 +159,7 @@ const submitQuestion = async () => {
                 </div>
                 <div class="create-list">
                     <p>题目类型：</p>
-                    <input type="text" v-model="questionContent.type" placeholder="请输入题目类型" />
+                    <input type="text" v-model="questionContent.type" placeholder="请输入题目类型，若无该题目类型，则新建题目类型" />
                 </div>
                 <div class="create-list">
                     <p>题目标签：</p>
@@ -206,10 +270,18 @@ const submitQuestion = async () => {
     padding: 10px 20px;
     background-color: #fff;
 
-    p {
-        margin: 0;
-        font-size: 18px;
+    .create-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
         margin-bottom: 10px;
+        
+        p {
+            margin: 0;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
     }
 
     input {

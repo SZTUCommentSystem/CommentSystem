@@ -20,9 +20,8 @@ export const addQuestionAPI = (data: Object) => {
 // 获取问题详情
 export const questionDetailAPI = (id: number) => {
     return request({
-        url: 'function/topic',
+        url: `function/topic/${id}`,
         method: "get",
-        params: { id }
     })
 }
 
@@ -38,9 +37,8 @@ export const updateQuestionAPI = (data: Object) => {
 // 删除问题
 export const deleteQuestionAPI = (id: number) => {
     return request({
-        url: 'function/topic',
-        method: "delete",
-        params: { id }
+        url: `function/topic/${id}`,
+        method: "get",
     })
 }
 
@@ -55,8 +53,7 @@ export const questionTypeAPI = () => {
 // 获取单个问题类型
 export const questionTypeDetailAPI = (id: number) => {
     return request({
-        url: 'function/topictype',
+        url: `function/topictype/${id}`,
         method: "get",
-        params: { id }
     })
 }

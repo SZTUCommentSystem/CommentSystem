@@ -1,320 +1,159 @@
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref } from 'vue';
-import { ElMenu, ElMenuItem, ElMenuItemGroup, ElSubMenu } from 'element-plus';
+import { ref, onMounted } from 'vue';
 import Edit from "@/components/icons/library/edit.vue";
-import { json } from 'stream/consumers';
+import CategoryMenu from './components/CategoryMenu.vue';
+import { getCommentList, getTypeListAPI } from "@/api/CommentsAPI";
 
+// 分类树和批语内容
+const typeList = ref<any[]>([]);
+const commentList = ref<any[]>([]);
 
-const props = defineProps();
-const emit = defineEmits();
-
-const tableData = ref([
-  '你在工程制图的基础学习中展现了扎实的理解能力。',
-  '你对国家制图标准的掌握令人印象深刻。',
-  '你的图纸绘制展现了很高的专业水平和细致态度。',
-  '很高兴看到你在几何作图中的精准表现。',
-  '你的投影图绘制非常规范且有条理。',
-  '你对工程制图中字体和比例的应用非常熟练。',
-  '你的细心使得尺寸标注清晰易懂，值得表扬。',
-  '你的创造性思维在辅助视图的表达中得到了体现。',
-  '在几何作图中，你展现了极高的逻辑分析能力。',
-  '你对剖视图和断面图的掌握展示了深刻的理解。',
-  '你的作图技巧展示了对投影法基础的深度掌握。',
-  '你的三视图绘制清晰明了，结构表达准确。',
-  '你在图纸种类与幅面的运用上非常熟练，值得肯定。',
-  '你对图线和字体的规范使用展现了很高的工程制图素养。',
-  '你的轴测图绘制非常出色，表现了良好的空间想象能力。',
-  '你在表达形体结构方面展现了很高的技术水平。',
-]);
-
+const dialogVisible = ref(false);
+const newComment = ref('');
+const options = [];
 
 const isHovered = ref(false);
+const handleMouseEnter = () => { isHovered.value = true; };
+const handleMouseLeave = () => { isHovered.value = false; };
 
-const handleMouseEnter = () => {
-  isHovered.value = true;
+const activeMenu = ref(''); // 当前选中的菜单index
+const selectedBaseComments = ref<string[]>([]);
+
+// 分类树格式化
+const formatTypeList = (rawList: any[]) => {
+  const typeMap: Record<string, any> = {};
+  rawList.forEach(item => {
+    typeMap[item.commentTypeId] = { ...item, children: [] };
+  });
+  const result: any[] = [];
+  rawList.forEach(item => {
+    if (item.parentId != null) {
+      typeMap[item.parentId].children.push(typeMap[item.commentTypeId]);
+    } else {
+      result.push(typeMap[item.commentTypeId]);
+    }
+  });
+
+  rawList.forEach(item => {
+    typeMap[item.commentTypeId].children.push({
+      id: `${item.commentTypeId}-base`,
+      name: '基础内容',
+      parentId: item.commentTypeId,
+      isBase: true,
+      comments: []
+    });
+  });
+  return result;
 };
 
-const handleMouseLeave = () => {
-  isHovered.value = false;
+// 批语内容分配到基础内容子层
+const fillCommentsToBase = (typeList: any[], commentList: any[]) => {
+  typeList.forEach(type => {
+    const base = type.children.find((child: any) => child.isBase);
+    if (base) {
+      base.comments = commentList
+        .filter(comment => comment.commentTypeId === type.commentTypeId)
+        .map(comment => comment.commentName);
+    }
+    type.children
+      .filter((child: any) => !child.isBase)
+      .forEach((child: any) => fillCommentsToBase([child], commentList));
+  });
 };
 
-const handleOpen = (key: any, keyPath: any) => {
-  console.log(key, keyPath);
-};
-
-const handleClose = (key: any, keyPath: any) => {
-  console.log(key, keyPath);
-};
-
-const currentPage = ref(1);
-
-//对话框状态
-const dialogVisible = ref(false)
-
-//临时选择数据
-const options = [
-  {
-    value: 'basics',
-    label: '工程制图基础',
-    children: [
-      { value: 'definition_usage', label: '工程制图的定义与用途' },
-      { value: 'standards', label: '国家制图标准简介' },
-      { value: 'paper_types', label: '图纸种类与幅面' },
-      { value: 'lines_fonts', label: '图线、字体、比例及尺寸标注' },
-    ],
-  },
-  {
-    value: 'geometry',
-    label: '几何作图',
-    children: [
-      { value: 'projection_views', label: '投影法与视图表达' },
-      { value: 'relative_position', label: '平面与直线的相对位置' },
-      { value: 'projection_relationships', label: '点、直线、平面的投影关系' },
-    ],
-  },
-  {
-    value: 'projection_theory',
-    label: '投影理论',
-    children: [
-      { value: 'three_projection', label: '三面正投影法' },
-      { value: 'main_views', label: '主视图、俯视图、侧视图的形成与应用' },
-      { value: 'auxiliary_section_views', label: '辅助视图与剖视图' },
-    ],
-  },
-  {
-    value: 'composite_views',
-    label: '组合体视图',
-    children: [
-      { value: 'drawing_composite', label: '组合体的三视图绘制' },
-      { value: 'shape_analysis', label: '形体分析与结构表达' },
-      { value: 'simple_parts', label: '简单零件的表达与标注' },
-    ],
-  },
-  {
-    value: 'section_views',
-    label: '剖面图与断面图',
-    children: [
-      { value: 'definition_types', label: '剖面图的定义与分类' },
-      { value: 'section_lines', label: '剖面线的表示方法' },
-      { value: 'break_views', label: '断面图的定义与用途' },
-    ],
-  },
-  {
-    value: 'isometric_drawing',
-    label: '轴测图',
-    children: [
-      { value: 'isometric_projection', label: '轴测投影法及其特点' },
-      { value: 'types', label: '常见轴测图类型' },
-      { value: 'techniques', label: '轴测图的绘制技巧' },
-    ],
-  },
-  {
-    value: 'standard_parts',
-    label: '标准件与常用件',
-    children: [
-      { value: 'common_parts', label: '常用标准件' },
-      { value: 'representation', label: '标准件的表示与画法' },
-      { value: 'mechanical_parts', label: '常用机械零件图解' },
-    ],
-  },
-  {
-    value: 'part_drawing',
-    label: '零件图',
-    children: [
-      { value: 'requirements', label: '零件图的基本要求' },
-      { value: 'tolerances', label: '技术要求及公差标注' },
-      { value: 'geometric_tolerance', label: '形位公差的表示' },
-    ],
-  },
-  {
-    value: 'assembly_drawing',
-    label: '装配图',
-    children: [
-      { value: 'features', label: '装配图的特点与用途' },
-      { value: 'relationships', label: '装配关系的表达与分析' },
-      { value: 'conversion', label: '装配图与零件图的相互转换' },
-    ],
-  },
-  {
-    value: 'cad',
-    label: '计算机辅助制图',
-    children: [
-      { value: 'basics', label: 'CAD基础知识' },
-      { value: 'operations', label: 'CAD的基本操作与应用' },
-      { value: 'simple_drawing', label: '使用CAD绘制简单工程图' },
-    ],
-  },
-  {
-    value: 'practice',
-    label: '课程设计与实训',
-    children: [
-      { value: 'comprehensive_design', label: '综合设计任务' },
-      { value: 'case_analysis', label: '工程图绘制案例分析' },
-      { value: 'project_practice', label: '项目制实践与成果展示' },
-    ],
-  },
-];
-//输入框内容
-const newComment = ref('');
-//添加批语库列表内容
-const addComment = () => {
-  if (newComment.value.trim()) {
-    tableData.value.push(newComment.value.trim());
-    newComment.value = '';
+const getTypeList = async () => {
+  const res = await getTypeListAPI();
+  if (res.data.code == 200) {
+    typeList.value = formatTypeList(res.data.rows);
+    if (commentList.value.length) {
+      fillCommentsToBase(typeList.value, commentList.value);
+    }
   }
+};
+
+const getList = async () => {
+  const res = await getCommentList();
+  if (res.data.code == 200) {
+    commentList.value = res.data.rows;
+    if (typeList.value.length) {
+      fillCommentsToBase(typeList.value, commentList.value);
+    }
+  }
+  console.log('批语列表:', commentList.value);
+  console.log('分类树:', typeList.value);
+};
+
+// 菜单选择
+const handleMenuSelect = (index: string) => {
+  if (index.endsWith('-base')) {
+    const [typeId] = index.split('-');
+    // 递归查找所有层级
+    const findType = (list: any[], id: string): any | null => {
+      for (const type of list) {
+        if (String(type.commentTypeId) === id) return type;
+        if (type.children && type.children.length) {
+          // 只递归非基础内容
+          const found = findType(type.children.filter((c: any) => !c.isBase), id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    const type = findType(typeList.value, typeId);
+    if (type) {
+      const base = type.children.find((child: any) => child.isBase);
+      selectedBaseComments.value = base ? base.comments : [];
+      console.log('选中基础内容:', selectedBaseComments.value);
+    }
+  } else {
+    selectedBaseComments.value = [];
+  }
+};
+
+// 添加批语到当前基础内容
+const addComment = () => {
+  if (!newComment.value.trim()) return;
+  if (activeMenu.value.endsWith('-base')) {
+    const [typeId] = activeMenu.value.split('-');
+    const type = typeList.value.find(t => String(t.commentTypeId) === typeId);
+    if (type) {
+      const base = type.children.find((child: any) => child.isBase);
+      if (base) {
+        base.comments.push(newComment.value.trim());
+        selectedBaseComments.value = base.comments;
+      }
+    }
+  }
+  newComment.value = '';
   dialogVisible.value = false;
 };
 
+onMounted(async () => {
+  await getTypeList();
+  await getList();
+  // 默认选中第一个基础内容
+  if (typeList.value.length) {
+    activeMenu.value = `${typeList.value[0].commentTypeId}-base`;
+    const base = typeList.value[0].children.find((child: any) => child.isBase);
+    selectedBaseComments.value = base ? base.comments : [];
+  }
+});
 </script>
 
 <template>
-
-
   <el-row class="con">
     <el-col :span="6">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库分类</span>
-
       </div>
-      <el-menu default-active="1" class="el-menu-vertical-demo mt-4" @open="handleOpen" @close="handleClose"
+      <el-menu :default-active="activeMenu" class="el-menu-vertical-demo mt-4" @select="handleMenuSelect"
         text-color="#333" active-text-color="#51a7ff">
-
-        <ElMenu default-active="1-1" class="el-menu-vertical-demo">
-          <!-- 工程制图基础 -->
-          <ElSubMenu index="1">
-            <template #title>
-              <span class="span">工程制图基础</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="1-1">工程制图的定义与用途</el-menu-item>
-              <el-menu-item index="1-2">国家制图标准简介</el-menu-item>
-              <el-menu-item index="1-3">图纸种类与幅面</el-menu-item>
-              <el-menu-item index="1-4">图线、字体、比例及尺寸标注</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 几何作图 -->
-          <ElSubMenu index="2">
-            <template #title>
-              <span class="span">几何作图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="2-1">投影法与视图表达</el-menu-item>
-              <el-menu-item index="2-2">平面与直线的相对位置</el-menu-item>
-              <el-menu-item index="2-3">点、直线、平面的投影关系</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 投影理论 -->
-          <ElSubMenu index="3">
-            <template #title>
-              <span class="span">投影理论</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="3-1">三面正投影法</el-menu-item>
-              <el-menu-item index="3-2">主、俯、侧视图的形成与应用</el-menu-item>
-              <el-menu-item index="3-3">辅助视图与剖视图</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 组合体视图 -->
-          <ElSubMenu index="4">
-            <template #title>
-              <span class="span">组合体视图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="4-1">组合体的三视图绘制</el-menu-item>
-              <el-menu-item index="4-2">形体分析与结构表达</el-menu-item>
-              <el-menu-item index="4-3">简单零件的表达与标注</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 剖面图与断面图 -->
-          <ElSubMenu index="5">
-            <template #title>
-              <span class="span">剖面图与断面图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="5-1">剖面图的定义与分类</el-menu-item>
-              <el-menu-item index="5-2">剖面线的表示方法</el-menu-item>
-              <el-menu-item index="5-3">断面图的定义与用途</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 轴测图 -->
-          <ElSubMenu index="6">
-            <template #title>
-              <span class="span">轴测图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="6-1">轴测投影法及其特点</el-menu-item>
-              <el-menu-item index="6-2">常见轴测图类型</el-menu-item>
-              <el-menu-item index="6-3">轴测图的绘制技巧</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 标准件与常用件 -->
-          <ElSubMenu index="7">
-            <template #title>
-              <span class="span">标准件与常用件</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="7-1">常用标准件</el-menu-item>
-              <el-menu-item index="7-2">标准件的表示与画法</el-menu-item>
-              <el-menu-item index="7-3">常用机械零件图解</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 零件图 -->
-          <ElSubMenu index="8">
-            <template #title>
-              <span class="span">零件图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="8-1">零件图的基本要求</el-menu-item>
-              <el-menu-item index="8-2">技术要求及公差标注</el-menu-item>
-              <el-menu-item index="8-3">形位公差的表示</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 装配图 -->
-          <ElSubMenu index="9">
-            <template #title>
-              <span class="span">装配图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="9-1">装配图的特点与用途</el-menu-item>
-              <el-menu-item index="9-2">装配关系的表达与分析</el-menu-item>
-              <el-menu-item index="9-3">装配图与零件图的相互转换</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 计算机辅助制图 -->
-          <ElSubMenu index="10">
-            <template #title>
-              <span class="span">计算机辅助制图</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="10-1">CAD基础知识</el-menu-item>
-              <el-menu-item index="10-2">CAD的基本操作与应用</el-menu-item>
-              <el-menu-item index="10-3">使用CAD绘制简单工程图</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-
-          <!-- 课程设计与实训 -->
-          <ElSubMenu index="11">
-            <template #title>
-              <span class="span">课程设计与实训</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="11-1">综合设计任务</el-menu-item>
-              <el-menu-item index="11-2">工程图绘制案例分析</el-menu-item>
-              <el-menu-item index="11-3">项目制实践与成果展示</el-menu-item>
-            </el-menu-item-group>
-          </ElSubMenu>
-        </ElMenu>
-
-
+        <template v-if="typeList.length">
+          <CategoryMenu v-for="item in typeList" :key="item.commentTypeId" :item="item" />
+        </template>
+        <template v-else>
+          <el-menu-item disabled>暂无分类</el-menu-item>
+        </template>
       </el-menu>
     </el-col>
     <el-col :span="18">
@@ -323,12 +162,13 @@ const addComment = () => {
         <edit class="pb-2 me-5 edit-icon" :style="{ opacity: isHovered ? 1 : 0.3, transition: 'opacity 0.3s ease' }"
           @click="dialogVisible = true">
         </edit>
-        <el-dialog v-model="dialogVisible" title="添加批语列表" width="1000">
-          <div class="mb-4">
-            <span>选择批语章节：</span>
-            <el-cascader :options="options" clearable placeholder="选择" />
-          </div>
+        <el-dialog v-model="dialogVisible" title="添加批语" width="600">
           <div>
+            <span>目标章节：</span>
+            <el-input v-model="newComment" style="width: 80%" placeholder="请输入目标章节，若无该章节，则新建该章节" />
+          </div>
+          <div style="margin-top: 20px;">
+            <span>批语内容：</span>
             <el-input v-model="newComment" style="width: 80%" placeholder="请输入批语内容" />
           </div>
           <template #footer>
@@ -342,24 +182,20 @@ const addComment = () => {
         </el-dialog>
       </div>
       <div class="right-container">
-        <el-table :data="tableData" style="width: 100%">
-          <el-table-column>
+        <el-table :data="selectedBaseComments" style="width: 100%">
+          <el-table-column label="批语内容">
             <template #default="{ row }">
               <div class="list_item">{{ row }}</div>
             </template>
           </el-table-column>
         </el-table>
-
       </div>
-      <div class="pagination">
-        <el-pagination background layout="prev, pager, next" :total="100" />
+      <div class="pagination" v-if="selectedBaseComments.length">
+        <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
       </div>
     </el-col>
   </el-row>
-
 </template>
-
-
 
 <style scoped>
 .con {

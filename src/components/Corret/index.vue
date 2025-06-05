@@ -51,10 +51,10 @@ const updateCorretStatus = (taskIndex: number, studentIndex: number) => {
 }
 
 // 批语
-const displayComments = ref([
-    '你在这个项目中展现了极高的专业水平。',
-    '你的思考方式为大家打开了新的视野。'
-])
+// const displayComments = ref([
+//     '你在这个项目中展现了极高的专业水平。',
+//     '你的思考方式为大家打开了新的视野。'
+// ])
 const textarea = ref('');
 
 const onclick = (comment: string) => {
@@ -62,23 +62,23 @@ const onclick = (comment: string) => {
 }
 
 // 批语分类
-interface Category {
-    id: number;
-    name: string;
-    comments: string[];
-    isEditing: boolean;
-    spreadIndex: boolean;
-    subcategories: Subcategory[];
-}
+// interface Category {
+//     id: number;
+//     name: string;
+//     comments: string[];
+//     isEditing: boolean;
+//     spreadIndex: boolean;
+//     subcategories: Subcategory[];
+// }
 
-interface Subcategory {
-    id: number;
-    name: string;
-    comments: string[];
-    isEditing: boolean;
-    spreadIndex: boolean;
-    subcategories: Subcategory[];
-}
+// interface Subcategory {
+//     id: number;
+//     name: string;
+//     comments: string[];
+//     isEditing: boolean;
+//     spreadIndex: boolean;
+//     subcategories: Subcategory[];
+// }
 
 const category = ref([
     {
@@ -206,6 +206,22 @@ const NextOne = () => {
         ElMessage.error('已经是最后一个学生了');
 }
 
+// 切换题目
+const LastProblem = () => {
+    if (nowTask.value > 1) {
+        nowTask.value--;
+    } else {
+        ElMessage.error('已经是第一题了');
+    }
+}
+const NextProblem = () => {
+    if (nowTask.value < taskNumber.value) {
+        nowTask.value++;
+    } else {
+        ElMessage.error('已经是最后一题了');
+    }
+}
+
 onMounted(() => {
     getStudentInfo();
 })
@@ -284,10 +300,10 @@ watch(() => route.query.id, (newValue, oldValue) => {
         <div class="left-button" @click="LastOne">&lt;</div>
         <div class="right-button" @click="NextOne">&gt;</div>
         <div class="bottom-button">
-            <el-button type="primary" plain style="width: 100px;">上一份</el-button>
-            <el-button type="primary" plain style="width: 100px;">下一份</el-button>
+            <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
+            <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
             <el-button type="success" style="width: 100px;"
-                @click="updateCorretStatus(nowTask - 1, route.query.id - 1)">保存</el-button>
+                @click="updateCorretStatus(nowTask - 1, Number(route.query.id) - 1)">保存</el-button>
         </div>
     </div>
 </template>

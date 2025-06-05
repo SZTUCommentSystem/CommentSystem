@@ -1,11 +1,10 @@
 import request from "@/utils/https";
 
 // 获取批语列表
-export const getCommentList = (params: any) => {
+export const getCommentList = () => {
   return request({
     url: "function/comment/list",
     method: "get",
-    params,
   });
 };
 

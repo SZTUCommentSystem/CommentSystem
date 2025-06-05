@@ -53,7 +53,8 @@ const onEnd = (event: any) => {
                             </div>
                         </div>
                         <div class="comments-daughter" v-if="element.spreadIndex">
-                            <CategoryList :categories="element.subcategories" @onclick="emit"
+                            <CategoryList :categories="element.subcategories"
+                                @onclick="(...args) => emit('onclick', ...args)"
                                 v-if="element.subcategories && element.subcategories.length !== 0" />
                             <el-check-tag checked @click="emit('onclick', comment)" v-for="comment in element.comments"
                                 :key="comment" class="comment-tag">{{ comment }}</el-check-tag>

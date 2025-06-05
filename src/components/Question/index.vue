@@ -84,7 +84,7 @@ watch(
       <ElTableColumn label="操作" width="200">
         <template #default="scope">
           <div class="icon-container" style="display: flex; align-items: center;">
-            <RouterLink :to="{ path: '/home/question/questiondetail', query: { itemId: scope.row.id } }" @click.stop>
+            <RouterLink :to="{ path: '/home/question/questiondetail', query: { itemId: scope.row.topicId } }" @click.stop>
               <Edit class="icon" style="margin-right: 20px;" />
             </RouterLink>
 

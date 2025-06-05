@@ -5,19 +5,7 @@
 
 <script setup>
 import VueMarkdownEditor from "@kangc/v-md-editor";
-import "@kangc/v-md-editor/lib/style/base-editor.css";
-import vuepressTheme from "@kangc/v-md-editor/lib/theme/vuepress.js";
-import "@kangc/v-md-editor/lib/theme/style/vuepress.css";
-import Prism from "prismjs";
-import { getCurrentInstance } from "vue";
-import createKatexPlugin from '@kangc/v-md-editor/lib/plugins/katex/npm'
-import 'katex/dist/katex.min.css';
 
-const { proxy } = getCurrentInstance()
-VueMarkdownEditor.use(vuepressTheme, {
-    Prism,
-});
-VueMarkdownEditor.use(createKatexPlugin());
 const props = defineProps({
     modelValue: {
         type: String,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, reactive, onMounted, watch, defineComponent } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { useRoute } from 'vue-router'
 import type { UploadProps } from 'element-plus'
@@ -7,6 +7,15 @@ import { questionDetailAPI } from '@/api/QuestionAPI'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
 
 const route = useRoute()
+
+interface QuestionDetail{
+  topicId: string,
+  topicTypeId: string,
+  topicTitle: string,
+  labelIds: string,
+  commentIds: string,
+  topicUrls: string,
+}
 const questionDetail = reactive({
   title: '',
   type: '',
