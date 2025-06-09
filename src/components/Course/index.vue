@@ -50,9 +50,9 @@ const getTaskList = async () => {
 }
 
 // 选择课程函数
-const SelectClass = (name: string) => {
+const SelectClass = (item: object) => {
   // localStorage.setItem('SelectClassName', name);
-  userStore.setSelectClass(name);
+  userStore.setSelectClass(item);
   // 跳转到首页页面
   router.push('/home/homepage');
 }
@@ -80,7 +80,7 @@ onMounted(() => {
     </div>
     <div class="teach-class-list">
       <ul>
-        <li v-for="item in displayedTasks" :key="item.courseId" @click="SelectClass(item.courseName)">
+        <li v-for="item in displayedTasks" :key="item.courseId" @click="SelectClass(item)">
           <div class="header">
             <!-- 这里展示本课程的最新作业的情况，但是还没做 -->
             <p style="margin-top: 10px;">{{ item.courseName }}</p>

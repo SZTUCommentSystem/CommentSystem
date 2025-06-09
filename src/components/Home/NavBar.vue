@@ -43,10 +43,10 @@ const logout = () => {
 };
 
 const isLogin = ref();
-const SelectClass = ref('');
+const selectClass = ref({});
 watchEffect(() => {
   // 获取本地存储的用户信息和token，检测是否登录，如果没有用户信息则为null
-  SelectClass.value = userStore.selectClass;
+  selectClass.value = userStore.selectClass;
   isLogin.value = userStore.isLoggedIn;
 })
 
@@ -67,16 +67,17 @@ watchEffect(() => {
           <nav-bar_-logo class="me-4"></nav-bar_-logo>
 
           <!-- 导航链接 -->
-          <ul class="navbar-nav d-flex flex-row mb-0" v-if="SelectClass === ''">
-            <li v-for="item in navList1" :key="item.path" class="nav-item">
-              <RouterLink class="nav-link" :to="item.path" active-class="active">{{ item.name }}</RouterLink>
-            </li>
-          </ul>
-          <ul class="navbar-nav d-flex flex-row mb-0" v-else>
+          <ul class="navbar-nav d-flex flex-row mb-0" v-if="Object.keys(selectClass).length > 0">
             <li v-for="item in navList2" :key="item.path" class="nav-item">
               <RouterLink class="nav-link" :to="item.path" active-class="active">{{ item.name }}</RouterLink>
             </li>
           </ul>
+          <ul class="navbar-nav d-flex flex-row mb-0" v-else>
+            <li v-for="item in navList1" :key="item.path" class="nav-item">
+              <RouterLink class="nav-link" :to="item.path" active-class="active">{{ item.name }}</RouterLink>
+            </li>
+          </ul>
+
 
           <!-- 中间右侧内容区域 -->
           <div class="ms-auto">

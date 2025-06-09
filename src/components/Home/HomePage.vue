@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watchEffect } from 'vue';
+import { reactive, ref, watchEffect } from 'vue';
 import { useUserStore } from '@/store/user';
 
 const userStore = useUserStore();
@@ -16,10 +16,10 @@ const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2)
 //便签
 const textarea = ref('');
 
-const SelectClass = ref('');
+const selectClass = ref({} as any);
 // 从本地存储中获取是否选择课程
 watchEffect(() => {
-    SelectClass.value = userStore.selectClass;
+    selectClass.value = userStore.selectClass;
 })
 
 </script>
@@ -32,14 +32,14 @@ watchEffect(() => {
                 <h1>精准批改。</h1>
             </div>
         </div>
-        <div v-if="SelectClass !== ''">
+        <div v-if="Object.keys(selectClass).length > 0">
             <div class="home-body-task">
                 <div class="title">
                     <h1>课程情况</h1>
                 </div>
                 <div class="task-content">
                     <div class="task-title">
-                        <h4>欢迎您，{{ userStore.userInfo.nickName }}老师，您当前选择的课程为：{{ SelectClass }}</h4>
+                        <h4>欢迎您，{{ userStore.userInfo.nickName }}老师，您当前选择的课程为：{{ selectClass.courseName }}</h4>
                     </div>
                     <div class="task-info">
                         <div class="task-condition">
@@ -70,7 +70,7 @@ watchEffect(() => {
                         a 15.9155 15.9155 0 0 1 0 31.831
                         a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                 <text x="18" y="20.35" class="percentage">{{ submittedPercentage
-                                                    }}%</text>
+                                                }}%</text>
                                             </svg>
                                         </div>
                                         <p>最近发布的作业提交数量为：<br><i>23 / 54</i></p>
@@ -92,7 +92,7 @@ watchEffect(() => {
                         a 15.9155 15.9155 0 0 1 0 31.831
                         a 15.9155 15.9155 0 0 1 0 -31.831" />
                                                 <text x="18" y="20.35" class="percentage">{{ correctedPercentage
-                                                    }}%</text>
+                                                }}%</text>
                                             </svg>
                                         </div>
                                         <p>最近发布的作业批改数量为：<br><i>13 / 23</i></p>

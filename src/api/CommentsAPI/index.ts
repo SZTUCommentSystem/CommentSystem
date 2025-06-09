@@ -1,7 +1,7 @@
 import request from "@/utils/https";
 
 // 获取批语列表
-export const getCommentList = () => {
+export const getCommentListAPI = () => {
   return request({
     url: "function/comment/list",
     method: "get",
@@ -9,7 +9,7 @@ export const getCommentList = () => {
 };
 
 // 获取批语详情
-export const getCommentDetail = (id: string) => {
+export const getCommentDetailAPI = (id: string) => {
   return request({
     url: `function/comment/${id}`,
     method: "get",
@@ -17,27 +17,27 @@ export const getCommentDetail = (id: string) => {
 };
 
 // 创建批语
-export const createComment = (data: any) => {
+export const addCommentAPI = (data: any) => {
   return request({
-      url: " function/comment",
+    url: "function/comment",
     method: "post",
     data,
   });
 };
 
 // 更新批语
-export const updateComment = (id: string, data: any) => {
+export const changeCommentAPI = (data: any) => {
   return request({
-      url: `function/comment/${id}`,
+    url: "function/comment",
     method: "put",
     data,
   });
 };
 
 // 删除批语
-export const deleteComment = (id: string) => {
+export const deleteCommentAPI = (id: string) => {
   return request({
-      url: `function/comment/${id}`,
+    url: `function/comment/${id}`,
     method: "delete",
   });
 };

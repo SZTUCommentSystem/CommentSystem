@@ -1,68 +1,20 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import CategoryMenu from './components/CategoryMenu.vue';
-import { getCommentList, getTypeListAPI } from "@/api/CommentsAPI";
 import { ElMessageBox, ElMessage } from 'element-plus';
 
+import {
+  getCommentListAPI, deleteCommentAPI, addCommentAPI, changeCommentAPI,
+  getTypeListAPI, deleteTypeAPI, addTypeAPI, changeTypeAPI
+} from "@/api/CommentsAPI";
+import { useUserStore } from '../../store/user'
+
+// 获取用户信息
+const userStore = useUserStore();
 
 // 分类树和批语内容
 const typeList = ref<any[]>([]);
 const commentList = ref<any[]>([]);
-
-// 新增批语弹窗
-const dialogVisible = ref(false);
-// 修改批语分类名称弹窗
-const editDialogVisible = ref(false);
-const changeComment = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要修改该分类名称吗？',
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    // 用户点击了确定，执行修改逻辑
-
-
-
-
-    // ...你的修改代码...
-    ElMessage.success('修改成功');
-    editDialogVisible.value = false;
-  } catch {
-    // 用户点击了取消
-    ElMessage.info('已取消修改');
-  }
-}
-// 删除分类弹窗
-const deleteDialogVisible = ref(false);
-const deleteComment = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要删除该分类吗？',
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    );
-    // 用户点击了确定，执行删除逻辑
-
-    
-    // ...你的删除代码...
-    ElMessage.success('删除成功');
-    deleteDialogVisible.value = false;
-  } catch {
-    // 用户点击了取消
-    ElMessage.info('已取消删除');
-  }
-};
-
-const newComment = ref('');
 
 const isHovered = ref(false);
 const handleMouseEnter = () => { isHovered.value = true; };
@@ -105,7 +57,6 @@ const fillCommentsToBase = (typeList: any[], commentList: any[]) => {
     if (base) {
       base.comments = commentList
         .filter(comment => comment.commentTypeId === type.commentTypeId)
-        .map(comment => comment.commentName);
     }
     type.children
       .filter((child: any) => !child.isBase)
@@ -126,7 +77,7 @@ const getTypeList = async () => {
 
 // 获取批语列表
 const getList = async () => {
-  const res = await getCommentList();
+  const res = await getCommentListAPI();
   if (res.data.code == 200) {
     commentList.value = res.data.rows;
     if (typeList.value.length) {
@@ -164,25 +115,8 @@ const handleMenuSelect = (index: string) => {
   }
 };
 
-// 添加批语到当前基础内容
-const addComment = () => {
-  if (!newComment.value.trim()) return;
-  if (activeMenu.value.endsWith('-base')) {
-    const [typeId] = activeMenu.value.split('-');
-    const type = typeList.value.find(t => String(t.commentTypeId) === typeId);
-    if (type) {
-      const base = type.children.find((child: any) => child.isBase);
-      if (base) {
-        base.comments.push(newComment.value.trim());
-        selectedBaseComments.value = base.comments;
-      }
-    }
-  }
-  newComment.value = '';
-  dialogVisible.value = false;
-};
-
-onMounted(async () => {
+// 初始化菜单
+const init = async () => {
   await getTypeList();
   await getList();
   // 默认选中第一个基础内容
@@ -191,6 +125,281 @@ onMounted(async () => {
     const base = typeList.value[0].children.find((child: any) => child.isBase);
     selectedBaseComments.value = base ? base.comments : [];
   }
+}
+
+// 修改批语分类名称弹窗
+const editDialogVisible = ref(false);
+const changeTitle = ref('');
+const curItem = ref({} as any); // 当前编辑的分类项
+// 输入及确认函数
+const editChapter = (item: any) => {
+  changeTitle.value = item.commentTypeName;
+  editDialogVisible.value = true;
+  curItem.value = item;
+  console.log('当前编辑的分类项:', curItem.value);
+};
+
+const changeChapter = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要修改该分类名称吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了确定，执行修改逻辑
+    let data = {
+      courseId: userStore.selectClass.courseId,
+      commentTypeId: curItem.value.commentTypeId,
+      commentTypeName: changeTitle.value.trim(),
+    };
+    const res = await changeTypeAPI(data);
+    try {
+      if (res.data.code == 200) {
+        ElMessage.success('修改成功');
+        // 更新分类名称
+        changeTitle.value = ''; // 清空输入框
+        editDialogVisible.value = false;
+        await getTypeList();
+      } else {
+        ElMessage.error('修改失败，请稍后再试');
+      }
+    } catch (error) {
+      console.error('修改分类错误:', error);
+      ElMessage.error('修改失败，请稍后再试');
+    }
+
+  } catch {
+    // 用户点击了取消
+    ElMessage.info('已取消修改');
+  }
+}
+
+// 删除分类弹窗
+const deleteChapter = async (item: any) => {
+  console.log(item)
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该分类吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了确定，执行删除逻辑
+    const res = await deleteTypeAPI(item.commentTypeId);
+    if (res.data.code == 200) {
+      ElMessage.success('删除成功');
+      init();
+    } else {
+      console.log('errrrrrr')
+    }
+  } catch {
+    // 用户点击了取消
+    ElMessage.info('已取消删除');
+  }
+};
+
+// 新增章节弹窗
+const faDialogVisible = ref(false);
+const newChapter = ref('')
+const addFaChapter = async () => {
+  let data = {
+    commentTypeName: newChapter.value.trim(),
+    parentId: null,
+    courseId: userStore.selectClass.courseId,
+  };
+
+  const res = await addTypeAPI(data);
+  try {
+    if (res.data.code == 200) {
+      ElMessage.success('新增章节成功');
+      newChapter.value = ''; // 清空输入框
+      faDialogVisible.value = false;
+      newChapter.value = '';
+      init();
+    } else {
+      ElMessage.error('新增章节失败，请稍后再试');
+    }
+  } catch (error) {
+    console.error('新增章节错误:', error);
+    ElMessage.error('新增章节失败，请稍后再试');
+  }
+}
+
+
+// 新增子章节弹窗
+const sonDialogVisible = ref(false);
+const faChapter = ref('');
+const newSonChapter = ref('');
+// 根据faChapter找到对应父章节parentId
+const findParentId = (name: string): number | null => {
+  const chapter = typeList.value.find(item => item.commentTypeName === name);
+  return chapter ? chapter.commentTypeId : null;
+}
+
+const addSonChapter = async () => {
+  let data = {
+    commentTypeName: newSonChapter.value.trim(),
+    parentId: findParentId(faChapter.value.trim()),
+    courseId: userStore.selectClass.courseId,
+  }
+
+  const res = await addTypeAPI(data);
+  try {
+    if (res.data.code == 200) {
+      ElMessage.success('新增子章节成功');
+      newSonChapter.value = ''; // 清空输入框
+      sonDialogVisible.value = false;
+      faChapter.value = '';
+      init();
+    } else {
+      ElMessage.error('新增章节失败，请稍后再试');
+    }
+  } catch (error) {
+    console.error('新增章节错误:', error);
+    ElMessage.error('新增章节失败，请稍后再试');
+  }
+}
+
+
+// 新增批语弹窗
+const dialogVisible = ref(false); //弹窗控制
+const chapterType = ref(''); //章节名称
+const newComment = ref(''); //新增批语内容
+// 添加批语到当前基础内容
+// 递归查找章节名称对应的节点
+function findChapterByName(list: any[], name: string): any | null {
+  for (const item of list) {
+    if (item.commentTypeName === name) return item;
+    if (item.children && item.children.length) {
+      const found = findChapterByName(item.children.filter((c: any) => !c.isBase), name);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+const addComment = async () => {
+  if (!newComment.value.trim() || !chapterType.value.trim()) return;
+
+  // 递归查找章节
+  const target = findChapterByName(typeList.value, chapterType.value.trim());
+  if (!target) {
+    ElMessage.error('未找到对应章节');
+    return;
+  }
+
+  // 获取chapterTypeId
+  const chapterTypeId = target.commentTypeId;
+  chapterType.value = chapterTypeId; // 存到chapterType
+
+  // 发送添加批语请求（假设有addCommentAPI）
+  let data = {
+    commentId: null, // 新增时ID为null
+    commentTypeId: chapterTypeId,
+    commentName: newComment.value.trim(),
+    courseId: userStore.selectClass.courseId, // 课程ID
+  };
+  const res = await addCommentAPI(data);
+  try {
+    if (res.data.code == 200) {
+      ElMessage.success('添加成功');
+      // 清空输入框
+      newComment.value = '';
+      chapterType.value = '';
+      dialogVisible.value = false;
+      // 刷新批语列表
+      init();
+    } else {
+      ElMessage.error('添加失败，请稍后再试');
+    }
+  } catch (error) {
+    console.error('添加批语错误:', error);
+    ElMessage.error('添加失败，请稍后再试');
+  }
+};
+
+// 修改批语弹窗
+const editCommentDialogVisible = ref(false);
+const editComment = ref('');
+const curComment = ref({} as any); 
+const getCurrentComment = (item: any) => {
+  editComment.value = item.commentName;
+  curComment.value = item; 
+  editCommentDialogVisible.value = true;
+  console.log('当前编辑的批语项:', curComment.value);
+};
+
+const changeCommentContent = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要修改该批语吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    // 用户点击了确定，执行修改逻辑
+    let data = {
+      commentId: curComment.value.commentId,
+      commentTypeId: curComment.value.commentTypeId,
+      commentName: editComment.value.trim(),
+    };
+    const res = await changeCommentAPI(data);
+    try {
+      if (res.data.code == 200) {
+        ElMessage.success('修改成功');
+        // 更新批语内容
+        editComment.value = ''; // 清空输入框
+        curComment.value = {}; // 清空当前编辑项
+        editCommentDialogVisible.value = false;
+        init(); // 刷新批语列表
+      } else {
+        ElMessage.error('修改失败，请稍后再试');
+      }
+    } catch (error) {
+      console.error('修改批语错误:', error);
+      ElMessage.error('修改失败，请稍后再试');
+    }
+
+  } catch {
+    // 用户点击了取消
+    ElMessage.info('已取消修改');
+  }
+};
+
+// 删除批语弹窗
+const deleteComment = async (item: any) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要修改该批语吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    const res = await deleteCommentAPI(item.commentId);
+    if (res.data.code == 200) {
+      ElMessage.success('删除成功');
+      init();
+    } else {
+      console.log('errrrr')
+    }
+  } catch {}
+}
+
+onMounted(() => {
+  init();
 });
 </script>
 
@@ -199,13 +408,14 @@ onMounted(async () => {
     <el-col :span="6">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
         <span class="h5">批语库分类</span>
-        <el-button @click="editDialogVisible = true">修改分类名称</el-button>
-        <el-button @click="deleteDialogVisible = true">删除分类</el-button>
+        <el-button @click="faDialogVisible = true">新增章节</el-button>
+        <el-button @click="sonDialogVisible = true">新增子章节</el-button>
       </div>
       <el-menu :default-active="activeMenu" class="el-menu-vertical-demo mt-4" @select="handleMenuSelect"
         text-color="#333" active-text-color="#51a7ff">
         <template v-if="typeList.length">
-          <CategoryMenu v-for="item in typeList" :key="item.commentTypeId" :item="item" />
+          <CategoryMenu v-for="item in typeList" :key="item.commentTypeId" :item="item" @change="editChapter"
+            @delete="deleteChapter" />
         </template>
         <template v-else>
           <el-menu-item disabled>暂无分类</el-menu-item>
@@ -219,7 +429,7 @@ onMounted(async () => {
         <el-dialog v-model="dialogVisible" title="添加批语" width="600">
           <div>
             <span>目标章节：</span>
-            <el-input v-model="newComment" style="width: 80%" placeholder="请输入目标章节（如：第一章/第一节），若无该章节，则新建该章节" />
+            <el-input v-model="chapterType" style="width: 80%" placeholder="请输入目标章节" />
           </div>
           <div style="margin-top: 20px;">
             <span>批语内容：</span>
@@ -239,46 +449,86 @@ onMounted(async () => {
         <el-table :data="selectedBaseComments" style="width: 100%" empty-text="暂无批语内容">
           <el-table-column label="批语内容">
             <template #default="{ row }">
-              <div class="list_item">{{ row }}</div>
+              <div class="list_item">
+                <span>{{ row.commentName }}</span>
+                <div class="rig">
+                  <img src="@/assets/img/编辑.png" class="edit-icon" @click="getCurrentComment(row)" />
+                  <img src="@/assets/img/删除2.png" class="edit-icon" @click="deleteComment(row)" />
+                </div>
+              </div>
             </template>
           </el-table-column>
         </el-table>
       </div>
 
-      <el-dialog v-model="editDialogVisible" title="修改分类名称" width="600">
-        <div class="dialog-row">
-          <span class="dialog-label">原章节名称：</span>
-          <el-input v-model="newComment" style="width: 80%" placeholder="请输入章节原名称（如：第一章/第一节）" />
-        </div>
+      <!-- 修改章节弹窗 -->
+      <el-dialog v-model="editDialogVisible" title="修改章节名称" width="600">
         <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">目标章节名称：</span>
-          <el-input v-model="newComment" style="width: 80%" placeholder="请输入修改名称" />
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="changeTitle" style="width: 80%" placeholder="请输入修改名称" />
         </div>
         <template #footer>
           <div class="dialog-footer">
             <el-button @click="editDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="changeComment">
+            <el-button type="primary" @click="changeChapter">
               修改
             </el-button>
           </div>
         </template>
       </el-dialog>
 
-      <el-dialog v-model="deleteDialogVisible" title="删除分类" width="600">
+      <!-- 新增章节弹窗 -->
+      <el-dialog v-model="faDialogVisible" title="新增章节" width="600">
         <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">目标章节名称：</span>
-          <el-input v-model="newComment" style="width: 80%" placeholder="请输入章节名称（如：第一章/第一节）" />
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="newChapter" style="width: 80%" placeholder="请输入章节名称" />
         </div>
         <template #footer>
           <div class="dialog-footer">
-            <el-button @click="deleteDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="deleteComment">
-              删除
+            <el-button @click="faDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="addFaChapter">
+              确定
             </el-button>
           </div>
         </template>
       </el-dialog>
-      
+
+      <!-- 新增子章节弹窗 -->
+      <el-dialog v-model="sonDialogVisible" title="新增子章节" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">父章节名称：</span>
+          <el-input v-model="faChapter" style="width: 80%" placeholder="请输入父章节名称" />
+        </div>
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="newSonChapter" style="width: 80%" placeholder="请输入章节名称" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="sonDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="addSonChapter">
+              确定
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 修改批语弹窗 -->
+      <el-dialog v-model="editCommentDialogVisible" title="修改批语" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">批语：</span>
+          <el-input v-model="editComment" style="width: 80%" placeholder="请输入修改批语" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="editCommentDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="changeCommentContent">
+              修改
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
       <div class="pagination" v-if="selectedBaseComments.length">
         <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
       </div>
@@ -308,13 +558,13 @@ onMounted(async () => {
   align-items: center;
   /* 垂直居中 */
 
-    h5 {
-      margin-bottom: 0;
-    }
+  h5 {
+    margin-bottom: 0;
+  }
 
-    button {
-      font-size: 12px;
-    }
+  button {
+    font-size: 12px;
+  }
 }
 
 .h5 {
@@ -361,7 +611,30 @@ onMounted(async () => {
 }
 
 .list_item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 18px;
+
+  span {
+    display: inline-block;
+    max-width: 80%;
+    height: auto;
+  }
+
+  .rig {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+
+    img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+  }
 }
 
 .edit-icon {
@@ -411,9 +684,10 @@ onMounted(async () => {
   justify-content: flex-start;
   margin-bottom: 10px;
 }
+
 .dialog-label {
   min-width: 110px;
-  text-align: left;
+  text-align: right;
   margin-right: 10px;
   color: #333;
 }
