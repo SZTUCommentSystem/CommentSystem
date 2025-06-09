@@ -22,11 +22,11 @@
       <span class="section-label">标签列表：</span>
       <div class="tag-list">
         <el-tag
-          v-for="(tag, index) in dynamicTags"
-          :key="tag"
+          v-for="(tag, index) in showTags"
+          :key="tag.topicLabelId"
           closable
           :disable-transitions="false"
-          @close="handleClose(tag)"
+          @close="deleteTags(tag.topicLabelId)"
           size="large"
           class="tag-item"
           effect="light"
@@ -37,23 +37,23 @@
             <el-input
               v-model="editTagValue"
               size="small"
-              @blur="saveTagEdit(index)"
-              @keyup.enter="saveTagEdit(index)"
+              @blur="saveTagEdit(index, tag)"
+              @keyup.enter="saveTagEdit(index, tag)"
               class="tag-edit-input"
             />
           </template>
           <template v-else>
-            {{ tag }}
+            {{ tag.topicLabelName }}
           </template>
         </el-tag>
         <el-input
           v-if="inputVisble"
           ref="InputRef"
-          v-model="inputValue"
+          v-model="addTagsName"
           class="tag-input"
           size="default"
-          @keyup.enter="handleInputConfirm"
-          @blur="handleInputConfirm"
+          @keyup.enter="addTags"
+          @blur="addTags"
         />
         <el-button
           v-else
@@ -67,6 +67,7 @@
         </el-button>
       </div>
     </div>
+
     <!-- 新增章节弹窗 -->
     <el-dialog v-model="addChapterDialogVisible" title="新增章节" width="400">
       <el-input v-model="newChapterName" placeholder="请输入章节名称" />
@@ -75,6 +76,7 @@
         <el-button type="primary" @click="addChapter">确定</el-button>
       </template>
     </el-dialog>
+
     <!-- 修改章节弹窗 -->
     <el-dialog v-model="editChapterDialogVisible" title="修改章节名称" width="400">
       <el-input v-model="editChapterName" placeholder="请输入新章节名称" />
@@ -87,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, computed, watch } from "vue";
 import { ElMessageBox, ElMessage } from 'element-plus';
 import type { InputInstance, TagProps } from "element-plus";
 
@@ -101,6 +103,23 @@ const userStore = useUserStore();
 const root = ref([]); //存储章节的原始数据
 const cascaderOptions = ref<any[]>([]); //存储章节的可视化数据
 const selectedChapter = ref<any[]>([]); // 当前选中的章节路径
+
+// 计算当前选中标签的章节ID
+const currentChapterId = computed(() => {
+  if (selectedChapter.value.length === 0) return null;
+  const lastSelected = selectedChapter.value[selectedChapter.value.length - 1];
+  const chapter = findChapterById(root.value, lastSelected);
+  return chapter ? chapter.chapterId : null;
+});
+
+// 当前选中的章节变化时请求一次标签列表
+watch(selectedChapter, async (newVal) => {
+  if (newVal.length > 0) {
+    await getShowTags();
+  } else {
+    showTags.value = [];
+  }
+});
 
 function convertToCascaderOptions(list: any[]): any[] {
   return list.map(item => ({
@@ -240,44 +259,110 @@ function findChapterById(list: any[], id: number): any | null {
 }
 
 // 标签相关
-const inputValue = ref('')
-const dynamicTags = ref(['Tag1', 'Tag2', 'Tag3', 'Tag4', 'Tag5', 'Tag6', 'Tag7'])
+const showTags = ref<any[]>([])
+
+// 获取当前所选章节标签列表
+const getShowTags = async () => {
+  let data = {
+    courseId: userStore.selectClass.courseId,
+    chapterId: currentChapterId.value
+  }
+  const res = await labelListAPI(data);
+  if (res.data.code == 200) {
+    showTags.value = res.data.rows;
+  }
+}
+
+// 新增标签
+const addTagsName = ref('')
 const inputVisble = ref(false)
 const InputRef = ref<InputInstance>()
-const handleClose = (tag: string) => {
-  dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1)
-}
 const showInput = () => {
   inputVisble.value = true
   nextTick(() => {
-    InputRef.value!.input!.focus()
+    InputRef.value?.input?.focus()
   })
 }
-const handleInputConfirm = () => {
-  if (InputRef.value && inputValue.value.trim()) {
-    dynamicTags.value.push(inputValue.value.trim())
+const addTags = async () => {
+  if (!addTagsName.value.trim()) {
+    inputVisble.value = false
+    return
+  }
+  let data = {
+    topicLabelId: null,
+    courseId: userStore.selectClass.courseId,
+    chapterId: currentChapterId.value,
+    topicLabelName: addTagsName.value
+  }
+  const res = await addLabelAPI(data);
+  if(res.data.code == 200) {
+    ElMessage.success('标签添加成功');
+    addTagsName.value = '';
+    getShowTags();
+  } else {
+    ElMessage.error(res.data.message || '标签添加失败');
   }
   inputVisble.value = false
-  inputValue.value = ''
+  addTagsName.value = ''
 }
 
-// 修改标签内容
+// 修改标签
 const editIndex = ref(-1)
 const editTagValue = ref('')
-const editTag = (index: number, tag: string) => {
+const editTag = (index: number, tag: any) => {
   editIndex.value = index
-  editTagValue.value = tag
+  editTagValue.value = tag.topicLabelName
   nextTick(() => {
     (document.querySelector('.tag-edit-input input') as HTMLInputElement | null)?.focus()
   })
 }
-const saveTagEdit = (index: number) => {
-  if (editTagValue.value.trim()) {
-    dynamicTags.value[index] = editTagValue.value.trim()
+const saveTagEdit = async (index: number, tag: any) => {
+  if (editTagValue.value.trim() && tag.topicLabelId) {
+    await changeTags(tag.topicLabelId, editTagValue.value.trim())
+    editIndex.value = -1
+    editTagValue.value = ''
+  } else {
+    editIndex.value = -1
+    editTagValue.value = ''
   }
-  editIndex.value = -1
-  editTagValue.value = ''
 }
+const changeTags = async (tagId: number, tagName: string) => {
+  let data = {
+    topicLabelId: tagId,
+    courseId: userStore.selectClass.courseId,
+    chapterId: currentChapterId.value,
+    topicLabelName: tagName
+  }
+  const res = await changeLabelAPI(data);
+  if(res.data.code == 200) {
+    ElMessage.success('标签修改成功');
+    getShowTags();
+  } else {
+    ElMessage.error(res.data.message || '标签修改失败');
+  }
+}
+
+// 删除标签
+const deleteTags = async (tagId: number) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该标签吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    const res = await deleteLabelAPI(tagId);
+    if (res.data.code == 200) {
+      ElMessage.success('标签删除成功');
+      getShowTags();
+    } else {
+      ElMessage.error(res.data.message || '标签删除失败');
+    }
+  } catch (e) { }
+};
 
 type Item = { type: TagProps['type']; label: string }
 const items = ref<Array<Item>>([
@@ -286,6 +371,7 @@ const items = ref<Array<Item>>([
 
 onMounted(() => {
   getChapterList();
+  getShowTags();
 });
 </script>
 
