@@ -102,28 +102,23 @@ const router = createRouter({
 
 // 登录检验
 router.beforeEach((to, from, next) => {
-  const useStore = useUserStore()
-  let isLogin = useStore.isLoggedIn;
-  if (to.name !== 'login' && to.name !== 'homepage' && !isLogin) {
-    next({ name: from.name })
-  } else {
-    next()
-  }
-})
-
-// 如果打开页面时无token，直接跳转到登录页面
-router.beforeResolve((to, from, next) => {
-  const useStore = useUserStore()
-  if (to.name === 'login') {
-    next()
-    return
-  }
+  const useStore = useUserStore();
+  // 只允许未登录访问登录页
   if (!useStore.token || !useStore.userInfo) {
-    ElMessage.warning('请先登录')
-    next({ name: 'login' })
+    if (to.name !== 'login') {
+      ElMessage.warning('请先登录');
+      next({ name: 'login' });
+    } else {
+      next();
+    }
   } else {
-    next()
+    // 已登录不允许再访问登录页
+    if (to.name === 'login') {
+      next({ name: 'homepage' });
+    } else {
+      next();
+    }
   }
-})
+});
 
 export default router

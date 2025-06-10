@@ -9,6 +9,14 @@ export const labelListAPI = (data: any) => {
     })
 }
 
+// 获取标签详情
+export const labelInfoAPI = (id: number) => {
+    return request({
+        url: `function/topiclabel/${id}`,
+        method: 'get'
+    })
+}
+
 // 新增标签
 export const addLabelAPI = (data: any) => {
     return request({

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router'; // 引入useRouter钩子
+import { useRoute, useRouter } from 'vue-router';
 import { ElTable, ElTableColumn, ElSelect, ElOption, ElInput } from 'element-plus';
 import Edit from "@/components/icons/question/edit.vue";
 import Delete from "@/components/icons/question/delete.vue";
-import Comment from "@/components/icons/question/comment.vue";
 import { Search } from '@element-plus/icons-vue';
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import QuestionListDisplay from "@/hooks/QuestionHooks/QuestionListDisplay";
@@ -12,13 +11,13 @@ import QuestionListDisplay from "@/hooks/QuestionHooks/QuestionListDisplay";
 const router = useRouter();
 const route = useRoute();
 
-// 模拟题目数据
 const {
   state,
   questionTypeList,
   getList,
   getTypeList,
   handleDel,
+  getLabelById,
   filteredQuestions,
   paginatedQuestions,
   handlePageChange,
@@ -26,14 +25,12 @@ const {
 } = QuestionListDisplay();
 
 const getTypeName = (typeId: number) => {
-  console.log(typeId)
-  return questionTypeList.value.find(item => item.topicTypeId == typeId).topicTypeName;
+  return questionTypeList.value.find(item => item.topicTypeId == typeId)?.topicTypeName;
 };
 
 onMounted(() => {
   getList();
   getTypeList();
-  console.log("paginatedQuestions", paginatedQuestions);
 });
 
 watch(
@@ -72,11 +69,16 @@ watch(
         </template>
       </ElTableColumn>
       <ElTableColumn prop="topicTitle" label="题目" width="450" />
-      <ElTableColumn prop="tags">
+      <ElTableColumn prop="labelIds" label="标签">
         <template #default="{ row }">
           <div style="display: flex; gap: 10px;">
-            <el-tag v-for="tag in row.tags" :key="tag" round effect="plain">
-              {{ tag }}
+            <el-tag
+              v-for="tag in (row.labelIds ? row.labelIds.split(',').map(Number) : [])"
+              :key="tag"
+              round
+              effect="plain"
+            >
+              {{ getLabelById(tag) }}
             </el-tag>
           </div>
         </template>
@@ -84,10 +86,9 @@ watch(
       <ElTableColumn label="操作" width="200">
         <template #default="scope">
           <div class="icon-container" style="display: flex; align-items: center;">
-            <RouterLink :to="{ path: '/home/question/questiondetail', query: { itemId: scope.row.topicId } }" @click.stop>
+            <RouterLink :to="{ name: 'questiondetail', query: { itemId: scope.row.topicId } }" @click.stop>
               <Edit class="icon" style="margin-right: 20px;" />
             </RouterLink>
-
             <div style="margin-right: 20px; cursor: pointer;">
               <Delete class="icon" @click="handleDel($event, scope.row.id)" />
             </div>
@@ -105,7 +106,6 @@ watch(
     </div>
   </div>
 </template>
-
 
 <style scoped>
 * {

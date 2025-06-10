@@ -1,6 +1,8 @@
 import axios from 'axios';
 import router from '../router';
 import { useUserStore } from '../store/user';
+import { ElMessage } from 'element-plus'
+import Cookies from 'js-cookie'
 
 const userStore = useUserStore();
 
@@ -30,13 +32,18 @@ request.interceptors.response.use(
     },
     error => {
         if (error.response) {
-            const { status, data } = error.response;
+            const { data } = error.response;
+            console.error('请求错误:', error.response);
 
-            if (status === 401 || data?.code === 'NOT_LOGIN') {
+            if (data?.code === 401) {
                 userStore.clearUser();
-                router.push('/login');
+                Cookies.remove('token');
+                ElMessage.warning('登录已过期，请重新登录');
+                if (router.currentRoute.value.name !== 'login') {
+                    router.push('/login');
+                }
             } else {
-                console.error(data?.message || '请求失败');
+                ElMessage.error(data?.message || '请求失败');
             }
         }
         return Promise.reject(error);

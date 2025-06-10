@@ -1,6 +1,6 @@
 import { ref, reactive, computed, watch } from "vue";
 import { questionListAPI, deleteQuestionAPI, questionTypeAPI } from '../../api/QuestionAPI';
-
+import { labelInfoAPI } from "@/api/LabelAPI";
 
 export default function QuestionListDisplay() {
     const state = reactive({
@@ -15,28 +15,49 @@ export default function QuestionListDisplay() {
 
     const questionTypeList = ref([]);
 
-    const getList = async () => {
-        try {
-            const res = await questionListAPI();
-            if (res.data.code == 200) {
-                state.questionList = res.data.rows;
-                console.log('获取题目列表成功:', state.questionList);
-            } else {
-                console.error('API 返回的数据不是数组:', res.data.data);
+    // 标签名缓存
+    const topicLabelNameMap = ref<Record<number, string>>({});
+
+    // 批量预取所有题目用到的标签名
+    const prefetchAllLabelNames = async (questions: any[]) => {
+        const allLabelIds = Array.from(
+            new Set(
+                questions.flatMap((q: any) =>
+                    q.labelIds
+                        ? q.labelIds.split(',').map(Number)
+                        : []
+                )
+            )
+        );
+        for (const id of allLabelIds) {
+            if (!topicLabelNameMap.value[id]) {
+                fetchLabelName(id);
             }
-        } catch (error) {
-            console.error('获取题目列表失败:', error);
         }
     };
 
+    // 获取标签名
+    const fetchLabelName = async (labelId: number) => {
+        if (topicLabelNameMap.value[labelId]) {
+            return topicLabelNameMap.value[labelId];
+        }
+        const res = await labelInfoAPI(labelId);
+        if (res.data.data.topicLabelName) {
+            topicLabelNameMap.value[labelId] = res.data.data.topicLabelName;
+            return res.data.topicLabelName;
+        }
+        return labelId;
+    };
+
+    // 通过ID获取标签名
+    const getLabelById = (id: number) => topicLabelNameMap.value[id] || id;
+
+    // 获取题目类型列表
     const getTypeList = async () => {
         try {
             const res = await questionTypeAPI();
             if (res.data.code == 200) {
                 questionTypeList.value = res.data.rows;
-                console.log('获取题目类型列表成功:', questionTypeList.value);
-            } else {
-                console.error('API 返回的数据不是数组:', res.data.rows);
             }
         }
         catch (error) {
@@ -44,15 +65,23 @@ export default function QuestionListDisplay() {
         }
     }
 
-    // 删除题目
-    const handleDel = async (event:any , id: number) => {
-        // 阻止事件冒泡
-        event.stopPropagation();
-        // 调用删除题目的 API
-        // 成功后，重新获取题目列表
+    // 获取题目列表并预取标签名
+    const getList = async () => {
         try {
-            console.log(111);
-            
+            const res = await questionListAPI();
+            if (res.data.code == 200) {
+                state.questionList = res.data.rows;
+                await prefetchAllLabelNames(res.data.rows);
+            }
+        } catch (error) {
+            console.error('获取题目列表失败:', error);
+        }
+    };
+
+    // 删除题目
+    const handleDel = async (event: any, id: number) => {
+        event.stopPropagation();
+        try {
             await deleteQuestionAPI(id);
             await getList();
         } catch (error) {
@@ -63,11 +92,18 @@ export default function QuestionListDisplay() {
     // 过滤后的题目列表
     const filteredQuestions = computed(() =>
         state.questionList.filter((question: any) => {
-            const matchesType = state.selectedType ? question.type === state.selectedType : true;
+            // 题型过滤
+            const matchesType = state.selectedType
+                ? String(question.topicTypeId) === String(state.selectedType)
+                : true;
+            // 标题搜索
             const matchesSearch = question.topicTitle.includes(state.searchQuery);
-            const labelArr = question.labelIds ? question.labelIds.split(',') : [];
-            const matchesTag = state.searchTag !== ''
-                ? labelArr.includes(state.searchTag)
+            // 标签过滤（数字数组）
+            const labelArr = question.labelIds
+                ? question.labelIds.split(',').map(Number)
+                : [];
+            const matchesTag = state.searchTag
+                ? labelArr.includes(Number(state.searchTag))
                 : true;
             return matchesType && matchesSearch && matchesTag;
         })
@@ -85,7 +121,6 @@ export default function QuestionListDisplay() {
     const paginatedQuestions = computed(() => {
         const total = filteredQuestions.value.length;
         const maxPage = Math.max(1, Math.ceil(total / state.pageSize));
-        // 如果当前页码超出最大页码，自动修正
         if (state.currentPage > maxPage) {
             state.currentPage = maxPage;
         }
@@ -106,6 +141,8 @@ export default function QuestionListDisplay() {
 
     return {
         state,
+        topicLabelNameMap,
+        getLabelById,
         questionTypeList,
         getList,
         getTypeList,
