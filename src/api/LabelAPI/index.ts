@@ -5,7 +5,7 @@ export const labelListAPI = (data: any) => {
     return request({
         url: 'function/topiclabel/list',
         method: "get",
-        data
+        params: data
     })
 }
 

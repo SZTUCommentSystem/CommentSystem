@@ -12,10 +12,11 @@
         :options="cascaderOptions"
         clearable
         placeholder="请选择章节"
+        @clear="selectedChapter = []"
       />
       <el-button type="primary" class="ml-2" @click="showAddChapterDialog">新增章节</el-button>
-      <el-button type="warning" class="ml-2" :disabled="!selectedChapter.length" @click="showEditChapterDialog">修改章节</el-button>
-      <el-button type="danger" class="ml-2" :disabled="!selectedChapter.length" @click="deleteChapter">删除章节</el-button>
+      <el-button type="warning" class="ml-2" :disabled="!selectedChapter?.length" @click="showEditChapterDialog">修改章节</el-button>
+      <el-button type="danger" class="ml-2" :disabled="!selectedChapter?.length" @click="deleteChapter">删除章节</el-button>
     </div>
     <el-divider />
     <div class="section">
@@ -106,19 +107,15 @@ const selectedChapter = ref<any[]>([]); // 当前选中的章节路径
 
 // 计算当前选中标签的章节ID
 const currentChapterId = computed(() => {
-  if (selectedChapter.value.length === 0) return null;
+  if (!Array.isArray(selectedChapter.value) || selectedChapter.value.length === 0) return null;
   const lastSelected = selectedChapter.value[selectedChapter.value.length - 1];
   const chapter = findChapterById(root.value, lastSelected);
   return chapter ? chapter.chapterId : null;
 });
 
 // 当前选中的章节变化时请求一次标签列表
-watch(selectedChapter, async (newVal) => {
-  if (newVal.length > 0) {
-    await getShowTags();
-  } else {
-    showTags.value = [];
-  }
+watch(selectedChapter, () => {
+   getShowTags();
 });
 
 function convertToCascaderOptions(list: any[]): any[] {
@@ -263,6 +260,7 @@ const showTags = ref<any[]>([])
 
 // 获取当前所选章节标签列表
 const getShowTags = async () => {
+  console.log(userStore.selectClass.courseId, currentChapterId.value);
   let data = {
     courseId: userStore.selectClass.courseId,
     chapterId: currentChapterId.value
@@ -270,6 +268,7 @@ const getShowTags = async () => {
   const res = await labelListAPI(data);
   if (res.data.code == 200) {
     showTags.value = res.data.rows;
+    console.log('当前章节标签列表:', showTags.value);
   }
 }
 
@@ -278,6 +277,10 @@ const addTagsName = ref('')
 const inputVisble = ref(false)
 const InputRef = ref<InputInstance>()
 const showInput = () => {
+  if(currentChapterId.value === null) {
+    ElMessage.warning('请先选择章节');
+    return;
+  } 
   inputVisble.value = true
   nextTick(() => {
     InputRef.value?.input?.focus()
