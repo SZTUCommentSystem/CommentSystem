@@ -1,42 +1,3 @@
-<script lang="ts" setup>
-import { onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { Search } from '@element-plus/icons-vue';
-import { useTaskDetail } from '@/hooks/TaskDetailHooks/useTaskDetail'
-import { useQuestionList } from '@/hooks/TaskDetailHooks/useQuestionList'
-
-const route = useRoute()
-
-const { getTaskDetail, taskDetail } = useTaskDetail()
-const {
-    search,
-    problems,
-    tags,
-    getTaskQuestionList,
-    filteredQuestionList,
-    getQuestionList,
-    dynamicArray,
-    selDialogVisible,
-    selectProblem
-} = useQuestionList(taskDetail)
-
-onMounted(async () => {
-    await getTaskDetail();
-    getQuestionList();
-    getTaskQuestionList();
-})
-
-// 监听路由参数变化
-watch(() => route.query, async (newQuery, oldQuery) => {
-    if (newQuery.id !== oldQuery.id) {
-        await getTaskDetail();
-        getTaskQuestionList();
-        getQuestionList();
-    }
-});
-
-</script>
-
 <template>
     <div class="create-wrapper">
         <div class="header">
@@ -154,6 +115,45 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         </el-dialog>
     </div>
 </template>
+
+<script lang="ts" setup>
+import { onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { Search } from '@element-plus/icons-vue';
+import { useTaskDetail } from '@/hooks/TaskDetailHooks/useTaskDetail'
+import { useQuestionList } from '@/hooks/TaskDetailHooks/useQuestionList'
+
+const route = useRoute()
+
+const { getTaskDetail, taskDetail } = useTaskDetail()
+const {
+    search,
+    problems,
+    tags,
+    getTaskQuestionList,
+    filteredQuestionList,
+    getQuestionList,
+    dynamicArray,
+    selDialogVisible,
+    selectProblem
+} = useQuestionList(taskDetail)
+
+onMounted(async () => {
+    await getTaskDetail();
+    getQuestionList();
+    getTaskQuestionList();
+})
+
+// 监听路由参数变化
+watch(() => route.query, async (newQuery, oldQuery) => {
+    if (newQuery.id !== oldQuery.id) {
+        await getTaskDetail();
+        getTaskQuestionList();
+        getQuestionList();
+    }
+});
+
+</script>
 
 <style scoped>
 .blue {

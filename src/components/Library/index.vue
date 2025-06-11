@@ -1,3 +1,136 @@
+<template>
+  <el-row class="con">
+    <el-col :span="6">
+      <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+        <span class="h5">批语库分类</span>
+        <el-button @click="faDialogVisible = true">新增章节</el-button>
+        <el-button @click="sonDialogVisible = true">新增子章节</el-button>
+      </div>
+      <el-menu :default-active="activeMenu" class="el-menu-vertical-demo mt-4" @select="handleMenuSelect"
+        text-color="#333" active-text-color="#51a7ff">
+        <template v-if="typeList.length">
+          <CategoryMenu v-for="item in typeList" :key="item.commentTypeId" :item="item" @change="editChapter"
+            @delete="deleteChapter" />
+        </template>
+        <template v-else>
+          <el-menu-item disabled>暂无分类</el-menu-item>
+        </template>
+      </el-menu>
+    </el-col>
+    <el-col :span="18">
+      <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+        <span class="h5">批语库列表</span>
+        <el-button @click="dialogVisible = true">新增批语</el-button>
+        <el-dialog v-model="dialogVisible" title="添加批语" width="600">
+          <div>
+            <span>目标章节：</span>
+            <el-input v-model="chapterType" style="width: 80%" placeholder="请输入目标章节" />
+          </div>
+          <div style="margin-top: 20px;">
+            <span>批语内容：</span>
+            <el-input v-model="newComment" style="width: 80%" placeholder="请输入批语内容" />
+          </div>
+          <template #footer>
+            <div class="dialog-footer">
+              <el-button @click="dialogVisible = false">取消</el-button>
+              <el-button type="primary" @click="addComment">
+                添加
+              </el-button>
+            </div>
+          </template>
+        </el-dialog>
+      </div>
+      <div class="right-container">
+        <el-table :data="selectedBaseComments" style="width: 100%" empty-text="暂无批语内容">
+          <el-table-column label="批语内容">
+            <template #default="{ row }">
+              <div class="list_item">
+                <span>{{ row.commentName }}</span>
+                <div class="rig">
+                  <img src="@/assets/img/编辑.png" class="edit-icon" @click="getCurrentComment(row)" />
+                  <img src="@/assets/img/删除2.png" class="edit-icon" @click="deleteComment(row)" />
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- 修改章节弹窗 -->
+      <el-dialog v-model="editDialogVisible" title="修改章节名称" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="changeTitle" style="width: 80%" placeholder="请输入修改名称" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="editDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="changeChapter">
+              修改
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 新增章节弹窗 -->
+      <el-dialog v-model="faDialogVisible" title="新增章节" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="newChapter" style="width: 80%" placeholder="请输入章节名称" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="faDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="addFaChapter">
+              确定
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 新增子章节弹窗 -->
+      <el-dialog v-model="sonDialogVisible" title="新增子章节" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">父章节名称：</span>
+          <el-input v-model="faChapter" style="width: 80%" placeholder="请输入父章节名称" />
+        </div>
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">章节名称：</span>
+          <el-input v-model="newSonChapter" style="width: 80%" placeholder="请输入章节名称" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="sonDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="addSonChapter">
+              确定
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <!-- 修改批语弹窗 -->
+      <el-dialog v-model="editCommentDialogVisible" title="修改批语" width="600">
+        <div class="dialog-row" style="margin-top: 20px;">
+          <span class="dialog-label">批语：</span>
+          <el-input v-model="editComment" style="width: 80%" placeholder="请输入修改批语" />
+        </div>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="editCommentDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="changeCommentContent">
+              修改
+            </el-button>
+          </div>
+        </template>
+      </el-dialog>
+
+      <div class="pagination" v-if="selectedBaseComments.length">
+        <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
+      </div>
+    </el-col>
+  </el-row>
+</template>
+
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import CategoryMenu from './components/CategoryMenu.vue';
@@ -402,139 +535,6 @@ onMounted(() => {
   init();
 });
 </script>
-
-<template>
-  <el-row class="con">
-    <el-col :span="6">
-      <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-        <span class="h5">批语库分类</span>
-        <el-button @click="faDialogVisible = true">新增章节</el-button>
-        <el-button @click="sonDialogVisible = true">新增子章节</el-button>
-      </div>
-      <el-menu :default-active="activeMenu" class="el-menu-vertical-demo mt-4" @select="handleMenuSelect"
-        text-color="#333" active-text-color="#51a7ff">
-        <template v-if="typeList.length">
-          <CategoryMenu v-for="item in typeList" :key="item.commentTypeId" :item="item" @change="editChapter"
-            @delete="deleteChapter" />
-        </template>
-        <template v-else>
-          <el-menu-item disabled>暂无分类</el-menu-item>
-        </template>
-      </el-menu>
-    </el-col>
-    <el-col :span="18">
-      <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-        <span class="h5">批语库列表</span>
-        <el-button @click="dialogVisible = true">新增批语</el-button>
-        <el-dialog v-model="dialogVisible" title="添加批语" width="600">
-          <div>
-            <span>目标章节：</span>
-            <el-input v-model="chapterType" style="width: 80%" placeholder="请输入目标章节" />
-          </div>
-          <div style="margin-top: 20px;">
-            <span>批语内容：</span>
-            <el-input v-model="newComment" style="width: 80%" placeholder="请输入批语内容" />
-          </div>
-          <template #footer>
-            <div class="dialog-footer">
-              <el-button @click="dialogVisible = false">取消</el-button>
-              <el-button type="primary" @click="addComment">
-                添加
-              </el-button>
-            </div>
-          </template>
-        </el-dialog>
-      </div>
-      <div class="right-container">
-        <el-table :data="selectedBaseComments" style="width: 100%" empty-text="暂无批语内容">
-          <el-table-column label="批语内容">
-            <template #default="{ row }">
-              <div class="list_item">
-                <span>{{ row.commentName }}</span>
-                <div class="rig">
-                  <img src="@/assets/img/编辑.png" class="edit-icon" @click="getCurrentComment(row)" />
-                  <img src="@/assets/img/删除2.png" class="edit-icon" @click="deleteComment(row)" />
-                </div>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <!-- 修改章节弹窗 -->
-      <el-dialog v-model="editDialogVisible" title="修改章节名称" width="600">
-        <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">章节名称：</span>
-          <el-input v-model="changeTitle" style="width: 80%" placeholder="请输入修改名称" />
-        </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="editDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="changeChapter">
-              修改
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
-
-      <!-- 新增章节弹窗 -->
-      <el-dialog v-model="faDialogVisible" title="新增章节" width="600">
-        <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">章节名称：</span>
-          <el-input v-model="newChapter" style="width: 80%" placeholder="请输入章节名称" />
-        </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="faDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="addFaChapter">
-              确定
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
-
-      <!-- 新增子章节弹窗 -->
-      <el-dialog v-model="sonDialogVisible" title="新增子章节" width="600">
-        <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">父章节名称：</span>
-          <el-input v-model="faChapter" style="width: 80%" placeholder="请输入父章节名称" />
-        </div>
-        <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">章节名称：</span>
-          <el-input v-model="newSonChapter" style="width: 80%" placeholder="请输入章节名称" />
-        </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="sonDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="addSonChapter">
-              确定
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
-
-      <!-- 修改批语弹窗 -->
-      <el-dialog v-model="editCommentDialogVisible" title="修改批语" width="600">
-        <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">批语：</span>
-          <el-input v-model="editComment" style="width: 80%" placeholder="请输入修改批语" />
-        </div>
-        <template #footer>
-          <div class="dialog-footer">
-            <el-button @click="editCommentDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="changeCommentContent">
-              修改
-            </el-button>
-          </div>
-        </template>
-      </el-dialog>
-
-      <div class="pagination" v-if="selectedBaseComments.length">
-        <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
-      </div>
-    </el-col>
-  </el-row>
-</template>
 
 <style scoped>
 .con {

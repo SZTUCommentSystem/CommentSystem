@@ -1,3 +1,26 @@
+<template>
+    <div class="container">
+        <div class="overlay" v-if="isSidebarVisible" @click="toggleSidebar"></div>
+        <div class="sidebar" :class="{ 'sidebar-visible': isSidebarVisible }">
+            <button class="close-btn" @click="toggleSidebar">x</button>
+            <el-table :data="studentList" style="width: 100%" @row-click="jumpToStudent" row-style="cursor:pointer">
+                <el-table-column prop="class" label="班级" width="150" />
+                <el-table-column prop="name" label="姓名" width="90" />
+                <el-table-column label="本题状态">
+                    <template #default="scope">
+                        <span v-if="props.statusData[props.nowTask - 1][scope.$index] === 1" class="selected">
+                            已批改
+                        </span>
+                        <span v-else>未批改</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+        <button class="open-btn" @click="toggleSidebar">学生列表</button>
+        <!-- 其他内容 -->
+    </div>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -52,29 +75,6 @@ onMounted(() => {
     getudentList();
 })
 </script>
-
-<template>
-    <div class="container">
-        <div class="overlay" v-if="isSidebarVisible" @click="toggleSidebar"></div>
-        <div class="sidebar" :class="{ 'sidebar-visible': isSidebarVisible }">
-            <button class="close-btn" @click="toggleSidebar">x</button>
-            <el-table :data="studentList" style="width: 100%" @row-click="jumpToStudent" row-style="cursor:pointer">
-                <el-table-column prop="class" label="班级" width="150" />
-                <el-table-column prop="name" label="姓名" width="90" />
-                <el-table-column label="本题状态">
-                    <template #default="scope">
-                        <span v-if="props.statusData[props.nowTask - 1][scope.$index] === 1" class="selected">
-                            已批改
-                        </span>
-                        <span v-else>未批改</span>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </div>
-        <button class="open-btn" @click="toggleSidebar">学生列表</button>
-        <!-- 其他内容 -->
-    </div>
-</template>
 
 <style scoped>
 .container {

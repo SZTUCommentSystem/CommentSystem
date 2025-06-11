@@ -1,46 +1,3 @@
-<script setup lang="ts">
-import { onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElTable, ElTableColumn, ElSelect, ElOption, ElInput } from 'element-plus';
-import Edit from "@/components/icons/question/edit.vue";
-import Delete from "@/components/icons/question/delete.vue";
-import { Search } from '@element-plus/icons-vue';
-import { zhCn } from "element-plus/es/locale/index.mjs";
-import QuestionListDisplay from "@/hooks/QuestionHooks/QuestionListDisplay";
-
-const router = useRouter();
-const route = useRoute();
-
-const {
-  state,
-  questionTypeList,
-  getList,
-  getTypeList,
-  handleDel,
-  getLabelById,
-  filteredQuestions,
-  paginatedQuestions,
-  handlePageChange,
-  handlePageSizeChange,
-} = QuestionListDisplay();
-
-const getTypeName = (typeId: number) => {
-  return questionTypeList.value.find(item => item.topicTypeId == typeId)?.topicTypeName;
-};
-
-onMounted(() => {
-  getList();
-  getTypeList();
-});
-
-watch(
-  () => route.query.forceRefresh,
-  () => {
-    getList();
-  }
-)
-</script>
-
 <template>
   <div class="question-bank">
     <div class="filter-container">
@@ -106,6 +63,49 @@ watch(
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { ElTable, ElTableColumn, ElSelect, ElOption, ElInput } from 'element-plus';
+import Edit from "@/components/icons/question/edit.vue";
+import Delete from "@/components/icons/question/delete.vue";
+import { Search } from '@element-plus/icons-vue';
+import { zhCn } from "element-plus/es/locale/index.mjs";
+import QuestionListDisplay from "@/hooks/QuestionHooks/QuestionListDisplay";
+
+const router = useRouter();
+const route = useRoute();
+
+const {
+  state,
+  questionTypeList,
+  getList,
+  getTypeList,
+  handleDel,
+  getLabelById,
+  filteredQuestions,
+  paginatedQuestions,
+  handlePageChange,
+  handlePageSizeChange,
+} = QuestionListDisplay();
+
+const getTypeName = (typeId: number) => {
+  return questionTypeList.value.find(item => item.topicTypeId == typeId)?.topicTypeName;
+};
+
+onMounted(() => {
+  getList();
+  getTypeList();
+});
+
+watch(
+  () => route.query.forceRefresh,
+  () => {
+    getList();
+  }
+)
+</script>
 
 <style scoped>
 * {

@@ -1,29 +1,3 @@
-<script lang="ts" setup>
-import { reactive, ref, watchEffect } from 'vue';
-import { useUserStore } from '@/store/user';
-
-const userStore = useUserStore();
-
-//圆环进度条
-const submittedCount = 23;
-const totalSubmitted = 54;
-const correctedCount = 13;
-const totalCorrected = 23;
-
-const submittedPercentage = ((submittedCount / totalSubmitted) * 100).toFixed(2);
-const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2);
-
-//便签
-const textarea = ref('');
-
-const selectClass = ref({} as any);
-// 从本地存储中获取是否选择课程
-watchEffect(() => {
-    selectClass.value = userStore.selectClass;
-})
-
-</script>
-
 <template>
     <div>
         <div class="header-container">
@@ -180,6 +154,32 @@ watchEffect(() => {
         </div>
     </div>
 </template>
+
+<script lang="ts" setup>
+import { reactive, ref, watchEffect } from 'vue';
+import { useUserStore } from '@/store/user';
+
+const userStore = useUserStore();
+
+//圆环进度条
+const submittedCount = 23;
+const totalSubmitted = 54;
+const correctedCount = 13;
+const totalCorrected = 23;
+
+const submittedPercentage = ((submittedCount / totalSubmitted) * 100).toFixed(2);
+const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2);
+
+//便签
+const textarea = ref('');
+
+const selectClass = ref({} as any);
+// 从本地存储中获取是否选择课程
+watchEffect(() => {
+    selectClass.value = userStore.selectClass;
+})
+
+</script>
 
 <style scoped>
 .header-container {

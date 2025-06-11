@@ -1,3 +1,123 @@
+<template>
+    <div class="create-wrapper">
+        <div class="header">
+            <el-page-header @back="router.push('/home/task')" content="新建作业" title="返回">
+            </el-page-header>
+        </div>
+        <div class="create-title-top">
+            <div class="left">
+                <p>标题：</p>
+                <input type="text" v-model="taskContent.title" placeholder="请输入题目标题" />
+            </div>
+            <div class="right">
+                <p>目录：</p>
+                <input type="text" v-model="taskContent.catalogue" placeholder="请输入目标目录，若无该目录则新建目录" />
+            </div>
+        </div>
+        <div class="create-title">
+            <p>描述（可选）：</p>
+            <input type="text" v-model="taskContent.description" placeholder="请输入作业简介" />
+        </div>
+        <div class="create-title auto-height">
+            <p>请选择本次作业的题目：</p>
+            <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
+            <ul style="padding: 0; margin-top: 10px;">
+                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.id">
+                    <div class="problem">
+                        <span>{{ problem.title }}</span>
+                        <span>{{ problem.type }}</span>
+                        <div class="problem-tag">
+                            <el-tag v-for="tag in problem.tags" :key="tag">
+                                {{ tag }}
+                            </el-tag>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="create-title">
+            <p>根据选择的题目得到的标签为：</p>
+            <div class="problem-tag">
+                <el-tag v-for="tag in tags" :key="tag">
+                    {{ tag }}
+                </el-tag>
+            </div>
+        </div>
+        <div class="create-title">
+            <p>请选择本次作业的截止时间：</p>
+            <div class="block">
+                <el-date-picker v-model="taskContent.deadline" type="datetimerange" start-placeholder="Start date"
+                    end-placeholder="End date" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
+                    time-format="A hh:mm:ss" />
+            </div>
+        </div>
+        <div class="button_submit">
+            <el-button type="primary" @click="submitTask">提交</el-button>
+            <router-link to="/home/task">
+                <el-button type="success">保存</el-button>
+            </router-link>
+        </div>
+
+        <!-- 选择题目 -->
+        <el-dialog v-model="selDialogVisible" title="选择题目" width="60%" center>
+            <div class="select">
+                <ul class="select-header">
+                    <li>
+                        <el-select v-model="search.searchType" placeholder="选择题目类型"
+                            style="margin-right: 10px; width: 200px;">
+                            <el-option label="全部" value=""></el-option>
+                            <el-option label="选择题" value="选择题"></el-option>
+                            <el-option label="填空题" value="填空题"></el-option>
+                            <el-option label="判断题" value="判断题"></el-option>
+                            <el-option label="编程题" value="编程题"></el-option>
+                            <el-option label="工程制图" value="工程制图"></el-option>
+                            <el-option label="工程设计" value="工程设计"></el-option>
+                        </el-select>
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchQuestion" placeholder="搜索题目"
+                            style="width: 200px; font-size: 15px" :prefix-icon="Search" />
+                    </li>
+                    <li>
+                        <el-input v-model="search.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px"
+                            :prefix-icon="Search" />
+                    </li>
+                </ul>
+                <div class="select-title">
+                    <span style="margin-right: 22%;">序号</span>
+                    <span style="margin-right: 27%;">标题</span>
+                    <span style="margin-right: 31%;">类型</span>
+                    <span>标签</span>
+                </div>
+                <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
+                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="index">
+                        <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
+                            :class="{ blue: dynamicArray[index].checked }">
+                            <span>{{ index }}</span>
+                            <span>{{ problem.title }}</span>
+                            <span>{{ problem.type }}</span>
+                            <div class="problem-tag">
+                                <el-tag v-for="tag in problem.tags" :key="tag">
+                                    {{ tag }}
+                                </el-tag>
+                            </div>
+                            <div class="selected" v-show="dynamicArray[index].checked === true">√</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button type="primary" @click="selectProblem">
+                        确定
+                    </el-button>
+                    <el-button @click="selDialogVisible = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+    </div>
+</template>
+
 <script lang="ts" setup>
 import { ElMessageBox, ElMessage } from 'element-plus';
 import * as dayjs from 'dayjs';
@@ -164,126 +284,6 @@ onMounted(() => {
     getQuestionList();
 });
 </script>
-
-<template>
-    <div class="create-wrapper">
-        <div class="header">
-            <el-page-header @back="router.push('/home/task')" content="新建作业" title="返回">
-            </el-page-header>
-        </div>
-        <div class="create-title-top">
-            <div class="left">
-                <p>标题：</p>
-                <input type="text" v-model="taskContent.title" placeholder="请输入题目标题" />
-            </div>
-            <div class="right">
-                <p>目录：</p>
-                <input type="text" v-model="taskContent.catalogue" placeholder="请输入目标目录，若无该目录则新建目录" />
-            </div>
-        </div>
-        <div class="create-title">
-            <p>描述（可选）：</p>
-            <input type="text" v-model="taskContent.description" placeholder="请输入作业简介" />
-        </div>
-        <div class="create-title auto-height">
-            <p>请选择本次作业的题目：</p>
-            <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
-            <ul style="padding: 0; margin-top: 10px;">
-                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.id">
-                    <div class="problem">
-                        <span>{{ problem.title }}</span>
-                        <span>{{ problem.type }}</span>
-                        <div class="problem-tag">
-                            <el-tag v-for="tag in problem.tags" :key="tag">
-                                {{ tag }}
-                            </el-tag>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        <div class="create-title">
-            <p>根据选择的题目得到的标签为：</p>
-            <div class="problem-tag">
-                <el-tag v-for="tag in tags" :key="tag">
-                    {{ tag }}
-                </el-tag>
-            </div>
-        </div>
-        <div class="create-title">
-            <p>请选择本次作业的截止时间：</p>
-            <div class="block">
-                <el-date-picker v-model="taskContent.deadline" type="datetimerange" start-placeholder="Start date"
-                    end-placeholder="End date" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
-                    time-format="A hh:mm:ss" />
-            </div>
-        </div>
-        <div class="button_submit">
-            <el-button type="primary" @click="submitTask">提交</el-button>
-            <router-link to="/home/task">
-                <el-button type="success">保存</el-button>
-            </router-link>
-        </div>
-
-        <!-- 选择题目 -->
-        <el-dialog v-model="selDialogVisible" title="选择题目" width="60%" center>
-            <div class="select">
-                <ul class="select-header">
-                    <li>
-                        <el-select v-model="search.searchType" placeholder="选择题目类型"
-                            style="margin-right: 10px; width: 200px;">
-                            <el-option label="全部" value=""></el-option>
-                            <el-option label="选择题" value="选择题"></el-option>
-                            <el-option label="填空题" value="填空题"></el-option>
-                            <el-option label="判断题" value="判断题"></el-option>
-                            <el-option label="编程题" value="编程题"></el-option>
-                            <el-option label="工程制图" value="工程制图"></el-option>
-                            <el-option label="工程设计" value="工程设计"></el-option>
-                        </el-select>
-                    </li>
-                    <li>
-                        <el-input v-model="search.searchQuestion" placeholder="搜索题目"
-                            style="width: 200px; font-size: 15px" :prefix-icon="Search" />
-                    </li>
-                    <li>
-                        <el-input v-model="search.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px"
-                            :prefix-icon="Search" />
-                    </li>
-                </ul>
-                <div class="select-title">
-                    <span style="margin-right: 22%;">序号</span>
-                    <span style="margin-right: 27%;">标题</span>
-                    <span style="margin-right: 31%;">类型</span>
-                    <span>标签</span>
-                </div>
-                <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
-                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="index">
-                        <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
-                            :class="{ blue: dynamicArray[index].checked }">
-                            <span>{{ index }}</span>
-                            <span>{{ problem.title }}</span>
-                            <span>{{ problem.type }}</span>
-                            <div class="problem-tag">
-                                <el-tag v-for="tag in problem.tags" :key="tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div>
-                            <div class="selected" v-show="dynamicArray[index].checked === true">√</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <template #footer>
-                <div class="dialog-footer">
-                    <el-button type="primary" @click="selectProblem">
-                        确定
-                    </el-button>
-                    <el-button @click="selDialogVisible = false">取消</el-button>
-                </div>
-            </template>
-        </el-dialog>
-    </div>
-</template>
 
 <style scoped>
 .blue {

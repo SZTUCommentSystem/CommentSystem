@@ -1,3 +1,21 @@
+<template>
+    <div class="create-wrapper">
+        <div class="header">
+            <el-page-header @back="router.push('/home/task')" content="查看作业" title="返回">
+            </el-page-header>
+        </div>
+        <div class="list">
+            <div class="list-header">
+                <h3>作业详情</h3>
+                <el-button type="success" plain @click="Export">导出excel表格</el-button>
+            </div>
+            <StudentList v-if="!ListIndex" :className="className" @updateListDate="updateListDate"></StudentList>
+            <ClassList v-else @updateListDate="updateListDate"></ClassList>
+        </div>
+    </div>
+
+</template>
+
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -55,24 +73,6 @@ const Export = () => {
 }
 
 </script>
-
-<template>
-    <div class="create-wrapper">
-        <div class="header">
-            <el-page-header @back="router.push('/home/task')" content="查看作业" title="返回">
-            </el-page-header>
-        </div>
-        <div class="list">
-            <div class="list-header">
-                <h3>作业详情</h3>
-                <el-button type="success" plain @click="Export">导出excel表格</el-button>
-            </div>
-            <StudentList v-if="!ListIndex" :className="className" @updateListDate="updateListDate"></StudentList>
-            <ClassList v-else @updateListDate="updateListDate"></ClassList>
-        </div>
-    </div>
-
-</template>
 
 <style scoped>
 .create-wrapper {

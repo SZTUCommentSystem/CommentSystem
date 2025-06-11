@@ -1,82 +1,3 @@
-<script setup lang="ts">
-import { ref, watchEffect, onMounted } from "vue";
-import { ElConfigProvider } from "element-plus";
-import { zhCn } from "element-plus/es/locale/index.mjs";
-import { useRouter } from "vue-router";
-
-// 导入相关ts文件
-import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
-import { PubList, EndList, DelList } from "../../hooks/TaskHooks/OperateList";
-
-//载入主要数据和事件
-const { category, state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
-
-// 发布作业
-const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList();
-const publishTask = () => {
-    state.TaskList = publishTaskOriginal(state.TaskList);
-}
-
-// 发布班级
-const checkAll = ref(false)
-const isIndeterminate = ref(true)
-const checkedTags = ref(['工程1班', '工程4班'])
-const tags = ['工程1班', '工程2班', '工程3班', '工程4班']
-
-const handleCheckAllChange = (val: boolean) => {
-    checkedTags.value = val ? tags : []
-    isIndeterminate.value = false
-}
-const handleCheckedTagsChange = (value: string[]) => {
-    const checkedCount = value.length
-    checkAll.value = checkedCount === tags.length
-    isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length
-}
-
-// 截止相关事件
-const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
-const endTask = () => {
-    state.TaskList = endTaskOriginal(state.TaskList);
-}
-
-//删除相关事件
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList();
-const deleteTask = () => {
-    state.TaskList = deleteTaskOriginal(state.TaskList);
-}
-
-//展示是否有作业
-const IsTask = ref(true);
-watchEffect(() => {
-    if (state.TaskList.length === 0) {
-        IsTask.value = false;
-    } else {
-        IsTask.value = true;
-    }
-});
-
-//添加点击事件，带着title跳转到作业情况页面
-const router = useRouter();
-const toTaskCondition = (title: string) => {
-    router.push({ path: "/home/task/taskcondition", query: { title: title } });
-}
-
-// 带着id跳转到编辑作业页面
-const toTaskDetail = (id: number) => {
-    router.push({ path: "/home/task/taskdetail", query: { id: id } });
-}
-
-onMounted(() => {
-    getTaskList();
-})
-
-
-////////////////临时
-
-const toggleEdit = (item: any) => {
-    item.isEditing = !item.isEditing;
-};
-</script>
 <template>
     <div class="all_class">
         <div class="base">
@@ -251,6 +172,87 @@ const toggleEdit = (item: any) => {
     </div>
 
 </template>
+
+<script setup lang="ts">
+import { ref, watchEffect, onMounted } from "vue";
+import { ElConfigProvider } from "element-plus";
+import { zhCn } from "element-plus/es/locale/index.mjs";
+import { useRouter } from "vue-router";
+
+// 导入相关ts文件
+import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
+import { PubList, EndList, DelList } from "../../hooks/TaskHooks/OperateList";
+
+//载入主要数据和事件
+const { category, state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
+
+// 发布作业
+const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList();
+const publishTask = () => {
+    state.TaskList = publishTaskOriginal(state.TaskList);
+}
+
+// 发布班级
+const checkAll = ref(false)
+const isIndeterminate = ref(true)
+const checkedTags = ref(['工程1班', '工程4班'])
+const tags = ['工程1班', '工程2班', '工程3班', '工程4班']
+
+const handleCheckAllChange = (val: boolean) => {
+    checkedTags.value = val ? tags : []
+    isIndeterminate.value = false
+}
+const handleCheckedTagsChange = (value: string[]) => {
+    const checkedCount = value.length
+    checkAll.value = checkedCount === tags.length
+    isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length
+}
+
+// 截止相关事件
+const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
+const endTask = () => {
+    state.TaskList = endTaskOriginal(state.TaskList);
+}
+
+//删除相关事件
+const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList();
+const deleteTask = () => {
+    state.TaskList = deleteTaskOriginal(state.TaskList);
+}
+
+//展示是否有作业
+const IsTask = ref(true);
+watchEffect(() => {
+    if (state.TaskList.length === 0) {
+        IsTask.value = false;
+    } else {
+        IsTask.value = true;
+    }
+});
+
+//添加点击事件，带着title跳转到作业情况页面
+const router = useRouter();
+const toTaskCondition = (title: string) => {
+    router.push({ path: "/home/task/taskcondition", query: { title: title } });
+}
+
+// 带着id跳转到编辑作业页面
+const toTaskDetail = (id: number) => {
+    router.push({ path: "/home/task/taskdetail", query: { id: id } });
+}
+
+onMounted(() => {
+    getTaskList();
+})
+
+
+////////////////临时
+
+const toggleEdit = (item: any) => {
+    item.isEditing = !item.isEditing;
+};
+</script>
+
 <style scoped>
 p {
     font-size: 12px;

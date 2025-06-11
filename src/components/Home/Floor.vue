@@ -1,6 +1,3 @@
-<script setup>
-</script>
-
 <template>
     <div class="footer">
         <div class="up_footer">
@@ -21,6 +18,9 @@
         </div>
     </div>
 </template>
+
+<script setup>
+</script>
 
 <style scoped>
 .footer {

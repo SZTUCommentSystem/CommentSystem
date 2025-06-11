@@ -1,30 +1,3 @@
-<script setup lang="ts">import { useRoute } from 'vue-router';
-import { zhCn } from "element-plus/es/locale/index.mjs";
-import { Search } from '@element-plus/icons-vue';
-
-// 导入主要数据和事件
-import StudentList from '@/hooks/TaskConditionHooks/StudentList';
-
-// 学生列表
-const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent } = StudentList();
-
-const getStatusClass = (row: any) => {
-    if (row.status === '未提交') {
-        return 'isRed';
-    }
-    else if (row.status === '已提交') {
-        return 'isSubmit';
-    }
-    else {
-        return 'isCorrect';
-    }
-}
-
-const props = defineProps<{
-    className: string;
-}>();
-const emit = defineEmits(['updateListDate']);
-</script>
 <template>
     <div class="list-header">
         <h5 @click="emit('updateListDate')"><-{{ props.className }}</h5>
@@ -65,6 +38,34 @@ const emit = defineEmits(['updateListDate']);
         </el-config-provider>
     </div>
 </template>
+
+<script setup lang="ts">import { useRoute } from 'vue-router';
+import { zhCn } from "element-plus/es/locale/index.mjs";
+import { Search } from '@element-plus/icons-vue';
+
+// 导入主要数据和事件
+import StudentList from '@/hooks/TaskConditionHooks/StudentList';
+
+// 学生列表
+const { status, displayStudent, handleSizeChange, handleCurrentChange, searchNameQuery, searchStudentIdQuery, searchClassQuery, filteredStudent } = StudentList();
+
+const getStatusClass = (row: any) => {
+    if (row.status === '未提交') {
+        return 'isRed';
+    }
+    else if (row.status === '已提交') {
+        return 'isSubmit';
+    }
+    else {
+        return 'isCorrect';
+    }
+}
+
+const props = defineProps<{
+    className: string;
+}>();
+const emit = defineEmits(['updateListDate']);
+</script>
 
 <style scoped>
 .list-header {

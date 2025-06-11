@@ -1,33 +1,3 @@
-<script setup lang="ts">
-import draggable from 'vuedraggable';
-
-interface Category {
-    id: number;
-    name: string;
-    comments: string[];
-    isEditing: boolean;
-    spreadIndex: boolean;
-    subcategories?: Category[];
-}
-
-const props = defineProps<{
-    categories: Category[];
-}>();
-
-const emit = defineEmits(['onclick']);
-
-// 切换编辑状态
-const toggleEdit = (category: Category) => {
-    category.isEditing = !category.isEditing;
-};
-
-// 拖拽结束事件处理
-const onEnd = (event: any) => {
-    console.log('拖拽结束:', event);
-    // emit('update:categories', props.categories);
-};
-</script>
-
 <template>
     <div class="comments">
         <draggable :list="categories" tag="ul" animation="1000" @end="onEnd" ghost-class="ghost" chosen-class="chosen"
@@ -66,6 +36,36 @@ const onEnd = (event: any) => {
         </draggable>
     </div>
 </template>
+
+<script setup lang="ts">
+import draggable from 'vuedraggable';
+
+interface Category {
+    id: number;
+    name: string;
+    comments: string[];
+    isEditing: boolean;
+    spreadIndex: boolean;
+    subcategories?: Category[];
+}
+
+const props = defineProps<{
+    categories: Category[];
+}>();
+
+const emit = defineEmits(['onclick']);
+
+// 切换编辑状态
+const toggleEdit = (category: Category) => {
+    category.isEditing = !category.isEditing;
+};
+
+// 拖拽结束事件处理
+const onEnd = (event: any) => {
+    console.log('拖拽结束:', event);
+    // emit('update:categories', props.categories);
+};
+</script>
 
 <style scoped>
 .comments {

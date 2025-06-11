@@ -1,57 +1,3 @@
-<script setup lang="ts">
-import { ref, watchEffect } from 'vue';
-import { ElNotification } from 'element-plus';
-import NavBar_Logo from "@/components/icons/navbar/NavBar_Logo.vue";
-import { RouterLink } from 'vue-router';
-import {useUserStore} from "../../store/user";
-
-const userStore = useUserStore();
-
-// 示例通知功能的函数
-const showNotification = () => {
-  ElNotification({
-    title: '通知',
-    message: '您有新的通知。',
-    type: 'info',
-  });
-};
-
-// 导航菜单项
-// 未选择课程
-const navList1 = [
-  { path: "/home/homepage", name: "首页" },
-  { path: "/home/course", name: "课程管理" },
-]
-// 已选择课程
-const navList2 = [
-  { path: "/home/homepage", name: "首页" },
-  { path: "/home/question", name: "题库管理" },
-  { path: "/home/class", name: "班级管理" },
-  { path: "/home/task", name: "作业库管理" },
-  { path: "/home/library", name: "批语库管理" },
-  { path: "/home/label", name: "标签库管理" },
-];
-
-// 是否选择课程
-
-// 退出登录
-const logout = () => {
-  userStore.clearUser();
-
-  // 刷新
-  location.reload();
-};
-
-const isLogin = ref();
-const selectClass = ref({});
-watchEffect(() => {
-  // 获取本地存储的用户信息和token，检测是否登录，如果没有用户信息则为null
-  selectClass.value = userStore.selectClass;
-  isLogin.value = userStore.isLoggedIn;
-})
-
-</script>
-
 <template>
   <nav class="navbar navbar-expand-lg navbar-light shadow-sm">
     <div class="container-fluid">
@@ -118,6 +64,60 @@ watchEffect(() => {
     </div>
   </nav>
 </template>
+
+<script setup lang="ts">
+import { ref, watchEffect } from 'vue';
+import { ElNotification } from 'element-plus';
+import NavBar_Logo from "@/components/icons/navbar/NavBar_Logo.vue";
+import { RouterLink } from 'vue-router';
+import {useUserStore} from "../../store/user";
+
+const userStore = useUserStore();
+
+// 示例通知功能的函数
+const showNotification = () => {
+  ElNotification({
+    title: '通知',
+    message: '您有新的通知。',
+    type: 'info',
+  });
+};
+
+// 导航菜单项
+// 未选择课程
+const navList1 = [
+  { path: "/home/homepage", name: "首页" },
+  { path: "/home/course", name: "课程管理" },
+]
+// 已选择课程
+const navList2 = [
+  { path: "/home/homepage", name: "首页" },
+  { path: "/home/question", name: "题库管理" },
+  { path: "/home/class", name: "班级管理" },
+  { path: "/home/task", name: "作业库管理" },
+  { path: "/home/library", name: "批语库管理" },
+  { path: "/home/label", name: "标签库管理" },
+];
+
+// 是否选择课程
+
+// 退出登录
+const logout = () => {
+  userStore.clearUser();
+
+  // 刷新
+  location.reload();
+};
+
+const isLogin = ref();
+const selectClass = ref({});
+watchEffect(() => {
+  // 获取本地存储的用户信息和token，检测是否登录，如果没有用户信息则为null
+  selectClass.value = userStore.selectClass;
+  isLogin.value = userStore.isLoggedIn;
+})
+
+</script>
 
 <style scoped>
 /* 样式部分 */

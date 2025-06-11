@@ -1,3 +1,134 @@
+<template>
+  <div class="create-wrapper">
+    <div class="header">
+      <el-page-header @back="$router.push('/home/question')" content="创建题目" title="返回" />
+    </div>
+    <div class="create-title-top">
+      <div class="left">
+        <div class="create-list">
+          <div class="create-title">
+            <p>题目批语：</p>
+          </div>
+          <CategoryList :categories="category" />
+        </div>
+      </div>
+      <div class="right">
+        <div class="create-list">
+          <p>标题：</p>
+          <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
+        </div>
+        <div class="create-list">
+          <p>题目类型：</p>
+          <el-select
+            v-model="questionContent.type"
+            placeholder="请选择题目类型"
+            style="width: 100%;"
+            popper-class="type-select-dropdown"
+            :teleported="false"
+            filterable
+            @visible-change="editTypeId = -1"
+          >
+            <el-option
+              v-for="item in typeList"
+              :key="item.topicTypeId"
+              :label="item.topicTypeName"
+              :value="item.topicTypeName"
+            >
+              <template #default>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span v-if="editTypeId !== item.topicTypeId">{{ item.topicTypeName }}</span>
+                  <el-input
+                    v-else
+                    v-model="editTypeValue"
+                    size="small"
+                    style="width: 120px;"
+                    @keyup.enter="confirmEditType(item.topicTypeId)"
+                    @blur="confirmEditType(item.topicTypeId)"
+                    autofocus
+                  />
+                  <span style="margin-left: 10px;">
+                    <img
+                      src="@/assets/img/编辑.png"
+                      class="icon-btn"
+                      style="margin-left: 8px;"
+                      @click.stop="startEditType(item.topicTypeId, item.topicTypeName)"
+                    />
+                    <img
+                      src="@/assets/img/删除2.png"
+                      class="icon-btn"
+                      style="margin-left: 8px;"
+                      @click.stop="removeType(item.topicTypeId)"
+                    />
+                  </span>
+                </div>
+              </template>
+            </el-option>
+            <el-input
+              v-if="inputVisble"
+              ref="InputRef"
+              v-model="newType"
+              placeholder="请输入新类型"
+              class="type-input"
+              size="default"
+              @keyup.enter="addType"
+              @blur="addType"
+            />
+            <el-button
+              v-else
+              key="primary"
+              type="primary"
+              text
+              style="margin-left: 6px;"
+              @click="showInput"
+            >
+              添加
+            </el-button>
+          </el-select>
+        </div>
+        <div class="create-list">
+          <p>题目标签：</p>
+          <div class="tag">
+            <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round size="large"
+              closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+            <el-button type="primary" plain style="border-radius: 20px;" @click="drawerTag = true">+ 添加</el-button>
+            <el-drawer v-model="drawerTag" title="选择标签">
+              <Label
+                :selectMode="true"
+                :selectedIds="questionContent.tags"
+                @confirm="handleTagConfirm"
+              />
+            </el-drawer>
+          </div>
+        </div>
+        <div class="create-list">
+          <p>作业相关图片：</p>
+          <el-upload ref="upload" v-model:file-list="questionContent.imgs"
+            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
+            :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove">
+            <el-icon>
+              <Plus />
+            </el-icon>
+          </el-upload>
+          <el-dialog v-model="dialogVisible">
+            <img w-full :src="dialogImageUrl" alt="Preview Image" />
+          </el-dialog>
+        </div>
+        <div class="create-list">
+          <p>题目描述（可选）：</p>
+          <editor-markdown v-model="questionContent.description"></editor-markdown>
+        </div>
+      </div>
+    </div>
+    <div class="button_submit">
+      <el-button type="primary" @click="submitQuestion">提交</el-button>
+      <router-link to="/home/question">
+        <el-button>取消</el-button>
+      </router-link>
+    </div>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
@@ -217,138 +348,6 @@ onMounted(() => {
   getTypeList()
 })
 </script>
-
-<template>
-  <div class="create-wrapper">
-    <div class="header">
-      <el-page-header @back="$router.push('/home/question')" content="创建题目" title="返回" />
-    </div>
-    <div class="create-title-top">
-      <div class="left">
-        <div class="create-list">
-          <div class="create-title">
-            <p>题目批语：</p>
-          </div>
-          <CategoryList :categories="category" />
-        </div>
-      </div>
-      <div class="right">
-        <div class="create-list">
-          <p>标题：</p>
-          <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
-        </div>
-        <div class="create-list">
-          <p>题目类型：</p>
-          <el-select
-            v-model="questionContent.type"
-            placeholder="请选择题目类型"
-            style="width: 100%;"
-            popper-class="type-select-dropdown"
-            :teleported="false"
-            filterable
-            @visible-change="editTypeId = -1"
-          >
-            <el-option
-              v-for="item in typeList"
-              :key="item.topicTypeId"
-              :label="item.topicTypeName"
-              :value="item.topicTypeName"
-            >
-              <template #default>
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span v-if="editTypeId !== item.topicTypeId">{{ item.topicTypeName }}</span>
-                  <el-input
-                    v-else
-                    v-model="editTypeValue"
-                    size="small"
-                    style="width: 120px;"
-                    @keyup.enter="confirmEditType(item.topicTypeId)"
-                    @blur="confirmEditType(item.topicTypeId)"
-                    autofocus
-                  />
-                  <span style="margin-left: 10px;">
-                    <img
-                      src="@/assets/img/编辑.png"
-                      class="icon-btn"
-                      style="margin-left: 8px;"
-                      @click.stop="startEditType(item.topicTypeId, item.topicTypeName)"
-                    />
-                    <img
-                      src="@/assets/img/删除2.png"
-                      class="icon-btn"
-                      style="margin-left: 8px;"
-                      @click.stop="removeType(item.topicTypeId)"
-                    />
-                  </span>
-                </div>
-              </template>
-            </el-option>
-            <el-input
-              v-if="inputVisble"
-              ref="InputRef"
-              v-model="newType"
-              placeholder="请输入新类型"
-              class="type-input"
-              size="default"
-              @keyup.enter="addType"
-              @blur="addType"
-            />
-            <el-button
-              v-else
-              key="primary"
-              type="primary"
-              text
-              style="margin-left: 6px;"
-              @click="showInput"
-            >
-              添加
-            </el-button>
-          </el-select>
-        </div>
-        <div class="create-list">
-          <p>题目标签：</p>
-          <div class="tag">
-            <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round size="large"
-              closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
-            <el-button type="primary" plain style="border-radius: 20px;" @click="drawerTag = true">+ 添加</el-button>
-            <el-drawer v-model="drawerTag" title="选择标签">
-              <Label
-                :selectMode="true"
-                :selectedIds="questionContent.tags"
-                @confirm="handleTagConfirm"
-              />
-            </el-drawer>
-          </div>
-        </div>
-        <div class="create-list">
-          <p>作业相关图片：</p>
-          <el-upload ref="upload" v-model:file-list="questionContent.imgs"
-            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
-            :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
-            :on-remove="handleRemove">
-            <el-icon>
-              <Plus />
-            </el-icon>
-          </el-upload>
-          <el-dialog v-model="dialogVisible">
-            <img w-full :src="dialogImageUrl" alt="Preview Image" />
-          </el-dialog>
-        </div>
-        <div class="create-list">
-          <p>题目描述（可选）：</p>
-          <editor-markdown v-model="questionContent.description"></editor-markdown>
-        </div>
-      </div>
-    </div>
-    <div class="button_submit">
-      <el-button type="primary" @click="submitQuestion">提交</el-button>
-      <router-link to="/home/question">
-        <el-button>取消</el-button>
-      </router-link>
-    </div>
-  </div>
-</template>
-
 
 <style scoped>
 .create-wrapper {

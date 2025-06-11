@@ -1,10 +1,10 @@
 <template>
   <div class="label-card">
-    <div class="header">
+    <div class="header" v-if="!props.selectMode">
       <span class="title">标签库管理</span>
       <span class="desc">可为章节添加个性化标签，便于内容归类与检索</span>
     </div>
-    <el-divider />
+    <el-divider v-if="!props.selectMode"/>
     <div class="section">
       <div class="top">
         <span class="section-label">选择标签章节：</span>
@@ -74,7 +74,7 @@
         </el-button>
       </div>
       <!-- 选择模式下显示确认按钮 -->
-      <div v-if="selectMode && selectedIds.length" style="margin-top: 16px;">
+      <div v-if="props.selectMode" style="margin-top: 16px;">
         <el-button type="primary" @click="confirmSelect">确认</el-button>
       </div>
     </div>
@@ -112,7 +112,12 @@ import { useUserStore } from "@/store/user";
 const userStore = useUserStore();
 
 // 选择模式控制（作为组件时可由父组件传入）
-const selectMode = ref(false); // true为选择模式，false为管理模式
+const props = defineProps({
+  selectMode: {
+    type: Boolean,
+    default: false
+  }
+});
 const selectedIds = ref<number[]>([]); // 选择模式下已选标签ID
 
 // 选择标签
@@ -455,6 +460,7 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 500;
   margin-right: 16px;
+  margin-bottom: 5px;
   color: #444;
   min-width: 110px;
 }

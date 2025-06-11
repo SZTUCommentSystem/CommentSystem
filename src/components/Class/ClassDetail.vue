@@ -1,76 +1,4 @@
-<script setup lang="ts">
-import type { ElPageHeader } from "element-plus";
-import {computed, onMounted, ref} from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { classDetailAPI } from '@/api/ClassAPI/index'
-
-const source = ref(0)
-source.value = 72
-
-const router = useRouter()
-const route = useRoute()
-//数据拟定
-const students = ref(Array.from({ length: 50 }, (_, i) => ({
-  id: `2022002020${String(i + 1).padStart(2, '0')}`,
-  name: ['宋江', '卢俊义', '吴用', '公孙胜', '关胜', '林冲', '秦明', '呼延灼', '花荣', '柴进', '李应', '朱仝', '鲁智深', '武松', '董平', '张清', '杨志', '徐宁', '索超', '戴宗', '刘唐', '李逵', '史进', '穆弘', '雷横', '李俊', '阮小二', '张横', '阮小五', '张顺', '阮小七', '杨雄', '石秀', '解珍', '解宝', '燕青', '朱武', '黄信', '孙立', '宣赞', '郝思文', '韩滔', '彭玘', '单廷珪', '魏定国', '萧让', '裴宣', '欧鹏', '邓飞'][i % 50],
-  grade: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
-  phone: `1380000${String(i + 1).padStart(4, '0')}`,
-  email: `student${i + 1}@example.com`
-})))
-// 获取学生列表
-const getStudentsList = async () => {
-  try {
-    const res = await classDetailAPI(route.query.classId as string)
-    students.value = res.data.rows
-    console.log('获取学生列表成功:', students.value)
-  } catch (error) {
-    console.error('获取学生列表失败:', error)
-  }
-}
-
-
-const currentPage = ref(1)
-const pageSize = 10
-
-const paginatedStudents = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  const end = start + pageSize
-  return students.value.slice(start, end)
-})
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page
-}
-const moveClass = (student: { id: string; name: string; grade: string; phone: string; email: string }) => {
-  console.log('移动分班:', student)
-}
-
-const deleteStudent = (student: { id: string }) => {
-  students.value = students.value.filter(s => s.id !== student.id)
-}
-const tasks = ref([
-  { id: 1, title: 'Task1', tags: ['Tag1', 'Tag2'] },
-  { id: 2, title: 'Task2', tags: ['Tag3', 'Tag4'] },
-  // Add more tasks as needed
-]);
-
-
-const viewTask = (taskId: number) => {
-  console.log('查看作业:', taskId);
-};
-
-// 发布作业
-const publishTask = () => {
-  router.push('/home/task')
-};
-
-onMounted(() => {
-  getStudentsList()
-})
-</script>
-
 <template>
-
   <div class="flex-container ">
     <div class="header">
       <el-page-header @back="router.push('/home/class')" content="班级详情" title="返回" >
@@ -167,6 +95,77 @@ onMounted(() => {
   </div>
 
 </template>
+
+<script setup lang="ts">
+import type { ElPageHeader } from "element-plus";
+import {computed, onMounted, ref} from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { classDetailAPI } from '@/api/ClassAPI/index'
+
+const source = ref(0)
+source.value = 72
+
+const router = useRouter()
+const route = useRoute()
+//数据拟定
+const students = ref(Array.from({ length: 50 }, (_, i) => ({
+  id: `2022002020${String(i + 1).padStart(2, '0')}`,
+  name: ['宋江', '卢俊义', '吴用', '公孙胜', '关胜', '林冲', '秦明', '呼延灼', '花荣', '柴进', '李应', '朱仝', '鲁智深', '武松', '董平', '张清', '杨志', '徐宁', '索超', '戴宗', '刘唐', '李逵', '史进', '穆弘', '雷横', '李俊', '阮小二', '张横', '阮小五', '张顺', '阮小七', '杨雄', '石秀', '解珍', '解宝', '燕青', '朱武', '黄信', '孙立', '宣赞', '郝思文', '韩滔', '彭玘', '单廷珪', '魏定国', '萧让', '裴宣', '欧鹏', '邓飞'][i % 50],
+  grade: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
+  phone: `1380000${String(i + 1).padStart(4, '0')}`,
+  email: `student${i + 1}@example.com`
+})))
+// 获取学生列表
+const getStudentsList = async () => {
+  try {
+    const res = await classDetailAPI(route.query.classId as string)
+    students.value = res.data.rows
+    console.log('获取学生列表成功:', students.value)
+  } catch (error) {
+    console.error('获取学生列表失败:', error)
+  }
+}
+
+
+const currentPage = ref(1)
+const pageSize = 10
+
+const paginatedStudents = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return students.value.slice(start, end)
+})
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+}
+const moveClass = (student: { id: string; name: string; grade: string; phone: string; email: string }) => {
+  console.log('移动分班:', student)
+}
+
+const deleteStudent = (student: { id: string }) => {
+  students.value = students.value.filter(s => s.id !== student.id)
+}
+const tasks = ref([
+  { id: 1, title: 'Task1', tags: ['Tag1', 'Tag2'] },
+  { id: 2, title: 'Task2', tags: ['Tag3', 'Tag4'] },
+  // Add more tasks as needed
+]);
+
+
+const viewTask = (taskId: number) => {
+  console.log('查看作业:', taskId);
+};
+
+// 发布作业
+const publishTask = () => {
+  router.push('/home/task')
+};
+
+onMounted(() => {
+  getStudentsList()
+})
+</script>
 
 <style scoped>
 .flex-container {

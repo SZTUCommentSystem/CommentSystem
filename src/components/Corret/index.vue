@@ -1,3 +1,78 @@
+<template>
+    <div style="position: relative;">
+        <!-- 左边学生列表组件 -->
+        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData" :nowCorrect="route.query.id"
+            @updateStudentNumber="updateStudentNumber">
+        </SideBorder>
+        <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
+        </el-page-header>
+
+        <div class="base">
+            <div class="left">
+                <div v-if="student">
+                    <h4>您当前批改的学生信息</h4>
+                    <p>学生姓名：{{ student.name }}</p>
+                    <p>学生班级：{{ student.class }}</p>
+                    <p>当前批改的题目为：第 {{ nowTask }} 题，共 {{ taskNumber }} 题</p>
+                </div>
+                <div>
+                    <h4>批改作业</h4>
+                    <p>批改：</p>
+                    <div class="correct-box">
+                        <!-- 图片处理框 -->
+                        <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
+                            :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl"
+                            @getNewImg="cropperObj.getNewImg" @closeCropperDialog="cropperObj.closeCropperView">
+                        </SignImage>
+                        <!-- 点击弹出图片处理框 -->
+                        <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
+                        <el-button>查看原题</el-button>
+
+                        <!-- 处理完图片回显 -->
+                        <ul>
+                            <li v-for="(img, index) in newImgs" :key="index">
+                                <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
+                                <div class="img-del" v-show="deleteImgShow[index]"
+                                    @mouseleave="deleteImgShow[index] = false">
+                                    <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <p>批语：</p>
+                    <el-input v-model="textarea" :autosize="{ minRows: 8 }" type="textarea"
+                        style="width: 100%; font-size: 18px;" />
+                    <p>得分：</p>
+                    <input type="number" placeholder="请输入分数" />
+
+                </div>
+            </div>
+            <div class="right">
+                <div class="right-header">
+                    <p>本题的批语库为：</p>
+                    <div class="left">
+                        <el-button class="new-create" @click="createCategory">新建分类</el-button>
+                        <el-button type="primary" plain>添加批语</el-button>
+                    </div>
+                </div>
+                <div class="right-body">
+                    <CategoryList :categories="category" @onclick="onclick" />
+                </div>
+            </div>
+        </div>
+        <div class="left-button" @click="LastOne">&lt;</div>
+        <div class="right-button" @click="NextOne">&gt;</div>
+        <div class="bottom-button">
+            <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
+            <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
+            <el-button type="success" style="width: 100px;"
+                @click="updateCorretStatus(nowTask - 1, Number(route.query.id) - 1)">保存</el-button>
+        </div>
+    </div>
+</template>
+
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, watch } from "vue";
@@ -232,81 +307,6 @@ watch(() => route.query.id, (newValue, oldValue) => {
     }
 })
 </script>
-
-<template>
-    <div style="position: relative;">
-        <!-- 左边学生列表组件 -->
-        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData" :nowCorrect="route.query.id"
-            @updateStudentNumber="updateStudentNumber">
-        </SideBorder>
-        <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
-        </el-page-header>
-
-        <div class="base">
-            <div class="left">
-                <div v-if="student">
-                    <h4>您当前批改的学生信息</h4>
-                    <p>学生姓名：{{ student.name }}</p>
-                    <p>学生班级：{{ student.class }}</p>
-                    <p>当前批改的题目为：第 {{ nowTask }} 题，共 {{ taskNumber }} 题</p>
-                </div>
-                <div>
-                    <h4>批改作业</h4>
-                    <p>批改：</p>
-                    <div class="correct-box">
-                        <!-- 图片处理框 -->
-                        <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
-                            :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl"
-                            @getNewImg="cropperObj.getNewImg" @closeCropperDialog="cropperObj.closeCropperView">
-                        </SignImage>
-                        <!-- 点击弹出图片处理框 -->
-                        <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
-                        <el-button>查看原题</el-button>
-
-                        <!-- 处理完图片回显 -->
-                        <ul>
-                            <li v-for="(img, index) in newImgs" :key="index">
-                                <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
-                                <div class="img-del" v-show="deleteImgShow[index]"
-                                    @mouseleave="deleteImgShow[index] = false">
-                                    <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div>
-                    <p>批语：</p>
-                    <el-input v-model="textarea" :autosize="{ minRows: 8 }" type="textarea"
-                        style="width: 100%; font-size: 18px;" />
-                    <p>得分：</p>
-                    <input type="number" placeholder="请输入分数" />
-
-                </div>
-            </div>
-            <div class="right">
-                <div class="right-header">
-                    <p>本题的批语库为：</p>
-                    <div class="left">
-                        <el-button class="new-create" @click="createCategory">新建分类</el-button>
-                        <el-button type="primary" plain>添加批语</el-button>
-                    </div>
-                </div>
-                <div class="right-body">
-                    <CategoryList :categories="category" @onclick="onclick" />
-                </div>
-            </div>
-        </div>
-        <div class="left-button" @click="LastOne">&lt;</div>
-        <div class="right-button" @click="NextOne">&gt;</div>
-        <div class="bottom-button">
-            <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
-            <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
-            <el-button type="success" style="width: 100px;"
-                @click="updateCorretStatus(nowTask - 1, Number(route.query.id) - 1)">保存</el-button>
-        </div>
-    </div>
-</template>
 
 <style scoped>
 .header {

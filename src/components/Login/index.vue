@@ -1,3 +1,28 @@
+<template>
+    <div class="backgrounds">
+        <div class="login-box">
+            <h3>{{ loginOrRegister ? '登录' : '注册' }}</h3>
+            <el-form :model="ruleFrom" :rules="rules" ref="ruleFormRef" label-width="80px" class="form-class">
+                <el-form-item label="账号" prop="username">
+                    <el-input v-model="ruleFrom.username"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="ruleFrom.password" type="password"></el-input>
+                </el-form-item>
+                <el-form-item label="确认密码" prop="confirmPassword" v-if="!loginOrRegister">
+                    <el-input v-model="ruleFrom.confirmPassword" type="password"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm(ruleFormRef)">{{ loginOrRegister ? '登录' : '注册'
+                        }}</el-button>
+                    <el-button type="success" @click="loginOrRegister = !loginOrRegister">{{ loginOrRegister ? '去注册' :
+                        '去登录' }}</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </div>
+</template>
+
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
@@ -117,31 +142,6 @@ const fetchUserInfo = async () => {
 };
 
 </script>
-
-<template>
-    <div class="backgrounds">
-        <div class="login-box">
-            <h3>{{ loginOrRegister ? '登录' : '注册' }}</h3>
-            <el-form :model="ruleFrom" :rules="rules" ref="ruleFormRef" label-width="80px" class="form-class">
-                <el-form-item label="账号" prop="username">
-                    <el-input v-model="ruleFrom.username"></el-input>
-                </el-form-item>
-                <el-form-item label="密码" prop="password">
-                    <el-input v-model="ruleFrom.password" type="password"></el-input>
-                </el-form-item>
-                <el-form-item label="确认密码" prop="confirmPassword" v-if="!loginOrRegister">
-                    <el-input v-model="ruleFrom.confirmPassword" type="password"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="submitForm(ruleFormRef)">{{ loginOrRegister ? '登录' : '注册'
-                        }}</el-button>
-                    <el-button type="success" @click="loginOrRegister = !loginOrRegister">{{ loginOrRegister ? '去注册' :
-                        '去登录' }}</el-button>
-                </el-form-item>
-            </el-form>
-        </div>
-    </div>
-</template>
 
 <style scoped>
 .backgrounds {
