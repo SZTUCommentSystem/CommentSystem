@@ -6,17 +6,21 @@
     </div>
     <el-divider />
     <div class="section">
-      <span class="section-label">选择标签章节：</span>
-      <el-cascader
-        v-model="selectedChapter"
-        :options="cascaderOptions"
-        clearable
-        placeholder="请选择章节"
-        @clear="selectedChapter = []"
-      />
-      <el-button type="primary" class="ml-2" @click="showAddChapterDialog">新增章节</el-button>
-      <el-button type="warning" class="ml-2" :disabled="!selectedChapter?.length" @click="showEditChapterDialog">修改章节</el-button>
-      <el-button type="danger" class="ml-2" :disabled="!selectedChapter?.length" @click="deleteChapter">删除章节</el-button>
+      <div class="top">
+        <span class="section-label">选择标签章节：</span>
+        <el-cascader
+          v-model="selectedChapter"
+          :options="cascaderOptions"
+          clearable
+          placeholder="请选择章节"
+          @clear="selectedChapter = []"
+        />
+      </div>
+      <div class="bottom">
+        <el-button type="primary" class="ml-2" @click="showAddChapterDialog">新增章节</el-button>
+        <el-button type="warning" class="ml-2" :disabled="!selectedChapter?.length" @click="showEditChapterDialog">修改章节</el-button>
+        <el-button type="danger" class="ml-2" :disabled="!selectedChapter?.length" @click="deleteChapter">删除章节</el-button>
+      </div>
     </div>
     <el-divider />
     <div class="section">
@@ -33,6 +37,8 @@
           effect="light"
           :type="items[index % 5]?.type"
           @dblclick="editTag(index, tag)"
+          :class="{ 'tag-selected': selectMode && selectedIds.includes(tag.topicLabelId) }"
+          @click="selectMode && handleSelectTag(tag.topicLabelId)"
         >
           <template v-if="editIndex === index">
             <el-input
@@ -67,6 +73,10 @@
           + 新增标签
         </el-button>
       </div>
+      <!-- 选择模式下显示确认按钮 -->
+      <div v-if="selectMode && selectedIds.length" style="margin-top: 16px;">
+        <el-button type="primary" @click="confirmSelect">确认</el-button>
+      </div>
     </div>
 
     <!-- 新增章节弹窗 -->
@@ -98,7 +108,28 @@ import { getChapterListAPI, addChapterAPI, changeChapterAPI, deleteChapterAPI } 
 import { labelListAPI, addLabelAPI, changeLabelAPI, deleteLabelAPI} from "@/api/LabelAPI"
 
 import { useUserStore } from "@/store/user";
+
 const userStore = useUserStore();
+
+// 选择模式控制（作为组件时可由父组件传入）
+const selectMode = ref(false); // true为选择模式，false为管理模式
+const selectedIds = ref<number[]>([]); // 选择模式下已选标签ID
+
+// 选择标签
+const handleSelectTag = (id: number) => {
+  const idx = selectedIds.value.indexOf(id);
+  if (idx > -1) {
+    selectedIds.value.splice(idx, 1);
+  } else {
+    selectedIds.value.push(id);
+  }
+};
+// 确认选择，传递给父组件
+const emit = defineEmits(['confirm']);
+const confirmSelect = () => {
+  emit('confirm', [...selectedIds.value]);
+};
+
 
 // 章节相关
 const root = ref([]); //存储章节的原始数据
@@ -406,9 +437,14 @@ onMounted(() => {
 }
 .section {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin: 18px 0;
   flex-wrap: wrap;
+
+  .bottom {
+    margin-top: 10px;
+  }
 }
 
 .section :deep(.el-cascader) {
@@ -459,5 +495,9 @@ onMounted(() => {
 }
 .ml-2 {
   margin-left: 12px;
+}
+.tag-selected {
+  border: 2px solid #67c23a !important;
+  background: #f0f9eb !important;
 }
 </style>

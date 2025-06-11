@@ -28,26 +28,16 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
     response => {
-        return response;
-    },
-    error => {
-        if (error.response) {
-            const { data } = error.response;
-            console.error('请求错误:', error.response);
-
-            if (data?.code === 401) {
-                userStore.clearUser();
-                Cookies.remove('token');
-                ElMessage.warning('登录已过期，请重新登录');
-                if (router.currentRoute.value.name !== 'login') {
-                    router.push('/login');
-                }
-            } else {
-                ElMessage.error(data?.message || '请求失败');
+        const { data } = response;
+        if (data?.code === 401) {
+            userStore.clearUser();
+            Cookies.remove('token');
+            if (router.currentRoute.value.name !== 'login') {
+                router.push('/login');
             }
         }
-        return Promise.reject(error);
-    }
+        return response;
+    },
 )
 
 export default request;

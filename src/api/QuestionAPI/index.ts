@@ -57,3 +57,29 @@ export const questionTypeDetailAPI = (id: number) => {
         method: "get",
     })
 }
+
+// 新增问题类型
+export const addQuestionTypeAPI = (data: Object) => {
+    return request({
+        url: 'function/topictype',
+        method: "post",
+        data
+    })
+}
+
+// 更新问题类型
+export const changeQuestionTypeAPI = (data: Object) => {
+    return request({
+        url: 'function/topictype',
+        method: "put",
+        data
+    })
+}
+
+// 删除问题类型
+export const deleteQuestionTypeAPI = (id: number) => {
+    return request({
+        url: `function/topictype/${id}`,
+        method: "delete",
+    })
+}

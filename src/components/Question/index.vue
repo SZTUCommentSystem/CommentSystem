@@ -90,7 +90,7 @@ watch(
               <Edit class="icon" style="margin-right: 20px;" />
             </RouterLink>
             <div style="margin-right: 20px; cursor: pointer;">
-              <Delete class="icon" @click="handleDel($event, scope.row.id)" />
+              <Delete class="icon" @click="handleDel($event, scope.row.topicId)" />
             </div>
           </div>
         </template>

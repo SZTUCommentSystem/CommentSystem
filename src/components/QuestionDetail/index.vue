@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import type { UploadProps } from 'element-plus'
 import { questionDetailAPI } from '@/api/QuestionAPI'
 import EditorMarkdown from '@/components/Generic/Editor.vue'
+import Label from '@/components/Label/index.vue'
 
 const route = useRoute()
 
@@ -64,11 +65,11 @@ const handleCloseComment = (comment: string) => {
 const handleCloseTag = (tag: string) => {
   questionDetail.tags.splice(questionDetail.tags.indexOf(tag), 1)
 }
-//选取标签添加
-const addTag = (tag: string) => {
-  if (!questionDetail.tags.includes(tag)) {
-    questionDetail.tags.push(tag)
-  }
+
+// 选择标签确认
+const handleTagConfirm = (ids: string[] | number[]) => {
+  questionDetail.tags = ids.map(String)
+  drawer1.value = false
 }
 
 //抽屉select临时数据
@@ -81,36 +82,18 @@ const options = [
         value: 'disciplines',
         label: 'Disciplines',
         children: [
-          {
-            value: 'consistency',
-            label: 'Consistency',
-          },
-          {
-            value: 'feedback',
-            label: 'Feedback',
-          },
-          {
-            value: 'efficiency',
-            label: 'Efficiency',
-          },
-          {
-            value: 'controllability',
-            label: 'Controllability',
-          },
+          { value: 'consistency', label: 'Consistency' },
+          { value: 'feedback', label: 'Feedback' },
+          { value: 'efficiency', label: 'Efficiency' },
+          { value: 'controllability', label: 'Controllability' },
         ],
       },
       {
         value: 'navigation',
         label: 'Navigation',
         children: [
-          {
-            value: 'side nav',
-            label: 'Side Navigation',
-          },
-          {
-            value: 'top nav',
-            label: 'Top Navigation',
-          },
+          { value: 'side nav', label: 'Side Navigation' },
+          { value: 'top nav', label: 'Top Navigation' },
         ],
       },
     ],
@@ -123,200 +106,77 @@ const options = [
         value: 'basic',
         label: 'Basic',
         children: [
-          {
-            value: 'layout',
-            label: 'Layout',
-          },
-          {
-            value: 'color',
-            label: 'Color',
-          },
-          {
-            value: 'typography',
-            label: 'Typography',
-          },
-          {
-            value: 'icon',
-            label: 'Icon',
-          },
-          {
-            value: 'button',
-            label: 'Button',
-          },
+          { value: 'layout', label: 'Layout' },
+          { value: 'color', label: 'Color' },
+          { value: 'typography', label: 'Typography' },
+          { value: 'icon', label: 'Icon' },
+          { value: 'button', label: 'Button' },
         ],
       },
       {
         value: 'form',
         label: 'Form',
         children: [
-          {
-            value: 'radio',
-            label: 'Radio',
-          },
-          {
-            value: 'checkbox',
-            label: 'Checkbox',
-          },
-          {
-            value: 'input',
-            label: 'Input',
-          },
-          {
-            value: 'input-number',
-            label: 'InputNumber',
-          },
-          {
-            value: 'select',
-            label: 'Select',
-          },
-          {
-            value: 'cascader',
-            label: 'Cascader',
-          },
-          {
-            value: 'switch',
-            label: 'Switch',
-          },
-          {
-            value: 'slider',
-            label: 'Slider',
-          },
-          {
-            value: 'time-picker',
-            label: 'TimePicker',
-          },
-          {
-            value: 'date-picker',
-            label: 'DatePicker',
-          },
-          {
-            value: 'datetime-picker',
-            label: 'DateTimePicker',
-          },
-          {
-            value: 'upload',
-            label: 'Upload',
-          },
-          {
-            value: 'rate',
-            label: 'Rate',
-          },
-          {
-            value: 'form',
-            label: 'Form',
-          },
+          { value: 'radio', label: 'Radio' },
+          { value: 'checkbox', label: 'Checkbox' },
+          { value: 'input', label: 'Input' },
+          { value: 'input-number', label: 'InputNumber' },
+          { value: 'select', label: 'Select' },
+          { value: 'cascader', label: 'Cascader' },
+          { value: 'switch', label: 'Switch' },
+          { value: 'slider', label: 'Slider' },
+          { value: 'time-picker', label: 'TimePicker' },
+          { value: 'date-picker', label: 'DatePicker' },
+          { value: 'datetime-picker', label: 'DateTimePicker' },
+          { value: 'upload', label: 'Upload' },
+          { value: 'rate', label: 'Rate' },
+          { value: 'form', label: 'Form' },
         ],
       },
       {
         value: 'data',
         label: 'Data',
         children: [
-          {
-            value: 'table',
-            label: 'Table',
-          },
-          {
-            value: 'tag',
-            label: 'Tag',
-          },
-          {
-            value: 'progress',
-            label: 'Progress',
-          },
-          {
-            value: 'tree',
-            label: 'Tree',
-          },
-          {
-            value: 'pagination',
-            label: 'Pagination',
-          },
-          {
-            value: 'badge',
-            label: 'Badge',
-          },
+          { value: 'table', label: 'Table' },
+          { value: 'tag', label: 'Tag' },
+          { value: 'progress', label: 'Progress' },
+          { value: 'tree', label: 'Tree' },
+          { value: 'pagination', label: 'Pagination' },
+          { value: 'badge', label: 'Badge' },
         ],
       },
       {
         value: 'notice',
         label: 'Notice',
         children: [
-          {
-            value: 'alert',
-            label: 'Alert',
-          },
-          {
-            value: 'loading',
-            label: 'Loading',
-          },
-          {
-            value: 'message',
-            label: 'Message',
-          },
-          {
-            value: 'message-box',
-            label: 'MessageBox',
-          },
-          {
-            value: 'notification',
-            label: 'Notification',
-          },
+          { value: 'alert', label: 'Alert' },
+          { value: 'loading', label: 'Loading' },
+          { value: 'message', label: 'Message' },
+          { value: 'message-box', label: 'MessageBox' },
+          { value: 'notification', label: 'Notification' },
         ],
       },
       {
         value: 'navigation',
         label: 'Navigation',
         children: [
-          {
-            value: 'menu',
-            label: 'Menu',
-          },
-          {
-            value: 'tabs',
-            label: 'Tabs',
-          },
-          {
-            value: 'breadcrumb',
-            label: 'Breadcrumb',
-          },
-          {
-            value: 'dropdown',
-            label: 'Dropdown',
-          },
-          {
-            value: 'steps',
-            label: 'Steps',
-          },
+          { value: 'menu', label: 'Menu' },
+          { value: 'tabs', label: 'Tabs' },
+          { value: 'breadcrumb', label: 'Breadcrumb' },
+          { value: 'dropdown', label: 'Dropdown' },
+          { value: 'steps', label: 'Steps' },
         ],
       },
       {
         value: 'others',
         label: 'Others',
         children: [
-          {
-            value: 'dialog',
-            label: 'Dialog',
-          },
-          {
-            value: 'tooltip',
-            label: 'Tooltip',
-          },
-          {
-            value: 'popover',
-            label: 'Popover',
-          },
-          {
-            value: 'card',
-            label: 'Card',
-          },
-          {
-            value: 'carousel',
-            label: 'Carousel',
-          },
-          {
-            value: 'collapse',
-            label: 'Collapse',
-          },
+          { value: 'dialog', label: 'Dialog' },
+          { value: 'tooltip', label: 'Tooltip' },
+          { value: 'popover', label: 'Popover' },
+          { value: 'card', label: 'Card' },
+          { value: 'carousel', label: 'Carousel' },
+          { value: 'collapse', label: 'Collapse' },
         ],
       },
     ],
@@ -325,18 +185,9 @@ const options = [
     value: 'resource',
     label: '章节三',
     children: [
-      {
-        value: 'axure',
-        label: 'Axure Components',
-      },
-      {
-        value: 'sketch',
-        label: 'Sketch Templates',
-      },
-      {
-        value: 'docs',
-        label: 'Design Documentation',
-      },
+      { value: 'axure', label: 'Axure Components' },
+      { value: 'sketch', label: 'Sketch Templates' },
+      { value: 'docs', label: 'Design Documentation' },
     ],
   },
 ]
@@ -395,7 +246,7 @@ const selectedOption = ref('')
 <template>
   <div class="create-wrapper">
     <div class="header">
-      <el-page-header @back="this.$router.push('/home/question')" content="修改题目" title="返回" />
+      <el-page-header @back="$router.push('/home/question')" content="修改题目" title="返回" />
     </div>
 
     <div class="create-title-top">
@@ -413,7 +264,7 @@ const selectedOption = ref('')
           </el-tag>
           <el-button type="primary" plain style="border-radius: 20px; margin-top: 10px;" @click="drawer2 = true">+
             添加批语</el-button>
-          <el-drawer v-model="drawer2" title="题目批语选择">
+          <el-drawer v-model="drawer2" title="题目批语选择" style="width: 600px;">
             <div class="mb-4">
               <span>选择批语章节：</span>
               <el-cascader :options="options" clearable />
@@ -464,17 +315,12 @@ const selectedOption = ref('')
               closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
             <el-button type="primary" plain style="border-radius: 20px;" @click="drawer1 = true">+ 添加</el-button>
             <el-drawer v-model="drawer1" title="题目标签选择">
-              <div class="mb-4">
-                <span>选择标签章节：</span>
-                <el-cascader :options="options" clearable />
-              </div>
-              <div class="flex">
-                <el-tag type="primary" class="me-2 tag-hover" size="large" @click="addTag('Tag 1')">Tag 1</el-tag>
-                <el-tag type="success" class="me-2 tag-hover" size="large" @click="addTag('Tag 2')">Tag 2</el-tag>
-                <el-tag type="info" class="me-2 tag-hover" size="large" @click="addTag('Tag 3')">Tag 3</el-tag>
-                <el-tag type="warning" class="me-2 tag-hover" size="large" @click="addTag('Tag 4')">Tag 4</el-tag>
-                <el-tag type="danger" class="me-2 tag-hover" size="large" @click="addTag('Tag 5')">Tag 5</el-tag>
-              </div>
+              <!-- 替换为选择模式的标签组件 -->
+              <Label
+                :selectMode="true"
+                :selectedIds="questionDetail.tags"
+                @confirm="handleTagConfirm"
+              ></Label>
             </el-drawer>
           </div>
         </div>
@@ -499,7 +345,6 @@ const selectedOption = ref('')
       </div>
     </div>
 
-
     <div class="button_submit">
       <el-button type="primary">提交</el-button>
       <router-link to="/home/question">
@@ -508,6 +353,7 @@ const selectedOption = ref('')
     </div>
   </div>
 </template>
+
 <style scoped>
 .create-wrapper {
   display: flex;
@@ -619,6 +465,10 @@ const selectedOption = ref('')
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.tag ::v-deep(.el-drawer) {
+  width: 60% !important;
 }
 
 .tag-hover:hover {

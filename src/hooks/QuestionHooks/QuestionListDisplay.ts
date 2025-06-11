@@ -1,6 +1,7 @@
 import { ref, reactive, computed, watch } from "vue";
 import { questionListAPI, deleteQuestionAPI, questionTypeAPI } from '../../api/QuestionAPI';
 import { labelInfoAPI } from "@/api/LabelAPI";
+import { ElMessage } from "element-plus";
 
 export default function QuestionListDisplay() {
     const state = reactive({
@@ -82,8 +83,11 @@ export default function QuestionListDisplay() {
     const handleDel = async (event: any, id: number) => {
         event.stopPropagation();
         try {
-            await deleteQuestionAPI(id);
-            await getList();
+            const res = await deleteQuestionAPI(id);
+            if (res.data.code === 200) {
+                ElMessage.success('删除题目成功');
+                getList();
+            }    
         } catch (error) {
             console.error('删除题目失败:', error);
         }
