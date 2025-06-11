@@ -34,23 +34,14 @@ VueMarkdownEditor.use(createKatexPlugin());
 
 import App from './App.vue'
 import router from './router'
-import { useUserStore } from './store/user';
 
 const app = createApp(App)
 
 // 引入pinia实例
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate) // 使用持久化插件
+
 app.use(pinia)
-// 恢复 token
-const userStore = useUserStore();
-const token = Cookies.get('token'); // 从 Cookie 中获取 token
-
-if (token) {
-    userStore.setToken(token); // 恢复 token
-}
-
-
 app.use(router)
 app.use(ElementPlus)
 app.use(VueMarkdownEditor);

@@ -1,6 +1,4 @@
 import { defineStore } from 'pinia';
-import Cookies from 'js-cookie';
-
 
 export const useUserStore = defineStore('user', {
     state: () => ({
@@ -11,7 +9,6 @@ export const useUserStore = defineStore('user', {
     actions: {
         setToken(token: string) {
             this.token = token;
-            Cookies.set('token', token, { expires: 7 });
         },
         setUserInfo(userInfo: object) {
             this.userInfo = userInfo;
@@ -23,7 +20,6 @@ export const useUserStore = defineStore('user', {
             this.token = '';
             this.userInfo = {};
             this.selectClass = {};
-            Cookies.remove('token');
         },
     },
     getters: {

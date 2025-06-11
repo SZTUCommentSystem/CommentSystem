@@ -1,7 +1,7 @@
 import { ref, reactive, computed, watch } from "vue";
 import { questionListAPI, deleteQuestionAPI, questionTypeAPI } from '../../api/QuestionAPI';
 import { labelInfoAPI } from "@/api/LabelAPI";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 export default function QuestionListDisplay() {
     const state = reactive({
@@ -83,6 +83,16 @@ export default function QuestionListDisplay() {
     const handleDel = async (event: any, id: number) => {
         event.stopPropagation();
         try {
+            await ElMessageBox.confirm(
+                '此操作将永久删除该题目, 是否继续?',
+                '提示',
+                {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }
+            );
+
             const res = await deleteQuestionAPI(id);
             if (res.data.code === 200) {
                 ElMessage.success('删除题目成功');

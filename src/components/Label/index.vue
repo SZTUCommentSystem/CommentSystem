@@ -116,9 +116,22 @@ const props = defineProps({
   selectMode: {
     type: Boolean,
     default: false
+  }, 
+  selectedIds: {
+    type: Array as () => number[],
+    default: () => []
   }
 });
+const emit = defineEmits(['confirm']);
+
 const selectedIds = ref<number[]>([]); // 选择模式下已选标签ID
+watch(
+  () => props.selectedIds,
+  (val) => {
+    selectedIds.value = [...val];
+  },
+  { immediate: true }
+);
 
 // 选择标签
 const handleSelectTag = (id: number) => {
@@ -130,9 +143,11 @@ const handleSelectTag = (id: number) => {
   }
 };
 // 确认选择，传递给父组件
-const emit = defineEmits(['confirm']);
 const confirmSelect = () => {
-  emit('confirm', [...selectedIds.value]);
+  // 只传递已选中的完整标签对象
+  const selectedTags = showTags.value.filter(tag => selectedIds.value.includes(tag.topicLabelId));
+  console.log('已选标签:', selectedTags);
+  emit('confirm', selectedTags);
 };
 
 
@@ -305,6 +320,8 @@ const getShowTags = async () => {
   if (res.data.code == 200) {
     showTags.value = res.data.rows;
     console.log('当前章节标签列表:', showTags.value);
+    const validIds = showTags.value.map(tag => tag.topicLabelId);
+    selectedIds.value = selectedIds.value.filter(id => validIds.includes(id));
   }
 }
 

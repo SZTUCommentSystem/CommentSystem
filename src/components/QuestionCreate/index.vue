@@ -4,23 +4,51 @@
       <el-page-header @back="$router.push('/home/question')" content="创建题目" title="返回" />
     </div>
     <div class="create-title-top">
+      <!-- 左盒子 -->
       <div class="left">
         <div class="create-list">
           <div class="create-title">
-            <p>题目批语：</p>
+            <div class="flex-between">
+              <p>题目批语：</p>
+              <el-button type="primary" plain @click="showDialog = true" style="border-radius: 10px;margin-right: 0;">添加批语</el-button>
+            </div>
           </div>
-          <CategoryList :categories="category" />
+          <el-tag 
+            v-for="comment in questionContent.comments" 
+            :key="comment" 
+            type="primary" 
+            effect="plain" 
+            round 
+            size="large"
+            closable 
+            @close="handleCloseComment(comment)"
+            style="margin-right: 10px; margin-bottom: 10px; font-size: 16px;"
+          >{{ comment.commentName }}</el-tag>
         </div>
       </div>
+      <el-dialog
+        v-model="showDialog"
+        title="选择批语"
+        width="80%"
+        align-center
+      >
+        <Library 
+          :selectMode="true"
+          :selectedIds="questionContent.comments.map(t=>t.commentId)"
+          @confirm="handleCommentConfirm"
+        ></Library>
+      </el-dialog>
+
+      <!-- 右盒子 -->
       <div class="right">
         <div class="create-list">
           <p>标题：</p>
-          <input type="text" v-model="questionContent.title" placeholder="请输入题目标题" />
+          <input type="text" v-model="questionContent.topicTitle" placeholder="请输入题目标题" />
         </div>
         <div class="create-list">
           <p>题目类型：</p>
           <el-select
-            v-model="questionContent.type"
+            v-model="questionContent.topicType"
             placeholder="请选择题目类型"
             style="width: 100%;"
             popper-class="type-select-dropdown"
@@ -88,13 +116,13 @@
         <div class="create-list">
           <p>题目标签：</p>
           <div class="tag">
-            <el-tag v-for="tag in questionContent.tags" :key="tag" type="primary" effect="plain" round size="large"
-              closable @close="handleCloseTag(tag)">{{ tag }}</el-tag>
+            <el-tag v-for="tag in questionContent.labels" :key="tag" type="primary" effect="plain" round size="large"
+              closable @close="handleCloseTag(tag)">{{ tag.topicLabelName }}</el-tag>
             <el-button type="primary" plain style="border-radius: 20px;" @click="drawerTag = true">+ 添加</el-button>
             <el-drawer v-model="drawerTag" title="选择标签">
               <Label
                 :selectMode="true"
-                :selectedIds="questionContent.tags"
+                :selectedIds="questionContent.labels.map(t=>t.topicLabelId)"
                 @confirm="handleTagConfirm"
               />
             </el-drawer>
@@ -102,10 +130,15 @@
         </div>
         <div class="create-list">
           <p>作业相关图片：</p>
-          <el-upload ref="upload" v-model:file-list="questionContent.imgs"
-            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" list-type="picture-card"
-            :auto-upload="false" :before-upload="beforeUpload" :on-preview="handlePictureCardPreview"
-            :on-remove="handleRemove">
+          <el-upload 
+            ref="upload" 
+            v-model:file-list="questionContent.topicUrls"
+            list-type="picture-card"
+            :auto-upload="false" 
+            :before-upload="beforeUpload" 
+            :on-preview="handlePictureCardPreview"
+            :on-remove="handleRemove"
+          >
             <el-icon>
               <Plus />
             </el-icon>
@@ -116,7 +149,7 @@
         </div>
         <div class="create-list">
           <p>题目描述（可选）：</p>
-          <editor-markdown v-model="questionContent.description"></editor-markdown>
+          <editor-markdown v-model="questionContent.topicInfo"></editor-markdown>
         </div>
       </div>
     </div>
@@ -137,8 +170,9 @@ import { useUserStore } from '@/store/user'
 import { ElMessageBox, ElMessage, type UploadProps } from 'element-plus'
 
 import EditorMarkdown from '@/components/Generic/Editor.vue'
-import CategoryList from '@/components/Generic/CategoryList.vue'
+// import CategoryList from '@/components/Generic/CategoryList.vue'
 import Label from '@/components/Label/index.vue'
+import Library from '@/components/Library/index.vue'
 
 import { addQuestionAPI } from '@/api/QuestionAPI'
 import { questionTypeAPI, addQuestionTypeAPI, changeQuestionTypeAPI, deleteQuestionTypeAPI } from '../../api/QuestionAPI';
@@ -147,14 +181,31 @@ const userStore = useUserStore()
 const router = useRouter()
 
 const questionContent = reactive({
-  title: '',
-  type: '',
-  tags: [],
-  imgs: [],
-  description: '',
-  displayComments: [],
+  topicTitle: '',
+  topicType: '',
+  labels: [],
+  topicUrls: [],
+  topicInfo: '',
+  comments: [],
 })
 
+// 左盒子内容
+const showDialog = ref(false)
+const handleCommentConfirm = (comments: any) => {
+  if (!Array.isArray(comments) || comments.length === 0) {
+    ElMessage.warning('请选择至少一个批语')
+    return
+  }
+  console.log('Selected tags:', comments)
+  questionContent.comments = comments
+  showDialog.value = false
+}
+const handleCloseComment = (comment: string) => {
+  const idx = questionContent.comments.indexOf(comment)
+  if (idx > -1) questionContent.comments.splice(idx, 1)
+}
+
+// 右盒子内容
 // 题目类型相关
 // 获取类型列表
 const typeList = ref([])
@@ -276,69 +327,42 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 const beforeUpload = () => false
 
 const handleCloseTag = (tag: string) => {
-  const idx = questionContent.tags.indexOf(tag)
-  if (idx > -1) questionContent.tags.splice(idx, 1)
+  const idx = questionContent.labels.indexOf(tag)
+  if (idx > -1) questionContent.labels.splice(idx, 1)
 }
-const handleTagConfirm = (ids: string[] | number[]) => {
-  questionContent.tags = [...ids].map(String)
+const handleTagConfirm = (tags: any) => {
+  if (!Array.isArray(tags) || tags.length === 0) {
+    ElMessage.warning('请选择至少一个标签')
+    return
+  }
+  console.log('Selected tags:', tags)
+  questionContent.labels = tags
   drawerTag.value = false
 }
 
-const category = ref([
-  {
-    id: 1,
-    name: '分类A',
-    comments: [
-      '你在这个项目中展现了极高的专业水平。',
-      '你的思考方式为大家打开了新的视野。'
-    ],
-    isEditing: false,
-    spreadIndex: false,
-    subcategories: [
-      {
-        id: 4,
-        name: '子分类A1',
-        comments: [
-          '子分类A1的评论1。',
-          '子分类A1的评论2。'
-        ],
-        isEditing: false,
-        spreadIndex: false,
-        subcategories: []
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '分类B',
-    comments: [
-      '你在这个项目中展现了极高的专业水平。',
-      '你的思考方式为大家打开了新的视野。'
-    ],
-    isEditing: false,
-    spreadIndex: false,
-    subcategories: []
-  },
-  {
-    id: 3,
-    name: '分类C',
-    comments: [
-      '你在这个项目中展现了极高的专业水平。',
-      '你的思考方式为大家打开了新的视野。'
-    ],
-    isEditing: false,
-    spreadIndex: false,
-    subcategories: []
-  }
-])
 
+// 提交
 const submitQuestion = async () => {
+  let data = {
+    courseId: userStore.selectClass.courseId,
+    topicTitle: questionContent.topicTitle.trim(),
+    topicTypeId: (typeList.value.find(item => item.topicTypeName === questionContent.topicType)?.topicTypeId ?? '').toString(),
+    labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
+    topicUrls: questionContent.topicUrls.map(url => url.url).join(','),
+    topicInfo: questionContent.topicInfo,
+    commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+  }
   try {
-    await addQuestionAPI(questionContent)
-    router.push({
-      path: '/home/question',
-      query: { forceRefresh: Date.now() },
-    })
+    const res = await addQuestionAPI(data)
+    if(res.data.code === 200) {
+      ElMessage.success('提交题目成功')
+      router.push({
+        name: 'question',
+        query: { forceRefresh: Date.now() },
+      })
+    } else {
+      ElMessage.error('提交题目失败，请稍后再试')
+    }
   } catch (error) {
     console.error('提交题目失败:', error)
   }
@@ -430,6 +454,13 @@ onMounted(() => {
             margin: 0;
             font-size: 18px;
             margin-bottom: 10px;
+        }
+
+        .flex-between {
+          display: flex;
+          justify-content: space-between; 
+          align-items: center;
+          width: 100%
         }
     }
 

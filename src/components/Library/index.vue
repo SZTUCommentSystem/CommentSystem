@@ -1,8 +1,8 @@
 <template>
-  <el-row class="con">
+  <el-row class="con" :style="rowStyle">
     <el-col :span="6">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-        <span class="h5">批语库分类</span>
+        <span class="h5"></span>
         <el-button @click="faDialogVisible = true">新增章节</el-button>
         <el-button @click="sonDialogVisible = true">新增子章节</el-button>
       </div>
@@ -19,7 +19,7 @@
     </el-col>
     <el-col :span="18">
       <div class="header-container" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
-        <span class="h5">批语库列表</span>
+        <span class="h5">批语列表</span>
         <el-button @click="dialogVisible = true">新增批语</el-button>
         <el-dialog v-model="dialogVisible" title="添加批语" width="600">
           <div>
@@ -44,11 +44,16 @@
         <el-table :data="selectedBaseComments" style="width: 100%" empty-text="暂无批语内容">
           <el-table-column label="批语内容">
             <template #default="{ row }">
-              <div class="list_item">
+              <div
+                class="list_item"
+                :class="{ 'comment-selected': props.selectMode && selectedIds.includes(row.commentId) }"
+                @click="props.selectMode && handleSelectComment(row.commentId)"
+                style="cursor: pointer;"
+              >
                 <span>{{ row.commentName }}</span>
-                <div class="rig">
-                  <img src="@/assets/img/编辑.png" class="edit-icon" @click="getCurrentComment(row)" />
-                  <img src="@/assets/img/删除2.png" class="edit-icon" @click="deleteComment(row)" />
+                <div class="rig" v-if="!props.selectMode">
+                  <img src="@/assets/img/编辑.png" class="edit-icon" @click.stop="getCurrentComment(row)" />
+                  <img src="@/assets/img/删除2.png" class="edit-icon" @click.stop="deleteComment(row)" />
                 </div>
               </div>
             </template>
@@ -115,7 +120,7 @@
           <el-input v-model="editComment" style="width: 80%" placeholder="请输入修改批语" />
         </div>
         <template #footer>
-          <div class="dialog-footer">
+          <div>
             <el-button @click="editCommentDialogVisible = false">取消</el-button>
             <el-button type="primary" @click="changeCommentContent">
               修改
@@ -128,11 +133,15 @@
         <el-pagination background layout="prev, pager, next" :total="selectedBaseComments.length" />
       </div>
     </el-col>
+    <!-- 选择模式下显示确认按钮 -->
+    <div v-if="props.selectMode" style="display: flex; justify-content: flex-end; width: 100%; margin-top: 16px;">
+      <el-button type="primary" @click="confirmSelect">确认</el-button>
+    </div>
   </el-row>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import CategoryMenu from './components/CategoryMenu.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
@@ -141,6 +150,47 @@ import {
   getTypeListAPI, deleteTypeAPI, addTypeAPI, changeTypeAPI
 } from "@/api/CommentsAPI";
 import { useUserStore } from '../../store/user'
+
+// 判断组件模式
+const props = defineProps({
+  selectMode: {
+    type: Boolean,
+    default: false
+  },
+  selectedIds: {
+    type: Array as () => number[],
+    default: () => []
+  }
+});
+const emit = defineEmits(['confirm']);
+
+const selectedIds = ref<number[]>([]); // 选择模式下已选批语ID
+watch(
+  () => props.selectedIds,
+  (val) => {
+    selectedIds.value = [...val];
+  },
+  { immediate: true }
+);
+
+const handleSelectComment = (id: number) => {
+  const idx = selectedIds.value.indexOf(id);
+  if (idx > -1) {
+    selectedIds.value.splice(idx, 1);
+  } else {
+    selectedIds.value.push(id);
+  }
+};
+const confirmSelect = () => {
+  // 只传递已选中的完整批语对象
+  const allComments = commentList.value;
+  const selectedComments = allComments.filter(c => selectedIds.value.includes(c.commentId));
+  emit('confirm', selectedComments);
+};
+
+const rowStyle = computed(() => ({
+  width: props.selectMode ? '90%' : '80%'
+}));
 
 // 获取用户信息
 const userStore = useUserStore();
@@ -154,7 +204,7 @@ const handleMouseEnter = () => { isHovered.value = true; };
 const handleMouseLeave = () => { isHovered.value = false; };
 
 const activeMenu = ref(''); // 当前选中的菜单index
-const selectedBaseComments = ref<string[]>([]);
+const selectedBaseComments = ref<any[]>([]);
 
 // 分类树格式化
 const formatTypeList = (rawList: any[]) => {
@@ -545,7 +595,6 @@ onMounted(() => {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 80%;
   margin: 0 auto;
   text-align: center;
 }
@@ -690,5 +739,10 @@ onMounted(() => {
   text-align: right;
   margin-right: 10px;
   color: #333;
+}
+
+.comment-selected {
+  border: 2px solid #67c23a !important;
+  background: #f0f9eb !important;
 }
 </style>

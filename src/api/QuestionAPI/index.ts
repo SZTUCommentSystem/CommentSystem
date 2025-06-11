@@ -38,7 +38,7 @@ export const updateQuestionAPI = (data: Object) => {
 export const deleteQuestionAPI = (id: number) => {
     return request({
         url: `function/topic/${id}`,
-        method: "get",
+        method: "delete",
     })
 }
 
