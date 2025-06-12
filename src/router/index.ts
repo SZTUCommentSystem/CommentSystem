@@ -43,17 +43,17 @@ const router = createRouter({
         {
           path: '/home/question',
           name: 'question',
-          component: () => import('../components/Question/index.vue')
+          component: () => import('../components/Question/list.vue')
         },
         {
           path: '/home/question/questiondetail',
           name: 'questiondetail',
-          component: () => import('../components/QuestionDetail/index.vue')
+          component: () => import('../components/Question/detail.vue')
         },
         {
           path: '/home/question/questioncreate',
           name: 'questioncreate',
-          component: () => import('../components/QuestionCreate/index.vue')
+          component: () => import('../components/Question/create.vue')
         },
         {
           path: '/home/course',

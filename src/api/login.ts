@@ -26,3 +26,15 @@ export const getUserInfoAPI = () => {
         method: 'get'
     })
 }
+
+// 上传
+export const uploadFileAPI = (file: FormData) => {
+    return request({
+        url: '/common/upload',
+        method: 'post',
+        data: file,
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}

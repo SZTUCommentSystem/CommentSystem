@@ -2,19 +2,21 @@ import { ref, reactive, computed, watch } from "vue";
 import { questionListAPI, deleteQuestionAPI, questionTypeAPI } from '../../api/QuestionAPI';
 import { labelInfoAPI } from "@/api/LabelAPI";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { useUserStore } from "@/store/user";
 
 export default function QuestionListDisplay() {
     const state = reactive({
         questionList: [],
         // 分页相关的状态
         currentPage: 1, // 当前页码
-        pageSize: 20, // 每页显示的题目数量
+        pageSize: 10, // 每页显示的题目数量
+        total: 0, // 题目总数
         selectedType: '', // 选中的题目类型
         searchQuery: '', // 搜索关键词
-        searchTag: '', // 搜索标签
     });
 
     const questionTypeList = ref([]);
+    const useStore = useUserStore();
 
     // 标签名缓存
     const topicLabelNameMap = ref<Record<number, string>>({});
@@ -56,7 +58,7 @@ export default function QuestionListDisplay() {
     // 获取题目类型列表
     const getTypeList = async () => {
         try {
-            const res = await questionTypeAPI();
+            const res = await questionTypeAPI({pageSize: 9999});
             if (res.data.code == 200) {
                 questionTypeList.value = res.data.rows;
             }
@@ -68,10 +70,18 @@ export default function QuestionListDisplay() {
 
     // 获取题目列表并预取标签名
     const getList = async () => {
+        let data = {
+            pageNum: state.currentPage,
+            pageSize: state.pageSize,
+            courseId: useStore.selectClass.courseId,
+            topicTypeId: state.selectedType,
+            topicTitle: state.searchQuery,
+        }
         try {
-            const res = await questionListAPI();
+            const res = await questionListAPI(data);
             if (res.data.code == 200) {
                 state.questionList = res.data.rows;
+                state.total = res.data.total;
                 await prefetchAllLabelNames(res.data.rows);
             }
         } catch (error) {
@@ -116,32 +126,25 @@ export default function QuestionListDisplay() {
             const labelArr = question.labelIds
                 ? question.labelIds.split(',').map(Number)
                 : [];
-            const matchesTag = state.searchTag
-                ? labelArr.includes(Number(state.searchTag))
-                : true;
-            return matchesType && matchesSearch && matchesTag;
+            return matchesType && matchesSearch;
         })
     );
 
+    let timer:any = null;
     // 监听筛选条件变化，重置页码
     watch(
-        () => [state.selectedType, state.searchQuery, state.searchTag],
+        () => [state.selectedType, state.searchQuery, state.currentPage, state.pageSize],
         () => {
-            state.currentPage = 1;
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                state.currentPage = 1; // 重置页码
+                getList(); // 重新获取题目列表
+            }, 400);
         }
     );
 
     // 计算当前页显示的题目（基于过滤后的题目）
-    const paginatedQuestions = computed(() => {
-        const total = filteredQuestions.value.length;
-        const maxPage = Math.max(1, Math.ceil(total / state.pageSize));
-        if (state.currentPage > maxPage) {
-            state.currentPage = maxPage;
-        }
-        const start = (state.currentPage - 1) * state.pageSize;
-        const end = start + state.pageSize;
-        return filteredQuestions.value.slice(start, end);
-    });
+    const paginatedQuestions = computed(() => state.questionList);
 
     // 处理分页变化
     const handlePageChange = (page: number) => {

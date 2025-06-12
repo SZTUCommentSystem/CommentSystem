@@ -1,9 +1,18 @@
 import request from "@/utils/https";
 
 // 获取问题列表
-export const questionListAPI = () => {
+export const questionListAPI = (data: Object) => {
     return request({
         url: 'function/topic/list',
+        method: "get",
+        params: data
+    })
+}
+
+// 获取问题详情
+export const questionDetailAPI = (id: number) => {
+    return request({
+        url: `function/topic/${id}`,
         method: "get",
     })
 }
@@ -17,16 +26,8 @@ export const addQuestionAPI = (data: Object) => {
     })
 }
 
-// 获取问题详情
-export const questionDetailAPI = (id: number) => {
-    return request({
-        url: `function/topic/${id}`,
-        method: "get",
-    })
-}
-
 // 更新问题
-export const updateQuestionAPI = (data: Object) => {
+export const changeQuestionAPI = (data: Object) => {
     return request({
         url: 'function/topic',
         method: "put",
@@ -43,10 +44,11 @@ export const deleteQuestionAPI = (id: number) => {
 }
 
 // 获取问题类型列表
-export const questionTypeAPI = () => {
+export const questionTypeAPI = (data: Object) => {
     return request({
         url: 'function/topictype/list',
         method: "get",
+        data
     })
 }
 
@@ -81,5 +83,14 @@ export const deleteQuestionTypeAPI = (id: number) => {
     return request({
         url: `function/topictype/${id}`,
         method: "delete",
+    })
+}
+
+// 获取题目对应的批语列表
+export const questionCommentListAPI = (id: number) => {
+    return request({
+        url: `function/topicComment/list`,
+        method: "get",
+        params: { topicId: id }
     })
 }

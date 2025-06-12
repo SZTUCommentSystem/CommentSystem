@@ -9,7 +9,7 @@ export const getCommentListAPI = () => {
 };
 
 // 获取批语详情
-export const getCommentDetailAPI = (id: string) => {
+export const getCommentDetailAPI = (id: number) => {
   return request({
     url: `function/comment/${id}`,
     method: "get",
