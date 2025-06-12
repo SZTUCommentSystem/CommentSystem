@@ -100,13 +100,22 @@
 import type { ElPageHeader } from "element-plus";
 import {computed, onMounted, ref} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { classDetailAPI } from '@/api/ClassAPI/index'
+
+import { classDetailAPI, studentListAPI } from '@/api/ClassAPI/index'
 
 const source = ref(0)
 source.value = 72
 
 const router = useRouter()
 const route = useRoute()
+
+interface student {
+  studentId: number;
+  studentName: string;
+  userId: number;
+}
+
+const studentList = ref([])
 //数据拟定
 const students = ref(Array.from({ length: 50 }, (_, i) => ({
   id: `2022002020${String(i + 1).padStart(2, '0')}`,
@@ -118,8 +127,8 @@ const students = ref(Array.from({ length: 50 }, (_, i) => ({
 // 获取学生列表
 const getStudentsList = async () => {
   try {
-    const res = await classDetailAPI(route.query.classId as string)
-    students.value = res.data.rows
+    const res = await studentListAPI(Number(route.query.classId))
+    studentList.value = res.data.rows
     console.log('获取学生列表成功:', students.value)
   } catch (error) {
     console.error('获取学生列表失败:', error)

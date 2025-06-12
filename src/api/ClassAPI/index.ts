@@ -15,3 +15,12 @@ export const classDetailAPI = (classId: string) => {
         method: "get",
     })
 }
+
+// 获取学生列表
+export const studentListAPI = (classId: number) => {
+    return request({
+        url: `function/student/list`,
+        method: "get",
+        params: { classId }
+    })
+}
