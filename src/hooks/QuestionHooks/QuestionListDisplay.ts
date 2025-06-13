@@ -57,8 +57,13 @@ export default function QuestionListDisplay() {
 
     // 获取题目类型列表
     const getTypeList = async () => {
+       let data = {
+            courseId: useStore.selectClass.courseId,
+            pageNum: 1,
+            pageSize: 1000,
+        };
         try {
-            const res = await questionTypeAPI({pageSize: 9999});
+            const res = await questionTypeAPI(data);
             if (res.data.code == 200) {
                 questionTypeList.value = res.data.rows;
             }
@@ -113,23 +118,6 @@ export default function QuestionListDisplay() {
         }
     }
 
-    // 过滤后的题目列表
-    const filteredQuestions = computed(() =>
-        state.questionList.filter((question: any) => {
-            // 题型过滤
-            const matchesType = state.selectedType
-                ? String(question.topicTypeId) === String(state.selectedType)
-                : true;
-            // 标题搜索
-            const matchesSearch = question.topicTitle.includes(state.searchQuery);
-            // 标签过滤（数字数组）
-            const labelArr = question.labelIds
-                ? question.labelIds.split(',').map(Number)
-                : [];
-            return matchesType && matchesSearch;
-        })
-    );
-
     let timer:any = null;
     // 监听筛选条件变化，重置页码
     watch(
@@ -164,7 +152,6 @@ export default function QuestionListDisplay() {
         getList,
         getTypeList,
         handleDel,
-        filteredQuestions,
         paginatedQuestions,
         handlePageChange,
         handlePageSizeChange

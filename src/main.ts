@@ -12,6 +12,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 // 引入 Element Plus
 import ElementPlus from 'element-plus';
+import { zhCn } from 'element-plus/es/locales.mjs'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/index.css';
 
@@ -43,7 +44,7 @@ pinia.use(piniaPluginPersistedstate) // 使用持久化插件
 
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus)
+app.use(ElementPlus, {locale: zhCn});
 app.use(VueMarkdownEditor);
 
 app.mount('#app')

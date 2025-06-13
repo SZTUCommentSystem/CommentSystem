@@ -91,9 +91,7 @@ const getQuestionContent = async () => {
 // 获取题目id对应的类型
 const getTypeName = (typeId: number) => {
   const typeList = right.value.getTypeListValue()
-  console.log('获取到的题目类型列表:', typeList);
   const type = typeList.find((item: any) => item.topicTypeId === typeId)
-  console.log('获取到的题目类型:', type);
   return type ? type.topicTypeName : ''
 }
 

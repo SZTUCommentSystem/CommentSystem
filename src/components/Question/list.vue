@@ -86,7 +86,6 @@ const {
   getTypeList,
   handleDel,
   getLabelById,
-  filteredQuestions,
   paginatedQuestions,
   handlePageChange,
   handlePageSizeChange,

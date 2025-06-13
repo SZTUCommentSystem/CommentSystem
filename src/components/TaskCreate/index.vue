@@ -22,12 +22,12 @@
             <p>请选择本次作业的题目：</p>
             <el-button type="primary" plain @click="selDialogVisible = true">去题库选择</el-button>
             <ul style="padding: 0; margin-top: 10px;">
-                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.id">
+                <li style="margin-bottom: 10px;" v-for="problem in problems" :key="problem.topicId">
                     <div class="problem">
-                        <span>{{ problem.title }}</span>
-                        <span>{{ problem.type }}</span>
+                        <span>{{ problem.topicTitle }}</span>
+                        <span>{{ problem.topicLabelName }}</span>
                         <div class="problem-tag">
-                            <el-tag v-for="tag in problem.tags" :key="tag">
+                            <el-tag v-for="tag in problem.labelNames" :key="tag">
                                 {{ tag }}
                             </el-tag>
                         </div>
@@ -46,8 +46,8 @@
         <div class="create-title">
             <p>请选择本次作业的截止时间：</p>
             <div class="block">
-                <el-date-picker v-model="taskContent.deadline" type="datetimerange" start-placeholder="Start date"
-                    end-placeholder="End date" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
+                <el-date-picker v-model="taskContent.deadline" type="datetimerange" start-placeholder="开始日期"
+                    end-placeholder="结束日期" format="YYYY-MM-DD HH:mm:ss" date-format="YYYY/MM/DD ddd"
                     time-format="A hh:mm:ss" />
             </div>
         </div>
@@ -63,48 +63,34 @@
             <div class="select">
                 <ul class="select-header">
                     <li>
-                        <el-select v-model="search.searchType" placeholder="选择题目类型"
+                        <el-select v-model="search.searchType" placeholder="全部"
                             style="margin-right: 10px; width: 200px;">
                             <el-option label="全部" value=""></el-option>
-                            <el-option label="选择题" value="选择题"></el-option>
-                            <el-option label="填空题" value="填空题"></el-option>
-                            <el-option label="判断题" value="判断题"></el-option>
-                            <el-option label="编程题" value="编程题"></el-option>
-                            <el-option label="工程制图" value="工程制图"></el-option>
-                            <el-option label="工程设计" value="工程设计"></el-option>
+                            <el-option
+                                v-for="type in questionTypeList" :key="type.topicTypeId"
+                                :label="type.topicTypeName" :value="type.topicTypeId">
+                            </el-option>
                         </el-select>
                     </li>
                     <li>
                         <el-input v-model="search.searchQuestion" placeholder="搜索题目"
                             style="width: 200px; font-size: 15px" :prefix-icon="Search" />
                     </li>
-                    <li>
-                        <el-input v-model="search.searchTag" placeholder="搜索标签" style="width: 200px; font-size: 15px"
-                            :prefix-icon="Search" />
-                    </li>
                 </ul>
-                <div class="select-title">
-                    <span style="margin-right: 22%;">序号</span>
-                    <span style="margin-right: 27%;">标题</span>
-                    <span style="margin-right: 31%;">类型</span>
-                    <span>标签</span>
-                </div>
-                <ul style="margin:0;padding: 0; margin-top: 10px;width: 100%;">
-                    <li style="margin-bottom: 10px;" v-for="(problem, index) in questionList" :key="index">
-                        <div class="select-problem" @click="dynamicArray[index].checked = !dynamicArray[index].checked"
-                            :class="{ blue: dynamicArray[index].checked }">
-                            <span>{{ index }}</span>
-                            <span>{{ problem.title }}</span>
-                            <span>{{ problem.type }}</span>
-                            <div class="problem-tag">
-                                <el-tag v-for="tag in problem.tags" :key="tag">
-                                    {{ tag }}
-                                </el-tag>
-                            </div>
-                            <div class="selected" v-show="dynamicArray[index].checked === true">√</div>
-                        </div>
-                    </li>
-                </ul>
+                <el-table :data="questionList" style="width: 100%">
+                    <el-table-column label="序号" width="60">
+                        <template #default="scope">
+                        {{ scope.$index + 1 }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="topicLabelName" width="200" label="类型" />
+                    <el-table-column prop="topicTitle" label="标题" />
+                    <el-table-column label="标签">
+                        <template #default="scope">
+                            <el-tag v-for="tag in scope.row.labelNames" :key="tag" style="margin-left: 5px;">{{ tag }}</el-tag>
+                        </template>
+                    </el-table-column>
+                </el-table>
             </div>
             <template #footer>
                 <div class="dialog-footer">
@@ -123,90 +109,195 @@ import { ElMessageBox, ElMessage } from 'element-plus';
 import * as dayjs from 'dayjs';
 import { ref, reactive, watch, onMounted } from 'vue';
 import { Search } from '@element-plus/icons-vue';
-import { questionListAPI } from '@/api/QuestionAPI';
-import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
-import { useRouter } from 'vue-router';
 
-// 路由
+import { questionListAPI, questionTypeAPI } from '@/api/QuestionAPI';
+import { labelInfoAPI } from '@/api/LabelAPI';
+import { SubmitTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
+
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/store/user';
+
+const useStore = useUserStore();
 const router = useRouter();
 
+// 定义作业内容的类型
 interface TaskContent {
     title: string;
     description: string;
     problemIds: number[];
     deadline: Date[];
-    catalogue: string; // 添加 目录 字段
-    tags?: string[]; // 可选的标签字段
+    catalogue: string;
+    tags?: string[];
 }
 
-// 作业内容
 const taskContent = reactive<TaskContent>({
     title: '',
     description: '',
     problemIds: [],
     deadline: [],
-    catalogue: '', // 初始化 catalogue 字段
+    catalogue: '',
 });
 
-// 题目
-// 展示可选择的题目
-const search = reactive({
+// 获取题目类型列表
+interface QuestionType {
+    courseId: number;
+    topicTypeId: number;
+    topicTypeName: string;
+}
+const questionTypeList = ref<QuestionType[]>([]);
+
+const getTypeList = async () => {
+    let data = {
+        courseId: useStore.selectClass.courseId,
+        pageNum: 1,
+        pageSize: 1000,
+    };
+    try {
+        const res = await questionTypeAPI(data);
+        if (res.data.code == 200) {
+            questionTypeList.value = res.data.rows;
+        }
+    }
+    catch (error) {
+        console.error('获取题目类型列表失败:', error);
+    }
+};
+
+// 模糊搜索功能
+const search = reactive<{
+    searchType: string;
+    searchQuestion: string;
+}>({
     searchType: '',
     searchQuestion: '',
-    searchTag: '',
 });
-const questionList = ref([]);
-// 获取题目列表
-const getQuestionList = async () => {
-    const res = await questionListAPI();
-    questionList.value = res.data.data;
-    console.log("获取的题目列表:", questionList.value); // 检查题目数据是否正确
+
+// 获取题目类型名称
+const getTypeName = (typeId: number) => {
+    const type = questionTypeList.value.find(item => item.topicTypeId === typeId);
+    return type ? type.topicTypeName : '';
 };
 
-// 动态创建可选择数组
-const dynamicArray = ref([]);
+// 获取题目标签信息
+const labelCache = new Map<number, string>();
+const pendingLabelRequests = new Map<number, Promise<string>>();
+
+const getLabelName = async (id: number) => {
+    if (labelCache.has(id)) {
+        return labelCache.get(id)!;
+    }
+    if (pendingLabelRequests.has(id)) {
+        return pendingLabelRequests.get(id)!;
+    }
+    // 发起请求并存入 pending
+    const promise = labelInfoAPI(id).then(res => {
+        if (res.data.code === 200) {
+            const name = res.data.data.topicLabelName;
+            labelCache.set(id, name);
+            pendingLabelRequests.delete(id);
+            return name;
+        } else {
+            pendingLabelRequests.delete(id);
+            return '';
+        }
+    });
+    pendingLabelRequests.set(id, promise);
+    return promise;
+};
+
+const getLabelNamesByIds = async (labelIds: string) => {
+    if (!labelIds) return [];
+    const ids = labelIds.split(',').map(Number).filter(id => !isNaN(id));
+    const names = await Promise.all(ids.map(id => getLabelName(id)));
+    return names;
+};
+
+// 题目列表
+interface Question {
+    courseId: number;
+    labelIds: string;
+    topicId: number;
+    topicTitle: string;
+    topicTypeId: number;
+    topicLabelName?: string;
+    labelNames?: string[];
+}
+const questionList = ref<Question[]>([]);
+
+const getQuestionList = async () => {
+    let data = {
+        courseId: useStore.selectClass.courseId,
+        pageNum: 1,
+        pageSize: 10,
+        topicTypeId: search.searchType ? Number(search.searchType) : undefined,
+        topicTitle: search.searchQuestion || undefined,
+    };
+
+    const res = await questionListAPI(data);
+    if (res.data.code === 200) {
+        // 格式化每个题目的类型名和标签名
+        const formatted = await Promise.all(res.data.rows.map(async (item: any) => ({
+            ...item,
+            topicLabelName: getTypeName(item.topicTypeId),
+            labelNames: await getLabelNamesByIds(item.labelIds),
+        })));
+        questionList.value = formatted;
+    }
+};
+
+// 动态数组，用于存储选中的题目
+const dynamicArray = ref<{ questionId: number; checked: boolean }[]>([]);
+
 watch(questionList, (newVal, oldVal) => {
     if (newVal !== oldVal) {
-        // 根据 problems 列表的长度动态创建一个数组
-        dynamicArray.value = new Array(newVal.length).fill(null).map((_, index) => {
-            return { questionId: questionList.value[index].id, checked: false };
-        });
-        console.log("动态数组更新:", dynamicArray.value); // 确保动态数组正确更新
+        dynamicArray.value = newVal.map(item => ({
+            questionId: item.topicId,
+            checked: false,
+        }));
     }
 });
 
-// 被选择的题目
-const problems = ref([]);
+const problems = ref<any[]>([]);
+const tags = ref<string[]>([]);
 
-// 标签
-const tags = ref([]);
+let timer:any = null;
+watch(
+    () => [search.searchType, search.searchQuestion],
+    () => {
+        if (timer) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+            getQuestionList();
+        }, 300);
+    },
+    {
+        immediate: true
+    }
+)
 
-// 判断是否选择了题目
 watch(problems, (newVal, oldVal) => {
     if (newVal !== oldVal) {
-        const allTags = newVal.map((item) => item.tags).flat();
+        const allTags = newVal.map(item => item.labelNames).flat();
         tags.value = Array.from(new Set(allTags));
     }
-})
+});
 
-// 选择题目相关
 const selDialogVisible = ref(false);
-const selectProblem = () => {
-    console.log("选择前的 dynamicArray:", dynamicArray.value); // 先打印动态数组的状态
 
+const selectProblem = () => {
     taskContent.problemIds = dynamicArray.value
-        .filter((item) => item.checked)
-        .map((item) => item.questionId);
+        .filter(item => item.checked)
+        .map(item => item.questionId);
 
     problems.value = dynamicArray.value
-        .filter((item) => item.checked)
-        .map((item) => questionList.value.find(q => q.id === item.questionId));
+        .filter(item => item.checked)
+        .map(item => questionList.value.find(q => q.topicId === item.questionId))
+        .filter(Boolean);
 
     selDialogVisible.value = false;
-
-    console.log("选中的题目 ID:", taskContent.problemIds);
-    console.log("选中的题目信息:", problems.value);
 };
+
 // 提交作业
 const submitTask = async () => {
     try {
@@ -232,28 +323,21 @@ const submitTask = async () => {
             return;
         }
 
-        // 格式化日期
         const formattedDeadline = taskContent.deadline.map((date: Date) =>
             dayjs(date).format('YYYY-MM-DD HH:mm:ss')
         );
 
-        // 将 tags 添加到 taskContent
         taskContent.tags = tags.value;
 
-        // 获取选中的题目 ID
         taskContent.problemIds = dynamicArray.value
             .filter(item => item.checked)
             .map(item => item.questionId);
 
-        // 构造提交对象，避免类型冲突
         const submitData = {
             ...taskContent,
             deadline: formattedDeadline
         };
 
-        console.log("提交时的任务内容:", submitData); // 确保数据正确
-
-        // 提交
         const res = await SubmitTaskAPI(submitData);
         if (res.data.code === 200) {
             ElMessageBox.alert('提交成功！', '成功', {
@@ -269,10 +353,7 @@ const submitTask = async () => {
                 type: 'error',
             });
         }
-
-        console.log("提交结果:", res);
     } catch (error) {
-        console.log("提交错误:", error);
         ElMessageBox.alert('提交过程中发生错误，请重试！', '错误', {
             confirmButtonText: '确定',
             type: 'error',
@@ -281,6 +362,7 @@ const submitTask = async () => {
 };
 
 onMounted(() => {
+    getTypeList();
     getQuestionList();
 });
 </script>
@@ -289,14 +371,11 @@ onMounted(() => {
 .blue {
     border: 1px solid #409eff !important;
 }
-
 .create-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-
 }
-
 .header {
     font-size: 20px;
     background-color: white;
@@ -304,14 +383,11 @@ onMounted(() => {
     width: 100%;
     margin-bottom: 10px
 }
-
 .create-title-top {
     display: flex;
     justify-content: space-between;
     width: 100%;
     margin-bottom: 10px;
-
-
     .left,
     .right {
         display: flex;
@@ -320,19 +396,15 @@ onMounted(() => {
         background-color: #fff;
         width: 49%;
     }
-
-
     .right {
         width: 50%;
         margin-left: 10px;
     }
-
     p {
         margin: 0;
         font-size: 18px;
         margin-bottom: 10px;
     }
-
     input {
         display: inline-block;
         width: 100%;
@@ -340,31 +412,25 @@ onMounted(() => {
         padding-left: 10px;
         border: 1px solid #ccc;
         border-radius: 10px;
-
         &:focus {
             outline: none;
         }
     }
 }
-
 .create-title {
     display: flex;
-    /* 纵向排列 */
     flex-direction: column;
-    /* 向左对齐 */
     align-items: flex-start;
     width: 100%;
     height: 98px;
     margin-bottom: 5px;
     padding: 10px 20px;
     background-color: #fff;
-
     p {
         margin: 0;
         font-size: 18px;
         margin-bottom: 10px;
     }
-
     input {
         display: inline-block;
         width: 100%;
@@ -373,17 +439,14 @@ onMounted(() => {
         padding-left: 10px;
         border: 1px solid #ccc;
         border-radius: 10px;
-
         &:focus {
             outline: none;
         }
     }
 }
-
 .auto-height {
     height: auto;
 }
-
 .select-problem,
 .problem {
     display: flex;
@@ -392,28 +455,22 @@ onMounted(() => {
     width: 100%;
     padding: 10px;
     background-color: #f9f9f9;
-
-
     span {
         margin-right: 10px;
     }
-
     i {
         cursor: pointer;
         margin-left: 100px;
     }
 }
-
 .select-problem {
     position: relative;
     width: 100%;
     cursor: pointer;
     border: 1px solid transparent;
-
     &:hover {
         border: 1px solid #409eff;
     }
-
     .selected {
         position: absolute;
         right: 0;
@@ -427,35 +484,29 @@ onMounted(() => {
         background-color: #409eff;
     }
 }
-
 .problem-tag {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
-
 .block {
     margin-top: 10px;
 }
-
 .button_submit {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
     margin-right: 15px;
-
     button {
         margin-left: 10px;
         padding: 0 35px;
     }
 }
-
 .select {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     padding: 10px 20px;
-
     .select-header {
         display: flex;
         justify-content: space-between;
@@ -463,7 +514,6 @@ onMounted(() => {
         padding: 10px;
         background-color: #f9f9f9;
     }
-
     .select-title {
         display: flex;
         width: 100%;
