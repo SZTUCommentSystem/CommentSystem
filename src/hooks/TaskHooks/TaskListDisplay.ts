@@ -108,7 +108,7 @@ export default function ListDisplay() {
     // 获取作业列表
     const getTaskList = async () => {
         try {
-            const res = await taskListAPI();
+            const res = await taskListAPI({});
             if (res.data.code == 200) {
                 // 这里建议后端返回的字段名和 HomeworkTask 保持一致
                 state.TaskList = res.data.rows as HomeworkTask[];

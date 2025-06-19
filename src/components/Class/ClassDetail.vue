@@ -9,13 +9,13 @@
          <h3 class="section-title">班级数据总览</h3>
          <el-row>
            <el-col :span="6">
-             <el-statistic title="总布置作业" :value="26" />
+             <el-statistic title="总布置作业" :value="taskLists.length" />
            </el-col>
            <el-col :span="6">
              <el-statistic :value="72">
                <template #title>
                  <div style="display: inline-flex; align-items: center">
-                  班级平均分
+                  班级最近一次作业平均分
                  </div>
                </template>
                <template #suffix>/100</template>
@@ -27,10 +27,10 @@
         <h3 class="section-title">学生列表</h3>
         <el-table :data="paginatedStudents" style="width: 100%">
           <el-table-column type="index" label="序号"  width="100px"></el-table-column>
-          <el-table-column prop="id" label="学生ID" ></el-table-column>
-          <el-table-column prop="name" label="学生姓名"></el-table-column>
-          <el-table-column prop="phone" label="手机号"></el-table-column>
-          <el-table-column prop="email" label="邮箱"></el-table-column>
+          <el-table-column prop="studentNo" label="学生ID" ></el-table-column>
+          <el-table-column prop="studentName" label="学生姓名"></el-table-column>
+          <el-table-column prop="studentTel" label="手机号"></el-table-column>
+          <el-table-column prop="studentEmail" label="邮箱"></el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
               <el-button @click="moveClass(scope.row)" type="primary" size="small" plain>移动分班</el-button>
@@ -52,12 +52,12 @@
             <h3 class="section-title mt-4">已布置作业列表</h3>
             <el-button type="success" @click="publishTask">发布作业</el-button>
           </div>
-          <div v-for="task in tasks" :key="task.id" class="task-item" @click.self="router.push('/home/task/taskcondition')">
+          <div v-for="task in taskLists" :key="task.homeworkContentId" class="task-item" @click.self="router.push('/home/task/taskcondition')">
             <div class="task-header m-2">
-              <h5>作业标题：{{ task.title }}</h5>
+              <h5>作业标题：{{ task.homeworkTitle }}</h5>
             </div>
-            <div class="task-tags m-2">
-              <div v-for="tag in task.tags" :key="tag" class="task-tag">{{ tag }}</div>
+            <div class="task-tags m-2" v-if="task.topicIds.length">
+              <div v-for="tag in task.topicIds" :key="tag.topicLabelId" class="task-tag">{{ tag.topicLabelName }}</div>
             </div>
             <div class="p-4" @click.stop>
               <el-collapse>
@@ -86,22 +86,20 @@
               </el-collapse>
             </div>
           </div>
-
         </div>
-
       </div>
-
     </div>
   </div>
 
 </template>
 
 <script setup lang="ts">
-import type { ElPageHeader } from "element-plus";
 import {computed, onMounted, ref} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { classDetailAPI, studentListAPI } from '@/api/ClassAPI/index'
+import { taskListAPI } from '@/api/TaskAPI/TaskQuestionList'
+import { labelInfoAPI } from "@/api/LabelAPI";
 
 const source = ref(0)
 source.value = 72
@@ -109,33 +107,72 @@ source.value = 72
 const router = useRouter()
 const route = useRoute()
 
-interface student {
+interface Student {
   studentId: number;
   studentName: string;
   userId: number;
+  classId: number;
+  studentTel: string; // 学生电话
+  studentEmail: string; // 学生邮箱
+  studentNo: string; // 学号
 }
 
-const studentList = ref([])
-//数据拟定
-const students = ref(Array.from({ length: 50 }, (_, i) => ({
-  id: `2022002020${String(i + 1).padStart(2, '0')}`,
-  name: ['宋江', '卢俊义', '吴用', '公孙胜', '关胜', '林冲', '秦明', '呼延灼', '花荣', '柴进', '李应', '朱仝', '鲁智深', '武松', '董平', '张清', '杨志', '徐宁', '索超', '戴宗', '刘唐', '李逵', '史进', '穆弘', '雷横', '李俊', '阮小二', '张横', '阮小五', '张顺', '阮小七', '杨雄', '石秀', '解珍', '解宝', '燕青', '朱武', '黄信', '孙立', '宣赞', '郝思文', '韩滔', '彭玘', '单廷珪', '魏定国', '萧让', '裴宣', '欧鹏', '邓飞'][i % 50],
-  grade: ['A', 'B', 'C', 'D'][Math.floor(Math.random() * 4)],
-  phone: `1380000${String(i + 1).padStart(4, '0')}`,
-  email: `student${i + 1}@example.com`
-})))
+const students = ref<Student[]>([])
 // 获取学生列表
 const getStudentsList = async () => {
   try {
     const res = await studentListAPI(Number(route.query.classId))
-    studentList.value = res.data.rows
+    students.value = res.data.rows
     console.log('获取学生列表成功:', students.value)
   } catch (error) {
     console.error('获取学生列表失败:', error)
   }
 }
 
+// 获取班级对应作业列表
+interface Tag {
+  topicLabelId: number,
+  topicLabelName: string
+}
+interface Task {
+  homeworkContentId: number,
+  topicIds: Tag[],
+  homeworkTitle: string,
+  limitTime: Date,
+}
+const taskLists = ref<Task[]>([])
 
+const getTaskList = async () => {
+  try {
+    const classId = String(route.query.classId)
+    const res = await taskListAPI({ classId })
+
+    // 并发处理每个作业的 topicIds
+    const rows: Task[] = await Promise.all(
+      res.data.rows.map(async (item: any) => {
+        const idArr = item.topicIds ? item.topicIds.split(',') : []
+        // 并发获取所有标签信息
+        const tags: Tag[] = await Promise.all(
+          idArr.map(async (id: string) => {
+            const tagRes = await labelInfoAPI(Number(id))
+            // 假设返回结构为 { topicLabelId, topicLabelName }
+            return tagRes.data.data
+          })
+        )
+        return {
+          ...item,
+          topicIds: tags
+        }
+      })
+    )
+
+    taskLists.value = rows
+
+    console.log('获取作业列表成功:', taskLists.value)
+  } catch (error) {
+    console.error('获取作业列表失败:', error)
+  }
+}
 const currentPage = ref(1)
 const pageSize = 10
 
@@ -152,20 +189,9 @@ const moveClass = (student: { id: string; name: string; grade: string; phone: st
   console.log('移动分班:', student)
 }
 
-const deleteStudent = (student: { id: string }) => {
-  students.value = students.value.filter(s => s.id !== student.id)
+const deleteStudent = (student: { id: number }) => {
+  students.value = students.value.filter(s => s.studentId !== student.id)
 }
-const tasks = ref([
-  { id: 1, title: 'Task1', tags: ['Tag1', 'Tag2'] },
-  { id: 2, title: 'Task2', tags: ['Tag3', 'Tag4'] },
-  // Add more tasks as needed
-]);
-
-
-const viewTask = (taskId: number) => {
-  console.log('查看作业:', taskId);
-};
-
 // 发布作业
 const publishTask = () => {
   router.push('/home/task')
@@ -173,6 +199,7 @@ const publishTask = () => {
 
 onMounted(() => {
   getStudentsList()
+  getTaskList()
 })
 </script>
 

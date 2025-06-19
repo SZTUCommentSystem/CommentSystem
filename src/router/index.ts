@@ -23,7 +23,7 @@ const router = createRouter({
         {
           path: '/home/task',
           name: 'task',
-          component: () => import('../components/Task/index.vue')
+          component: () => import('../components/Task/list.vue')
         },
         {
           path: '/home/task/taskcondition',
@@ -33,7 +33,7 @@ const router = createRouter({
         {
           path: '/home/task/taskdetail',
           name: 'taskdetail',
-          component: () => import('../components/TaskDetail/index.vue')
+          component: () => import('../components/Task/detail.vue')
         },
         {
           path: '/home/task/taskcreate',

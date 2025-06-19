@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取作业列表
-export const taskListAPI = () => {
+export const taskListAPI = (data: any) => {
     return request({
         url: 'function/homework/list',
-        method: 'get'
+        method: 'get',
+        params: data
     })
 }
 

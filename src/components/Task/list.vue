@@ -79,16 +79,6 @@
                             <span class="teacher">布置老师：胡某</span>
                             <span class="deadline">截止时间：{{ item.limitTime || '--' }}</span>
                           </div>
-                          <div class="statistic-row">
-                            <div class="statistic-card">
-                              <div class="stat-title">已提交</div>
-                              <div class="stat-value">{{ item.submitted || '0/0' }}</div>
-                            </div>
-                            <div class="statistic-card">
-                              <div class="stat-title">已批改</div>
-                              <div class="stat-value">{{ item.corrected || '0/0' }}</div>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </li>
