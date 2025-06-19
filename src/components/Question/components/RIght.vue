@@ -13,7 +13,7 @@
         popper-class="type-select-dropdown"
         :teleported="false"
         filterable
-        @visible-change="editTypeId = -1"
+        
       >
         <el-option
           v-for="item in typeList"
@@ -21,34 +21,23 @@
           :label="item.topicTypeName"
           :value="item.topicTypeName"
         >
-          <template #default>
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <span v-if="editTypeId !== item.topicTypeId">{{ item.topicTypeName }}</span>
-              <el-input
-                v-else
-                v-model="editTypeValue"
-                size="small"
-                style="width: 120px;"
-                @keyup.enter="confirmEditType(item.topicTypeId)"
-                @blur="confirmEditType(item.topicTypeId)"
-                autofocus
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span>{{ item.topicTypeName }}</span>
+            <span style="margin-left: 10px;">
+              <img
+                src="@/assets/img/编辑.png"
+                class="icon-btn"
+                style="margin-left: 8px;"
+                @click.stop="openEditDialog(item)"
               />
-              <span style="margin-left: 10px;">
-                <img
-                  src="@/assets/img/编辑.png"
-                  class="icon-btn"
-                  style="margin-left: 8px;"
-                  @click.stop="startEditType(item.topicTypeId, item.topicTypeName)"
-                />
-                <img
-                  src="@/assets/img/删除2.png"
-                  class="icon-btn"
-                  style="margin-left: 8px;"
-                  @click.stop="removeType(item.topicTypeId)"
-                />
-              </span>
-            </div>
-          </template>
+              <img
+                src="@/assets/img/删除2.png"
+                class="icon-btn"
+                style="margin-left: 8px;"
+                @click.stop="removeType(item.topicTypeId)"
+              />
+            </span>
+          </div>
         </el-option>
         <el-input
           v-if="inputVisble"
@@ -110,6 +99,15 @@
       <editor-markdown v-model="props.questionContent.topicInfo"></editor-markdown>
     </div>
   </div>
+
+  <!-- 编辑类型弹窗 -->
+  <el-dialog v-model="editDialogVisible" title="编辑题目类型" width="400px">
+    <el-input v-model="editTypeValue" placeholder="请输入类型名称" />
+    <template #footer>
+      <el-button @click="editDialogVisible = false">取消</el-button>
+      <el-button type="primary" @click="confirmEditType()">确定</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -163,13 +161,19 @@ const getTypeList = async () => {
 // 修改类型
 const editTypeId = ref<number | null>(null)
 const editTypeValue = ref('')
-const startEditType = (id: number, val: string) => {
-  editTypeId.value = id
-  editTypeValue.value = val
+const editDialogVisible = ref(false)
+
+function openEditDialog(item: TopicType) {
+  console.log(item)
+  editTypeId.value = item.topicTypeId
+  console.log(editTypeId.value)
+  editTypeValue.value = item.topicTypeName
+  editDialogVisible.value = true
 }
 
-const confirmEditType = async (id: number) => {
-  let item = typeList.value.find(item => item.topicTypeId === id);
+const confirmEditType = async () => {
+  console.log(editTypeId.value)
+  let item = typeList.value.find(item => item.topicTypeId === editTypeId.value);
   let data = {
     courseId: userStore.selectClass.courseId,
     chapterId: item?.chapterId,
@@ -186,6 +190,7 @@ const confirmEditType = async (id: number) => {
   } else {
     ElMessage.error('修改失败，请稍后再试')
   }
+  editDialogVisible.value = false
 }
 
 // 移除类型
@@ -224,7 +229,6 @@ const showInput = () => {
     }
   })
 }
-
 const addType = async () => {
   if (!newType.value.trim()) {
     ElMessage.warning('类型名称不能为空')

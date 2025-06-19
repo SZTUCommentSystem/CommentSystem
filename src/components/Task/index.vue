@@ -11,18 +11,14 @@
       </div>
       <div class="task-body">
         <ul>
-          <li v-for="cate in category" :key="cate.id">
+          <li v-for="cate in homeWorkComment" :key="cate.homeworkContentId">
             <div class="task-main-body">
               <div class="task-left">
-                <div v-if="cate.isEditing">
-                  <el-input v-model="cate.name" @blur="toggleEdit(cate)" />
+                <div style="margin: 3px 0;">
+                  <span>{{ cate.homeworkContentName }}</span>
                 </div>
-                <div v-else style="margin: 3px 0;">
-                  <span>{{ cate.name }}</span>
-                </div>
-                <img src="@/assets/img/编辑.png" alt="" @click="toggleEdit(cate)">
               </div>
-              <div>
+              <div class="task-right">
                 <img src="@/assets/img/向上的箭头.png" alt="" v-if="cate.spreadIndex"
                   @click="cate.spreadIndex = !cate.spreadIndex">
                 <img src="@/assets/img/向下的箭头.png" alt="" v-else
@@ -33,14 +29,20 @@
               <transition name="fade">
                 <div class="list">
                   <ul>
-                    <li v-for="item in displayedTasks" :key="item.id" v-if="IsTask" class="list_li">
+                    <li
+                      v-if="IsTask && displayedTasks.length > 0"
+                      v-for="item in displayedTasks.filter(task => task.homeworkContentId === cate.homeworkContentId)"
+                      :key="item.homeworkId"
+                      class="list_li"
+                    >
                       <div class="pane">
                         <div class="pane-top">
                           <div class="pane-rep">
                             <div class="status">
-                              <h5>标题：{{ item.title }}</h5>
+                              <h5>标题：{{ item.homeworkTitle }}</h5>
                             </div>
                             <div class="task-tag">
+                              标签：
                               <el-tag v-for="tag in item.tags" :key="tag">
                                 {{ tag }}
                               </el-tag>
@@ -51,20 +53,20 @@
                               <el-button> 更多 </el-button>
                               <template #dropdown>
                                 <el-dropdown-menu>
-                                  <el-dropdown-item @click="confirmPubTask(item.id)">
+                                  <el-dropdown-item @click="confirmPubTask(item.homeworkId)">
                                     立即发布
                                   </el-dropdown-item>
-                                  <el-dropdown-item @click="confirmEndTask(item.id)">
+                                  <el-dropdown-item @click="confirmEndTask(item.homeworkId)">
                                     立即截止
                                   </el-dropdown-item>
-                                  <el-dropdown-item @click="confirmDelTask(item.id)">
+                                  <el-dropdown-item @click="confirmDelTask(item.homeworkId)">
                                     立即删除
                                   </el-dropdown-item>
-                                  <el-dropdown-item @click="toTaskDetail(item.id)">
+                                  <el-dropdown-item @click="toTaskDetail(item.homeworkId)">
                                     编辑作业
                                   </el-dropdown-item>
                                   <el-dropdown-item
-                                    @click="toTaskCondition(item.title)">
+                                    @click="toTaskCondition(item.homeworkTitle)">
                                     查看作业
                                   </el-dropdown-item>
                                 </el-dropdown-menu>
@@ -73,34 +75,24 @@
                           </div>
                         </div>
                         <div class="p-4">
-                          <el-collapse v-model="activeNames" @change="handleChange">
-                            <el-collapse-item title="布置老师：胡某 截至时间：11：15" name="1">
-                              <el-row :gutter="20">
-                                <el-col :span="7" class="centered">
-                                  <div>
-                                    <el-statistic title="已提交" value="23/56">
-                                    </el-statistic>
-                                  </div>
-                                </el-col>
-                                <el-col :span="8" class="centered">
-                                  <div>
-                                    <el-statistic title="未提交" value="33/56">
-                                    </el-statistic>
-                                  </div>
-                                </el-col>
-                                <el-col :span="8" class="centered">
-                                  <div>
-                                    <el-statistic title="已批改" value="10/56">
-                                    </el-statistic>
-                                  </div>
-                                </el-col>
-                              </el-row>
-                            </el-collapse-item>
-                          </el-collapse>
+                          <div class="task-info-header">
+                            <span class="teacher">布置老师：胡某</span>
+                            <span class="deadline">截止时间：{{ item.limitTime || '--' }}</span>
+                          </div>
+                          <div class="statistic-row">
+                            <div class="statistic-card">
+                              <div class="stat-title">已提交</div>
+                              <div class="stat-value">{{ item.submitted || '0/0' }}</div>
+                            </div>
+                            <div class="statistic-card">
+                              <div class="stat-title">已批改</div>
+                              <div class="stat-value">{{ item.corrected || '0/0' }}</div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </li>
-                    <li v-else class="list-not-li">
+                    <li v-if="!IsTask || displayedTasks.length === 0" class="list-not-li">
                       <h1>尚未发布作业</h1>
                     </li>
                   </ul>
@@ -175,347 +167,370 @@ import { ElConfigProvider } from "element-plus";
 import { zhCn } from "element-plus/es/locale/index.mjs";
 import { useRouter } from "vue-router";
 
-// 导入相关ts文件
-import ListDisplay from "../../hooks/TaskHooks/TaskListDisplay";
-import { PubList, EndList, DelList } from "../../hooks/TaskHooks/OperateList";
+// 导入列表展示逻辑和标签工具
+import ListDisplay, { getTagsByQuestionIds } from "@/hooks/TaskHooks/TaskListDisplay";
+import { PubList, EndList, DelList } from "@/hooks/TaskHooks/OperateList";
 
-//载入主要数据和事件
-const { category, state, handleSizeChange, getTaskList, handleCurrentChange, selectedType, FilterStatus, displayedTasks } = ListDisplay();
+// 获取作业分类、作业列表等
+const {
+  homeWorkComment,
+  state,
+  handleSizeChange,
+  getHomeworkComment,
+  getTaskList,
+  handleCurrentChange,
+  selectedType,
+  FilterStatus,
+  displayedTasks
+} = ListDisplay();
 
-// 发布作业
-const { pubDialogVisible, confirmPubTask, publishTask: publishTaskOriginal } = PubList();
+// 发布作业相关
+const {
+  pubDialogVisible,
+  confirmPubTask,
+  publishTask: publishTaskOriginal
+} = PubList();
 const publishTask = () => {
   state.TaskList = publishTaskOriginal(state.TaskList);
-}
+};
 
-// 发布班级
-const checkAll = ref(false)
-const isIndeterminate = ref(true)
-const checkedTags = ref(['工程1班', '工程4班'])
-const tags = ['工程1班', '工程2班', '工程3班', '工程4班']
+// 发布班级相关
+const checkAll = ref(false);
+const isIndeterminate = ref(true);
+const checkedTags = ref(['工程1班', '工程4班']);
+const tags = ['工程1班', '工程2班', '工程3班', '工程4班'];
 
 const handleCheckAllChange = (val: boolean) => {
-  checkedTags.value = val ? tags : []
-  isIndeterminate.value = false
-}
+  checkedTags.value = val ? tags : [];
+  isIndeterminate.value = false;
+};
 const handleCheckedTagsChange = (value: string[]) => {
-  const checkedCount = value.length
-  checkAll.value = checkedCount === tags.length
-  isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length
-}
+  const checkedCount = value.length;
+  checkAll.value = checkedCount === tags.length;
+  isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length;
+};
 
-// 截止相关事件
+// 截止作业相关
 const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
 const endTask = () => {
   state.TaskList = endTaskOriginal(state.TaskList);
-}
+};
 
-//删除相关事件
+// 删除作业相关
 const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList();
 const deleteTask = () => {
   state.TaskList = deleteTaskOriginal(state.TaskList);
-}
+};
 
-//展示是否有作业
+// 是否有作业
 const IsTask = ref(true);
 watchEffect(() => {
-  if (state.TaskList.length === 0) {
-    IsTask.value = false;
-  } else {
-    IsTask.value = true;
-  }
+  IsTask.value = state.TaskList.length > 0;
 });
 
-//添加点击事件，带着title跳转到作业情况页面
+// 跳转到作业情况页面
 const router = useRouter();
 const toTaskCondition = (title: string) => {
-  router.push({ path: "/home/task/taskcondition", query: { title: title } });
-}
-
-// 带着id跳转到编辑作业页面
-const toTaskDetail = (id: number) => {
-  router.push({ path: "/home/task/taskdetail", query: { id: id } });
-}
-
-onMounted(() => {
-  getTaskList();
-})
-
-
-////////////////临时
-
-const toggleEdit = (item: any) => {
-  item.isEditing = !item.isEditing;
+  router.push({ path: "/home/task/taskcondition", query: { title } });
 };
+
+// 跳转到编辑作业页面
+const toTaskDetail = (id: number) => {
+  router.push({ path: "/home/task/taskdetail", query: { id } });
+};
+
+// 折叠面板状态（每个分类独立）
+const activeNames = ref<string[]>([]); // 如果需要每个分类独立折叠，可用对象存储
+
+const handleChange = (val: string[]) => {
+  activeNames.value = val;
+};
+
+// 页面加载时获取作业列表，并为每个作业动态获取标签
+onMounted(async () => {
+  getHomeworkComment();
+  await getTaskList();
+  // 并发请求所有作业的标签
+  await Promise.all(
+    state.TaskList.map(async (task) => {
+      const ids = (task.topicIds || "")
+        .split(",")
+        .map(id => Number(id))
+        .filter(id => !isNaN(id));
+      if (ids.length > 0) {
+        task.tags = await getTagsByQuestionIds(ids);
+      } else {
+        task.tags = [];
+      }
+    })
+  );
+});
 </script>
 
 <style scoped>
-p {
-  font-size: 12px;
-
-  a {
-    color: #000;
-
-    &:hover {
-      color: #409EFF;
-    }
-  }
+.all_class {
+  min-height: 100vh;
+  padding: 0;
 }
-
 .base {
   position: relative;
   width: 100%;
-  min-height: 300px;
-  padding: 20px 0 65px 0;
-  border-radius: 7px;
-  background-color: #fff;
-
-  .title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .title-left {
-      display: flex;
-      align-items: center;
-    }
-
-    h2 {
-      margin: 0 30px;
-    }
-
-    .title_button {
-      margin: 15px 20px;
-
-      button {
-        margin-right: 10px;
-        height: 35px;
-        width: 110px;
-        border-radius: 10px;
-      }
-    }
-
-  }
-
-  .task-body {
-    width: 100%;
-    height: 94%;
-
-    ul {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      width: 100%;
-      padding: 0;
-
-      li {
-        width: 92%;
-        margin: 5px;
-
-        .task-main-body {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 5px 10px;
-          border: 1px solid #ccc;
-        }
-
-        .task-left {
-          display: flex;
-          align-items: center;
-        }
-
-        img {
-          width: 15px;
-          margin-left: 10px;
-          cursor: pointer;
-        }
-      }
-    }
-  }
-
-  .list {
-    ul {
-      position: relative;
-      margin: 10px;
-      padding: 13px;
-      background-color: #ffffff;
-
-      .list_li {
-        height: auto;
-        margin: 10px 20px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s;
-
-        &:hover {
-          box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        &:last-child {
-          margin-bottom: 0;
-        }
-
-        .pane {
-          width: 100%;
-        }
-
-        .pane-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-left: 35px;
-          width: 100%;
-          height: 70px;
-          margin-top: 15px;
-
-          .pane-rep {
-            width: 69%;
-
-            p {
-              padding: 0;
-              margin: 0;
-              font-size: 15px;
-            }
-
-            .status {
-              display: flex;
-              align-items: center;
-              margin-bottom: 10px;
-
-              p {
-                text-align: center;
-                font-size: 14px;
-                width: 60px;
-                margin-right: 10px;
-                color: #fff;
-                border-radius: 10px;
-              }
-
-              .unpublish {
-                background-color: #f56c6c;
-              }
-
-              .publish {
-                background-color: #409EFF;
-              }
-
-              .ended {
-                background-color: #bebfbe;
-              }
-
-              h5 {
-                font-size: 18px;
-                margin-bottom: 0;
-                font-weight: 600;
-              }
-            }
-
-            .task-tag {
-              display: flex;
-              align-items: center;
-              flex-wrap: wrap;
-              gap: 10px;
-            }
-          }
-
-          .pane-skip {
-            margin-right: 25px;
-
-            button:focus {
-              outline: none;
-            }
-
-            a {
-              margin-right: 10px;
-            }
-
-            button {
-              border-radius: 20px;
-            }
-
-            .icon {
-              margin-top: 17px;
-              margin-left: 20px;
-              cursor: pointer;
-
-              img {
-                width: 20px;
-                height: 17px;
-              }
-            }
-          }
-        }
-
-        .pane-drop-list {
-          width: 100%;
-          height: 100px;
-
-          table {
-            margin: 0 auto;
-
-            thead {
-              color: #000;
-              font-size: 14px;
-              background-color: #c8c8c8;
-
-              th {
-                padding: 10px 20px;
-              }
-            }
-
-            tbody {
-              color: #000;
-              font-size: 14px;
-              border-bottom: 1px solid #ccc;
-
-              td {
-                padding: 10px 20px;
-              }
-            }
-          }
-        }
-      }
-
-      .list-not-li {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-    }
-  }
-
-  .paging {
-      position: absolute;
-      right: 10px;
-      bottom: 30px;
-  }
+  min-height: 350px;
+  padding: 36px 0 90px 0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 32px 0 rgba(64, 158, 255, 0.10);
+  margin: 0 auto;
+  max-width: 1200px;
 }
-
-.all_class ::v-deep el-icon--right svg:hover {
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 48px;
+  border-bottom: 2px solid #e3eaf5;
+  margin-bottom: 22px;
+}
+.title-left {
+  display: flex;
+  align-items: center;
+}
+h2 {
+  margin: 0 36px 0 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #000;
+  letter-spacing: 2px;
+}
+.title_button {
+  margin: 20px 0;
+}
+.title_button button {
+  margin-right: 12px;
+  height: 44px;
+  width: 140px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  background: #fff;
+  color: rgb(64, 158, 255);
+  border: 2px solid rgb(64, 158, 255);
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.title_button button:hover {
+  background: rgb(64, 158, 255);
+  color: #fff;
+  border: 2px solid rgb(64, 158, 255);
+}
+.task-body {
+  width: 100%;
+  min-height: 240px;
+}
+.task-body ul {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+.task-body li {
+  width: 97%;
+  margin: 8px 0;
+  background: #fafdff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(64,158,255,0.08);
+  border: 1.5px solid #e3eaf5;
+  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+/* .task-body li:hover {
+  box-shadow: 0 6px 24px rgba(64,158,255,0.18);
+  background: #e6f4fe;
+  border-color: rgb(64, 158, 255);
+} */
+.task-main-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1.5px solid #e3eaf5;
+  background: #f4faff;
+  border-radius: 16px 16px 0 0;
+}
+.task-left {
+  display: flex;
+  align-items: center;
+}
+.task-left img,
+.task-right img {
+  width: 24px;
+  margin-left: 14px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.task-left img:hover {
+  opacity: 1;
+}
+.list {
+  width: 100%;
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 1px 10px rgba(64,158,255,0.04);
+  padding: 0;
+}
+.list ul {
+  margin: 0;
+  padding: 0 20px 20px 20px;
+}
+.list_li {
+  margin: 10px 0;
+  border-radius: 12px;
+  background: #fafdff;
+  box-shadow: 0 2px 8px rgba(64,158,255,0.08);
+  border: 2px solid #e3eaf5;
+  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.list_li:hover {
+  background: #e6f4fe;
+  box-shadow: 0 4px 24px rgba(64,158,255,0.15);
+  border-color: rgb(64, 158, 255);
+}
+.pane {
+  width: 100%;
+}
+.pane-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px 0 28px;
+  width: 100%;
+}
+.pane-rep {
+  width: 74%;
+}
+.status {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.status h5 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 1px;
+}
+.task-tag {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.el-tag {
+  font-size: 14px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #e3f1fd;
+  color: rgb(64, 158, 255);
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+.el-tag:hover {
+  background: rgb(64, 158, 255);
+  color: #fff;
+}
+.pane-skip {
+  margin-right: 18px;
+}
+.pane-skip button {
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.pane-skip .icon {
+  margin-top: 17px;
+  margin-left: 20px;
   cursor: pointer;
 }
-
+.pane-skip img {
+  width: 22px;
+  height: 17px;
+}
+.p-4 {
+  padding: 0 28px 20px 28px;
+}
+.list-not-li {
+  text-align: center;
+  color: #b3b3b3;
+  font-size: 20px;
+  padding: 36px 0;
+  letter-spacing: 2px;
+}
+.paging {
+  position: absolute;
+  right: 24px;
+  bottom: 38px;
+}
+.task-info-header {
+  display: flex;
+  justify-content: flex-start;
+  gap: 36px;
+  font-size: 16px;
+  color: #000;
+  font-weight: 600;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+}
+.task-info-header .deadline {
+  color: #000;
+}
+.statistic-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 8px;
+}
+.statistic-card {
+  background: linear-gradient(135deg, #e3f0ff 60%, #fafdff 100%);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(64,158,255,0.08);
+  padding: 18px 36px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+.statistic-card:hover {
+  box-shadow: 0 4px 16px rgba(64,158,255,0.15);
+}
+.stat-title {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.stat-value {
+  font-size: 32px;
+  color: #409eff;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s;
 }
-
 .fade-enter,
-.fade-leave-to
-
-/* .fade-leave-active in <2.1.8 */
-  {
+.fade-leave-to {
   opacity: 0;
-}
-
-.centered {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
 }
 </style>

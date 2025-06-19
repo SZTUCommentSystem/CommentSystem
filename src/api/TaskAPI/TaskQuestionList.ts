@@ -1,40 +1,78 @@
 import request from "@/utils/https";
 
 // 获取作业列表
-export const TaskListAPI = () => {
+export const taskListAPI = () => {
     return request({
-        url: '/home/taskList',
+        url: 'function/homework/list',
         method: 'get'
     })
 }
 
 // 根据上传id获取作业详情
-export const TaskDetailAPI = (id: number) => {
+export const taskDetailAPI = (id: number) => {
     return request({
-        url: '/home/taskDetail',
+        url: `function/homework/${id}`,
         method: 'get',
-        params: {
-            id
-        }
     })
 }
 
-// 获取作业题目列表
-export const TaskQuestionListAPI = (ids: number[]) => {
+// 新增作业
+export const addTaskAPI = (data: Object) => {
     return request({
-        url: '/home/taskQuestionList',
+        url: 'function/homework',
         method: 'post',
-        data: {
-            ids
-        }
+        data
     })
 }
 
-// 提交作业
-export const SubmitTaskAPI = (data: Object) => {
+// 更新作业
+export const updateTaskAPI = (data: Object) => {
     return request({
-        url: '/home/submitTask',
+        url: `function/homework`,
+        method: 'put',
+        data
+    })
+}
+
+// 删除作业
+export const deleteTaskAPI = (id: number) => {
+    return request({
+        url: `function/homework/${id}`,
+        method: 'delete',
+    })
+}
+
+// 获取作业分类列表
+export const taskCategoryListAPI = (data: object) => {
+    return request({
+        url: 'function/homeworkcontent/list',
+        method: 'get',
+        params: data
+    })
+}
+
+// 新增作业分类
+export const addTaskCategoryAPI = (data: Object) => {
+    return request({
+        url: 'function/homeworkcontent',
         method: 'post',
-        data: data
+        data
+    })
+}
+
+// 更新作业分类
+export const changeTaskCategoryAPI = (data: Object) => {
+    return request({
+        url: `function/homeworkcontent`,
+        method: 'put',
+        data
+    })
+}
+
+// 删除作业分类
+export const deleteTaskCategoryAPI = (id: number) => {
+    return request({
+        url: `function/homeworkcontent/${id}`,
+        method: 'delete',
     })
 }
