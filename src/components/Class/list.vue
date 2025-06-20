@@ -24,7 +24,7 @@
         <el-statistic title="班级平均分" :value="classItem.svgNum" />
         <el-countdown v-if="classItem.lastTime" title="最近作业截止时间" :value="classItem.lastTime" />
         <template #footer>
-          {{ classStates[classItem.classState] }}
+          {{ classStates[Number(classItem.classState)] }}
         </template>
       </el-card>
     </div>
@@ -49,7 +49,7 @@ interface ClassItem {
 // 班级状态数组
 const classStates = ['', '未开课', '授课中', '已结课'];
 
-const classes = ref([]);
+const classes = ref<ClassItem[]>([]);
 const searchQuery = ref('');
 const selectedStatus = ref('');
 const filteredClasses = computed(() => {

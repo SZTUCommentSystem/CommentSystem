@@ -27,7 +27,7 @@ export const addTaskAPI = (data: Object) => {
 }
 
 // 更新作业
-export const updateTaskAPI = (data: Object) => {
+export const changeTaskAPI = (data: Object) => {
     return request({
         url: `function/homework`,
         method: 'put',
@@ -40,6 +40,15 @@ export const deleteTaskAPI = (id: number) => {
     return request({
         url: `function/homework/${id}`,
         method: 'delete',
+    })
+}
+
+// 发布作业
+export const pubTaskAPI = (data: any) => {
+    return request({
+        url: 'function/homework/release',
+        method: 'get',
+        data
     })
 }
 

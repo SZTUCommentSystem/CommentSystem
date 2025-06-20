@@ -1,6 +1,7 @@
 import { ref } from 'vue'
-import type { HomeworkTask } from './TaskListDisplay' // 导入你的主类型
+import type { HomeworkTask } from './TaskListDisplay'
 
+// 发布作业
 const PubList = () => {
     const pubDialogVisible = ref(false)
     const pubTaskId = ref(0)
@@ -10,20 +11,10 @@ const PubList = () => {
         pubDialogVisible.value = true
     }
 
-    const publishTask = (TaskList: HomeworkTask[]) => {
-        TaskList.forEach((item) => {
-            if (item.homeworkId === pubTaskId.value) {
-                // 你可以加上 PublishStatus 字段到 HomeworkTask 类型
-                (item as any).PublishStatus = 1
-            }
-        })
-        pubDialogVisible.value = false
-        return TaskList
-    }
-
-    return { pubDialogVisible, pubTaskId, confirmPubTask, publishTask }
+    return { pubDialogVisible, pubTaskId, confirmPubTask }
 }
 
+// 截止作业
 const EndList = () => {
     const endDialogVisible = ref(false)
     const endTaskId = ref(0)
@@ -46,6 +37,7 @@ const EndList = () => {
     return { endDialogVisible, endTaskId, confirmEndTask, endTask }
 }
 
+// 
 const DelList = () => {
     const delDialogVisible = ref(false)
     const delTaskId = ref(0)
@@ -53,13 +45,8 @@ const DelList = () => {
         delTaskId.value = id
         delDialogVisible.value = true
     }
-    const deleteTask = (TaskList: HomeworkTask[]) => {
-        TaskList = TaskList.filter((item) => item.homeworkId !== delTaskId.value)
-        delDialogVisible.value = false
-        return TaskList
-    }
 
-    return { delDialogVisible, delTaskId, confirmDelTask, deleteTask }
+    return { delDialogVisible, delTaskId, confirmDelTask }
 }
 
 export { PubList, EndList, DelList }

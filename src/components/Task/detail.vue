@@ -102,8 +102,7 @@
                     v-model="taskContent.limitTime"
                     type="datetime"
                     placeholder="请选择截止时间"
-                    format="YYYY-MM-DD HH:mm:ss"
-                    value-format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                 />
             </div>
         </div>
@@ -176,24 +175,26 @@
 
 <script lang="ts" setup>
 import { ElMessageBox, ElMessage } from 'element-plus';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { ref, reactive, watch, onMounted, nextTick } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 
-import { questionListAPI, questionTypeAPI } from '@/api/QuestionAPI';
+import { questionListAPI, questionDetailAPI, questionTypeAPI } from '@/api/QuestionAPI';
 import { labelInfoAPI } from '@/api/LabelAPI';
-import { addTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
+import { taskDetailAPI, changeTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
 import { taskCategoryListAPI, addTaskCategoryAPI, changeTaskCategoryAPI, deleteTaskCategoryAPI } from "@/api/TaskAPI/TaskQuestionList";
 
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/store/user';
 
 const userStore = useUserStore();
 const router = useRouter();
+const route = useRoute();
 
 // 定义作业内容的类型
 interface TaskContent {
     courseId: number;
+    homeworkId?: number;
     homeworkTitle: string;
     homeworkDescribe: string;
     topicIds: number[];
@@ -204,6 +205,7 @@ interface TaskContent {
 
 const taskContent = reactive<TaskContent>({
     courseId: userStore.selectClass.courseId,
+    homeworkId: null,
     homeworkTitle: '',
     homeworkDescribe: '',
     topicIds: [],
@@ -211,15 +213,76 @@ const taskContent = reactive<TaskContent>({
     homeworkContent: '', // 目录
 });
 
-interface HomeWorkComment {
-    courseId: number; // 课程id
-    homeworkContentId: number; // 作业分类id
-    homeworkContentName: string; // 作业分类名称
-    spreadIndex: boolean; // 是否展开
-}
+// 题目相关
+const problems = ref<any[]>([]);
+const tags = ref<string[]>([]);
 
-const homeworkComment = reactive<HomeWorkComment[]>([])
-// 获取作业分类列表
+// 目录相关
+interface HomeWorkComment {
+    courseId: number;
+    homeworkContentId: number;
+    homeworkContentName: string;
+    spreadIndex: boolean;
+}
+const homeworkComment = reactive<HomeWorkComment[]>([]);
+
+// 题目类型
+interface QuestionType {
+    courseId: number;
+    topicTypeId: number;
+    topicTypeName: string;
+}
+const questionTypeList = ref<QuestionType[]>([]);
+
+// 题库列表
+interface Question {
+    courseId: number;
+    labelIds: string;
+    topicId: number;
+    topicTitle: string;
+    topicTypeId: number;
+    topicLabelName?: string;
+    labelNames?: string[];
+}
+const questionList = ref<Question[]>([]);
+
+// 题库搜索
+const search = reactive<{
+    searchType: string;
+    searchQuestion: string;
+}>({
+    searchType: '',
+    searchQuestion: '',
+});
+
+// 标签缓存
+const labelCache = new Map<number, string>();
+const pendingLabelRequests = new Map<number, Promise<string>>();
+const getLabelName = async (id: number) => {
+    if (labelCache.has(id)) return labelCache.get(id)!;
+    if (pendingLabelRequests.has(id)) return pendingLabelRequests.get(id)!;
+    const promise = labelInfoAPI(id).then(res => {
+        if (res.data.code === 200) {
+            const name = res.data.data.topicLabelName;
+            labelCache.set(id, name);
+            pendingLabelRequests.delete(id);
+            return name;
+        } else {
+            pendingLabelRequests.delete(id);
+            return '';
+        }
+    });
+    pendingLabelRequests.set(id, promise);
+    return promise;
+};
+const getLabelNamesByIds = async (labelIds: string) => {
+    if (!labelIds) return [];
+    const ids = labelIds.split(',').map(Number).filter(id => !isNaN(id));
+    const names = await Promise.all(ids.map(id => getLabelName(id)));
+    return names;
+};
+
+// 目录列表
 const getHomeworkComment = async () => {
     let data = {
         courseId: userStore.selectClass.courseId,
@@ -230,7 +293,7 @@ const getHomeworkComment = async () => {
         const res = await taskCategoryListAPI(data)
         if (res.data.code == 200) {
             const categories = res.data.rows;
-            homeworkComment.length = 0; // 清空现有数据
+            homeworkComment.length = 0;
             categories.forEach((item: any) => {
                 homeworkComment.push({
                     courseId: item.courseId,
@@ -239,15 +302,75 @@ const getHomeworkComment = async () => {
                     spreadIndex: false
                 });
             });
-
-            console.log('作业分类列表:', homeworkComment);
         }
     } catch (error) {
         console.log('获取作业分类列表失败:', error);
     }
 }
 
-// 修改作业分类
+// 题目类型列表
+const getTypeList = async () => {
+    let data = {
+        courseId: userStore.selectClass.courseId,
+        pageNum: 1,
+        pageSize: 1000,
+    };
+    try {
+        const res = await questionTypeAPI(data);
+        if (res.data.code == 200) {
+            questionTypeList.value = res.data.rows;
+        }
+    }
+    catch (error) {
+        console.error('获取题目类型列表失败:', error);
+    }
+};
+const getTypeName = (typeId: number) => {
+    const type = questionTypeList.value.find(item => item.topicTypeId === typeId);
+    return type ? type.topicTypeName : '';
+};
+
+// 题库列表
+const getQuestionList = async () => {
+    let data = {
+        courseId: userStore.selectClass.courseId,
+        pageNum: 1,
+        pageSize: 10,
+        topicTypeId: search.searchType ? Number(search.searchType) : undefined,
+        topicTitle: search.searchQuestion || undefined,
+    };
+    const res = await questionListAPI(data);
+    if (res.data.code === 200) {
+        const formatted = await Promise.all(res.data.rows.map(async (item: any) => ({
+            ...item,
+            topicLabelName: getTypeName(item.topicTypeId),
+            labelNames: await getLabelNamesByIds(item.labelIds),
+        })));
+        questionList.value = formatted;
+    }
+};
+
+// 题库选择
+const selectedRows = ref<Question[]>([]);
+const handleSelectionChange = (rows: Question[]) => {
+    selectedRows.value = rows;
+};
+const selDialogVisible = ref(false);
+const selectProblem = () => {
+    taskContent.topicIds = selectedRows.value.map(item => item.topicId);
+    problems.value = [...selectedRows.value];
+    selDialogVisible.value = false;
+};
+
+// 标签联动
+watch(problems, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+        const allTags = newVal.map(item => item.labelNames).flat();
+        tags.value = Array.from(new Set(allTags));
+    }
+});
+
+// 目录编辑相关
 const editHomeworkDialogVisible = ref(false)
 const editHomeworkContentId = ref<number | null>(null)
 const editHomeworkContentValue = ref('')
@@ -278,7 +401,7 @@ const confirmEditHomeworkContent = async () => {
     }
 }
 
-// 删除作业分类
+// 删除目录
 const removeType = async (idx: number) => {
   try {
     await ElMessageBox.confirm('确定要删除该类型吗？', '提示', {
@@ -286,11 +409,9 @@ const removeType = async (idx: number) => {
       cancelButtonText: '取消',
       type: 'warning',
     })
-
     const res = await deleteTaskCategoryAPI(idx)
     if (res.data.code === 200) {
       ElMessage.success('删除成功')
-      // 同步更新题目类型列表
       getTypeList()
       getHomeworkComment()
     } else {
@@ -302,7 +423,7 @@ const removeType = async (idx: number) => {
   }
 }
 
-// 增加作业分类
+// 增加目录
 const inputVisble = ref(false)
 const newHomeworkContent = ref('')
 const showInput = () => {
@@ -321,17 +442,14 @@ const addType = async () => {
     inputVisble.value = false
     return
   }
-
   let data = {
     courseId: userStore.selectClass.courseId,
     homeworkContentName: newHomeworkContent.value.trim(),
   }
-
   const res = await addTaskCategoryAPI(data)
   if(res.data.code === 200) {
     ElMessage.success('添加成功')
     newHomeworkContent.value = ''
-    // 同步更新题目类型列表
     getTypeList()
     getHomeworkComment()
   } else {
@@ -340,138 +458,55 @@ const addType = async () => {
   inputVisble.value = false
 }
 
-// 获取题目类型列表
-interface QuestionType {
-    courseId: number;
-    topicTypeId: number;
-    topicTypeName: string;
-}
-const questionTypeList = ref<QuestionType[]>([]);
-
-const getTypeList = async () => {
-    let data = {
-        courseId: userStore.selectClass.courseId,
-        pageNum: 1,
-        pageSize: 1000,
-    };
+// 获取详情并填充
+const getDetail = async () => {
     try {
-        const res = await questionTypeAPI(data);
+        // 先获取目录列表，保证目录id和名称能对应
+        await getHomeworkComment();
+        const res = await taskDetailAPI(Number(route.query.id))
         if (res.data.code == 200) {
-            questionTypeList.value = res.data.rows;
+            const ret = res.data.data;
+            taskContent.homeworkId = ret.homeworkId
+            // 标题、描述
+            taskContent.homeworkTitle = ret.homeworkTitle || '';
+            taskContent.homeworkDescribe = ret.homeworkDescribe || '';
+            // 目录（用目录id找到目录名）
+            const content = homeworkComment.find(item => item.homeworkContentId === ret.homeworkContentId);
+            taskContent.homeworkContent = content ? content.homeworkContentName : '';
+            // 截止时间
+            taskContent.limitTime = ret.limitTime ? dayjs(ret.limitTime).toDate() : undefined;
+            // 题目
+            if (ret.topicIds) {
+                const topicIdArr = ret.topicIds.split(',').map((id: string) => Number(id));
+                const formatted: any[] = [];
+                for (const id of topicIdArr) {
+                    const questionRes = await questionDetailAPI(id);
+                    if (questionRes.data.code === 200 && questionRes.data.data) {
+                        const item = questionRes.data.data;
+                        formatted.push({
+                            ...item,
+                            topicLabelName: getTypeName(item.topicTypeId),
+                            labelNames: await getLabelNamesByIds(item.labelIds),
+                        });
+                    }
+                }
+                problems.value = formatted;
+                selectedRows.value = formatted;
+                taskContent.topicIds = topicIdArr;
+                // 标签
+                const allTags = formatted.map((item: any) => item.labelNames).flat();
+                tags.value = Array.from(new Set(allTags));
+            } else {
+                problems.value = [];
+                selectedRows.value = [];
+                tags.value = [];
+                taskContent.topicIds = [];
+            }
         }
+    } catch (error: any) {
+        console.log(error.message)
     }
-    catch (error) {
-        console.error('获取题目类型列表失败:', error);
-    }
-};
-
-// 模糊搜索功能
-const search = reactive<{
-    searchType: string;
-    searchQuestion: string;
-}>({
-    searchType: '',
-    searchQuestion: '',
-});
-
-// 获取题目类型名称
-const getTypeName = (typeId: number) => {
-    const type = questionTypeList.value.find(item => item.topicTypeId === typeId);
-    return type ? type.topicTypeName : '';
-};
-
-// 获取题目标签信息
-const labelCache = new Map<number, string>();
-const pendingLabelRequests = new Map<number, Promise<string>>();
-
-const getLabelName = async (id: number) => {
-    if (labelCache.has(id)) {
-        return labelCache.get(id)!;
-    }
-    if (pendingLabelRequests.has(id)) {
-        return pendingLabelRequests.get(id)!;
-    }
-    // 发起请求并存入 pending
-    const promise = labelInfoAPI(id).then(res => {
-        if (res.data.code === 200) {
-            const name = res.data.data.topicLabelName;
-            labelCache.set(id, name);
-            pendingLabelRequests.delete(id);
-            return name;
-        } else {
-            pendingLabelRequests.delete(id);
-            return '';
-        }
-    });
-    pendingLabelRequests.set(id, promise);
-    return promise;
-};
-
-const getLabelNamesByIds = async (labelIds: string) => {
-    if (!labelIds) return [];
-    const ids = labelIds.split(',').map(Number).filter(id => !isNaN(id));
-    const names = await Promise.all(ids.map(id => getLabelName(id)));
-    return names;
-};
-
-// 题目列表
-interface Question {
-    courseId: number;
-    labelIds: string;
-    topicId: number;
-    topicTitle: string;
-    topicTypeId: number;
-    topicLabelName?: string;
-    labelNames?: string[];
 }
-const questionList = ref<Question[]>([]);
-
-const getQuestionList = async () => {
-    let data = {
-        courseId: userStore.selectClass.courseId,
-        pageNum: 1,
-        pageSize: 10,
-        topicTypeId: search.searchType ? Number(search.searchType) : undefined,
-        topicTitle: search.searchQuestion || undefined,
-    };
-
-    const res = await questionListAPI(data);
-    if (res.data.code === 200) {
-        // 格式化每个题目的类型名和标签名
-        const formatted = await Promise.all(res.data.rows.map(async (item: any) => ({
-            ...item,
-            topicLabelName: getTypeName(item.topicTypeId),
-            labelNames: await getLabelNamesByIds(item.labelIds),
-        })));
-        questionList.value = formatted;
-    }
-};
-
-// el-table 多选相关
-const selectedRows = ref<Question[]>([]);
-
-const handleSelectionChange = (rows: Question[]) => {
-    selectedRows.value = rows;
-};
-
-// 被选择的题目
-const problems = ref<any[]>([]);
-const tags = ref<string[]>([]);
-
-watch(problems, (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-        const allTags = newVal.map(item => item.labelNames).flat();
-        tags.value = Array.from(new Set(allTags));
-    }
-});
-
-const selDialogVisible = ref(false);
-
-const selectProblem = () => {
-    taskContent.topicIds = selectedRows.value.map(item => item.topicId);
-    problems.value = [...selectedRows.value];
-    selDialogVisible.value = false;
-};
 
 // 提交作业
 const submitTask = async () => {
@@ -488,44 +523,35 @@ const submitTask = async () => {
             ElMessage.error('请选择至少一个题目！');
             return;
         }
-
-        const formattedDeadline = taskContent.limitTime
-        ? dayjs(taskContent.limitTime).format('YYYY-MM-DD HH:mm:ss')
-        : '';
-
-
         taskContent.topicIds = problems.value.map(item => item.topicId);
-
         let homeworkCommentId = homeworkComment.filter(item => item.homeworkContentName == taskContent.homeworkContent);
         const submitData = {
             ...taskContent,
             topicIds: taskContent.topicIds.join(','),
-            homeworkContentId: homeworkCommentId[0].homeworkContentId,
-            deadline: formattedDeadline
+            homeworkContentId: homeworkCommentId[0]?.homeworkContentId,
         };
         delete submitData.homeworkContent;
-        console.log(submitData);
-        const res = await addTaskAPI(submitData);
+        const res = await changeTaskAPI(submitData);
         if (res.data.code === 200) {
-            ElMessage.success('创建作业成功')
+            ElMessage.success('保存作业成功')
             router.push({
                 name: 'task',
                 query: { forceRefresh: Date.now() },
             })
         } else {
-            ElMessage.error('创建作业失败，请稍后再试');
-            console.error('创建作业失败:', res.data.message);
+            ElMessage.error('保存作业失败，请稍后再试');
+            console.error('保存作业失败:', res.data.message);
         }
     } catch (error) {
-        ElMessage.error('创建作业失败，请稍后再试');
-        console.error('创建作业失败:', error);
+        ElMessage.error('保存作业失败，请稍后再试');
+        console.error('保存作业失败:', error);
     }
 };
 
 onMounted(() => {
-    getHomeworkComment();
     getTypeList();
     getQuestionList();
+    getDetail();
 });
 </script>
 

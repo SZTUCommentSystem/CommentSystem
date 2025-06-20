@@ -80,7 +80,11 @@ const returnUploadUrls = async () => {
 // 提交
 const submitQuestion = async () => {
   returnTypeId()
-  await returnUploadUrls()
+  try {
+    await returnUploadUrls()
+  } catch {
+    console.log('error')
+  }
   
   let data = {
     courseId: userStore.selectClass.courseId,

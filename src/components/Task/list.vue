@@ -30,8 +30,8 @@
                 <div class="list">
                   <ul>
                     <li
-                      v-if="IsTask && displayedTasks.length > 0"
-                      v-for="item in displayedTasks.filter(task => task.homeworkContentId === cate.homeworkContentId)"
+                      v-if="IsTask && FilterStatus.length > 0"
+                      v-for="item in FilterStatus.filter(task => task.homeworkContentId === cate.homeworkContentId)"
                       :key="item.homeworkId"
                       class="list_li"
                     >
@@ -82,7 +82,7 @@
                         </div>
                       </div>
                     </li>
-                    <li v-if="!IsTask || displayedTasks.length === 0" class="list-not-li">
+                    <li v-if="!IsTask || FilterStatus.length === 0" class="list-not-li">
                       <h1>尚未发布作业</h1>
                     </li>
                   </ul>
@@ -92,14 +92,14 @@
           </li>
         </ul>
       </div>
-      <div class="paging">
+      <!-- <div class="paging">
         <el-config-provider :locale="zhCn">
           <el-pagination :current-page="state.pageNum" background :page-size="state.pageSize"
             :page-sizes="[10]" v-if="FilterStatus.length > 0" layout="total, prev, pager, next, jumper"
             :total="FilterStatus.length" @size-change="handleSizeChange"
             @current-change="handleCurrentChange" />
         </el-config-provider>
-      </div>
+      </div> -->
     </div>
 
     <!-- 发布作业 -->
@@ -108,9 +108,9 @@
       <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">
         全选
       </el-checkbox>
-      <el-checkbox-group v-model="checkedTags" @change="handleCheckedTagsChange">
-        <el-checkbox v-for="tag in tags" :key="tag" :label="tag" :value="tag">
-          {{ tag }}
+      <el-checkbox-group v-model="checkedClass" @change="handleCheckedTagsChange">
+        <el-checkbox v-for="tag in classList" :key="tag" :label="tag" :value="tag">
+          {{ tag.className }}
         </el-checkbox>
       </el-checkbox-group>
       <template #footer>
@@ -153,52 +153,87 @@
 
 <script setup lang="ts">
 import { ref, watchEffect, onMounted } from "vue";
-import { ElConfigProvider } from "element-plus";
-import { zhCn } from "element-plus/es/locale/index.mjs";
 import { useRouter } from "vue-router";
+
+import { classListAPI } from '@/api/ClassAPI/index';
+import { deleteTaskAPI, pubTaskAPI } from "@/api/TaskAPI/TaskQuestionList";
 
 // 导入列表展示逻辑和标签工具
 import ListDisplay, { getTagsByQuestionIds } from "@/hooks/TaskHooks/TaskListDisplay";
 import { PubList, EndList, DelList } from "@/hooks/TaskHooks/OperateList";
+import { ElMessage } from "element-plus";
 
 // 获取作业分类、作业列表等
 const {
   homeWorkComment,
   state,
-  handleSizeChange,
   getHomeworkComment,
   getTaskList,
-  handleCurrentChange,
-  selectedType,
-  FilterStatus,
-  displayedTasks
+  FilterStatus
 } = ListDisplay();
 
 // 发布作业相关
 const {
   pubDialogVisible,
+  pubTaskId,
   confirmPubTask,
-  publishTask: publishTaskOriginal
 } = PubList();
-const publishTask = () => {
-  state.TaskList = publishTaskOriginal(state.TaskList);
-};
 
 // 发布班级相关
+// 获取班级列表
+interface ClassItem {
+  classId: string //班级id（唯一）“非空”
+  courseId: string //课程id
+	className: string   //班级名称
+	classState: string  //班级状态（1 未开课，2 授课中，3已结课）
+  lastTime: string  //最近作业截止时间
+  svgNum: number  //平均分
+}
+const checkedClass = ref<ClassItem[]>([])
+const classList = ref<ClassItem[]>([])
+const getClassList = async () => {
+  try {
+    const res = await classListAPI();
+    classList.value = res.data.rows;
+    console.log(classList.value)
+  } catch (error) {
+    console.log(error.message)
+  }
+}
+
 const checkAll = ref(false);
 const isIndeterminate = ref(true);
-const checkedTags = ref(['工程1班', '工程4班']);
-const tags = ['工程1班', '工程2班', '工程3班', '工程4班'];
 
 const handleCheckAllChange = (val: boolean) => {
-  checkedTags.value = val ? tags : [];
+  checkedClass.value = val ? classList.value : [];
   isIndeterminate.value = false;
 };
 const handleCheckedTagsChange = (value: string[]) => {
   const checkedCount = value.length;
-  checkAll.value = checkedCount === tags.length;
-  isIndeterminate.value = checkedCount > 0 && checkedCount < tags.length;
+  checkAll.value = checkedCount === classList.value.length;
+  isIndeterminate.value = checkedCount > 0 && checkedCount < classList.value.length;
 };
+
+const publishTask = async () => {
+  let pubTa = state.TaskList.find(item => item.homeworkId = pubTaskId.value)
+  let data = {
+    homeworkId: pubTaskId.value,
+    classIds: checkedClass.value.map(item => item.classId).join(','),
+    topicIds: pubTa.topicIds
+  }
+  try {
+    const res = await pubTaskAPI(data);
+    if(res.data.code == 200) {
+      ElMessage.success('发布成功')
+    } else {
+      ElMessage.error('发布失败')
+    }
+  } catch (error) {
+    console.log(error.message)    
+  } finally {
+    pubDialogVisible.value = false
+  }
+}
 
 // 截止作业相关
 const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
@@ -207,10 +242,22 @@ const endTask = () => {
 };
 
 // 删除作业相关
-const { delDialogVisible, confirmDelTask, deleteTask: deleteTaskOriginal } = DelList();
-const deleteTask = () => {
-  state.TaskList = deleteTaskOriginal(state.TaskList);
-};
+const { delDialogVisible, delTaskId, confirmDelTask } = DelList();
+const deleteTask = async () => {
+  try {
+    const res = await deleteTaskAPI(delTaskId.value)
+    if (res.data.code == 200) {
+      ElMessage.success('删除成功')
+      init()
+    } else {
+      ElMessage.error('删除失败')
+    }
+  } catch (error) {
+    console.log(error.message)
+  } finally {
+    delDialogVisible.value = false
+  }
+}
 
 // 是否有作业
 const IsTask = ref(true);
@@ -229,15 +276,8 @@ const toTaskDetail = (id: number) => {
   router.push({ path: "/home/task/taskdetail", query: { id } });
 };
 
-// 折叠面板状态（每个分类独立）
-const activeNames = ref<string[]>([]); // 如果需要每个分类独立折叠，可用对象存储
-
-const handleChange = (val: string[]) => {
-  activeNames.value = val;
-};
-
-// 页面加载时获取作业列表，并为每个作业动态获取标签
-onMounted(async () => {
+const init = async () => {
+  getClassList();
   getHomeworkComment();
   await getTaskList();
   // 并发请求所有作业的标签
@@ -254,7 +294,10 @@ onMounted(async () => {
       }
     })
   );
-});
+}
+
+// 页面加载时获取作业列表，并为每个作业动态获取标签
+onMounted(() => init());
 </script>
 
 <style scoped>
@@ -465,11 +508,6 @@ h2 {
   font-size: 20px;
   padding: 36px 0;
   letter-spacing: 2px;
-}
-.paging {
-  position: absolute;
-  right: 24px;
-  bottom: 38px;
 }
 .task-info-header {
   display: flex;

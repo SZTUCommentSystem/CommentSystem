@@ -63,12 +63,12 @@ const router = createRouter({
         {
           path: '/home/class',
           name: 'class',
-          component: () => import('../components/Class/index.vue')
+          component: () => import('../components/Class/list.vue')
         },
         {
           path: '/home/classdetail',
           name: 'classdetail',
-          component: () => import('../components/Class/ClassDetail.vue')
+          component: () => import('../components/Class/detail.vue')
         },
         {
           path: '/home/library',

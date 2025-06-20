@@ -21,6 +21,9 @@
                <template #suffix>/100</template>
              </el-statistic>
            </el-col>
+           <el-col :span="6">
+             <el-statistic title="班级邀请码" :value="route.query.classId" />
+           </el-col>
          </el-row>
        </div>
       <div class="student-list">

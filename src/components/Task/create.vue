@@ -102,8 +102,7 @@
                     v-model="taskContent.limitTime"
                     type="datetime"
                     placeholder="请选择截止时间"
-                    format="YYYY-MM-DD HH:mm:ss"
-                    value-format="YYYY-MM-DD HH:mm:ss"
+                    format="YYYY-MM-DD"
                 />
             </div>
         </div>
@@ -489,11 +488,6 @@ const submitTask = async () => {
             return;
         }
 
-        const formattedDeadline = taskContent.limitTime
-        ? dayjs(taskContent.limitTime).format('YYYY-MM-DD HH:mm:ss')
-        : '';
-
-
         taskContent.topicIds = problems.value.map(item => item.topicId);
 
         let homeworkCommentId = homeworkComment.filter(item => item.homeworkContentName == taskContent.homeworkContent);
@@ -501,7 +495,6 @@ const submitTask = async () => {
             ...taskContent,
             topicIds: taskContent.topicIds.join(','),
             homeworkContentId: homeworkCommentId[0].homeworkContentId,
-            deadline: formattedDeadline
         };
         delete submitData.homeworkContent;
         console.log(submitData);
