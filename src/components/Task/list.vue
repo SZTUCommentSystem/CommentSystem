@@ -66,7 +66,7 @@
                                     编辑作业
                                   </el-dropdown-item>
                                   <el-dropdown-item
-                                    @click="toTaskCondition(item.homeworkTitle)">
+                                    @click="toTaskCondition(item.homeworkId, item.classIds)">
                                     查看作业
                                   </el-dropdown-item>
                                 </el-dropdown-menu>
@@ -267,8 +267,8 @@ watchEffect(() => {
 
 // 跳转到作业情况页面
 const router = useRouter();
-const toTaskCondition = (title: string) => {
-  router.push({ path: "/home/task/taskcondition", query: { title } });
+const toTaskCondition = (id: number, classIds: string) => {
+  router.push({ path: "/home/task/taskcondition", query: { id, classIds } });
 };
 
 // 跳转到编辑作业页面

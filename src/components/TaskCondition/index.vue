@@ -7,20 +7,19 @@
         <div class="list">
             <div class="list-header">
                 <h3>作业详情</h3>
-                <el-button type="success" plain @click="Export">导出excel表格</el-button>
+                <el-button v-if="!ListIndex" type="success" plain @click="Export">导出excel表格</el-button>
             </div>
-            <StudentList v-if="!ListIndex" :className="className" @updateListDate="updateListDate"></StudentList>
-            <ClassList v-else @updateListDate="updateListDate"></ClassList>
+            <ClassList v-if="ListIndex"  :classList="classList" @updateListDate="updateListDate"></ClassList>
+            <StudentList v-else :className="className" :studentList="classStudentList" @updateIndex="ListIndex = !ListIndex"></StudentList>
         </div>
     </div>
-
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Action } from 'element-plus'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 // 导入主要数据和事件
 import ExcelEport from '@/hooks/TaskConditionHooks/ExcelExport';
@@ -28,20 +27,95 @@ import ExcelEport from '@/hooks/TaskConditionHooks/ExcelExport';
 // 学生和班级列表
 import StudentList from './components/StudentList.vue';
 import ClassList from './components/ClassList.vue';
+import { classDetailAPI, studentListAPI, studentTaskInfoAPI } from '@/api/ClassAPI';
 
 //// 作业详情
-
 const router = useRouter();
+const route = useRoute();
 
-// 切换学生和班级列表，并发送班级名字
+// 切换学生和班级列表，并获取班级对应学生列表
 const ListIndex = ref(true);
 const className = ref('');
+const classStudentList = ref<Student[]>([]);
 
-const updateListDate = (name?: string) => {
+const updateListDate = (classObj: Class) => {
     ListIndex.value = !ListIndex.value;
-    className.value = name || '';
-    console.log(className.value);
+    className.value = classObj.className;
+    const classi = classList.value.filter(item => item.className == classObj.className)
+    classStudentList.value = classi[0].student || [];
+}
 
+// 获取班级数据，同时获取每个班级的学生列表
+export interface Student {
+    studentId: string
+    studentNo: string
+    studentName: string
+    infoState: number
+    score: number
+}
+interface Class {
+    classId: number
+    className: string
+    svgNum: string
+    student: Student[]
+}
+const classIds = Array.isArray(route.query.classIds)
+    ? route.query.classIds
+    : (typeof route.query.classIds === 'string' ? route.query.classIds.split(',') : []);
+const classList = ref<Class[]>([])
+const getClassList = async () => {
+    try {
+        classList.value = []; // 清空
+
+        // 并发请求所有班级
+        const classPromises = classIds.map(async (id) => {
+            const re = await classDetailAPI(id);
+            const res = await studentListAPI(Number(id));
+            if (res.data.code == 200) {
+                // 并发请求所有学生的作业详情
+                const students: Student[] = await Promise.all(
+                    res.data.rows.map(async (student: any) => {
+                        let infoState = 0;
+                        let score = 0;
+                        // 获取作业详情
+                        const data = {
+                            homeworkId: route.query.id,
+                            studentId: student.studentId,
+                        };
+                        const ret = await studentTaskInfoAPI(data);
+                        if (ret.data.code == 200 && ret.data.rows && ret.data.rows.length > 0) {
+                            infoState = ret.data.rows[0].infoState;
+                            score = ret.data.rows[0].score ?? 0;
+                        }
+                        return {
+                            studentId: student.studentId,
+                            studentNo: student.studentNo,
+                            studentName: student.studentName,
+                            infoState,
+                            score,
+                        };
+                    })
+                );
+                // 返回班级对象
+                return {
+                    classId: re.data.data.classId,
+                    className: re.data.data.className,
+                    svgNum: re.data.data.svgNum ?? 0,
+                    student: students
+                };
+            }
+            return null;
+        });
+
+        // 等待所有班级请求完成
+        const classResults = await Promise.all(classPromises);
+        // 过滤掉无效班级
+        classList.value = classResults.filter(item => item !== null);
+
+        console.log(classList.value)
+    } catch (error) {
+        console.log(error.message)
+    }
 }
 
 //导出Excel表格
@@ -72,6 +146,9 @@ const Export = () => {
     })
 }
 
+onMounted(() => {
+    getClassList();
+})
 </script>
 
 <style scoped>

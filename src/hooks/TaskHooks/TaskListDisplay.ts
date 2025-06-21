@@ -13,7 +13,7 @@ export interface HomeworkTask {
     homeworkDescribe: string;
     topicIds: string;
     limitTime: string;
-    classIds: number;
+    classIds: string;
     userId: number;
     tags?: string[];
 }

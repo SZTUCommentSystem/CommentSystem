@@ -48,7 +48,7 @@ export const pubTaskAPI = (data: any) => {
     return request({
         url: 'function/homework/release',
         method: 'get',
-        data
+        params: data
     })
 }
 

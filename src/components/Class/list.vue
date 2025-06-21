@@ -10,7 +10,7 @@
         </el-select>
         <el-input v-model="searchQuery" placeholder="搜索班级名字" class="ms-2 inputclass" clearable />
       </div>
-      <el-button type="primary" @click="createClass">新建班级</el-button>
+      <el-button type="primary" @click="createClassDialogVisible = true">新建班级</el-button>
     </div>
     <div class="card-container">
       <el-card v-for="(classItem, index) in filteredClasses" :key="index"
@@ -28,12 +28,23 @@
         </template>
       </el-card>
     </div>
+    <el-dialog v-model="createClassDialogVisible" title="新建班级" width="400">
+      <el-input v-model="createClassName" placeholder="请输入新班级名称" />
+      <template #footer>
+        <el-button @click="createClassDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="createClass">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { classListAPI } from '@/api/ClassAPI/index';
+import { classListAPI, addClassAPI } from '@/api/ClassAPI/index';
+import { ElMessage } from 'element-plus';
+import { useUserStore } from '@/store/user';
+
+const userStore = useUserStore();
 
 defineOptions({ name: 'class' })
 
@@ -60,8 +71,22 @@ const filteredClasses = computed(() => {
   });
 });
 
-const createClass = () => {
+// 新建班级
+const createClassDialogVisible = ref(false)
+const createClassName = ref('')
+const createClass = async () => {
   // 新建班级的逻辑
+  let data = {
+    courseId: userStore.selectClass.courseId,
+    className: createClassName.value,
+    classState: '2'
+  }
+  const res = await addClassAPI(data);
+  if (res.data.code == 200) {
+    ElMessage.success('创建成功');
+    getClassList();
+    createClassDialogVisible.value = false
+  }
 };
 
 const getClassList = async () => {
