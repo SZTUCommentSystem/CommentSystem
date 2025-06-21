@@ -25,7 +25,13 @@
         <el-table-column label="操作">
             <template #default="scope">
                 <div>
-                    <router-link :to="{ path: '/home/corret', query: { id: scope.row.studentNo } }">批改作业</router-link>
+                    <router-link :to="{
+                        name: 'corret', query: {
+                            studentId: scope.row.studentId,
+                            classId: props.classId,
+                            homeworkId: props.homeworkId
+                        }
+                    }">批改作业</router-link>
                     <router-link to="" style="margin-left: 10px;">追加点评</router-link>
                 </div>
             </template>
@@ -65,6 +71,8 @@ const getStatusClass = (row: any) => {
 const props = defineProps<{
     className: string;
     studentList: Student[];
+    classId: number,
+    homeworkId: number
 }>();
 
 const emit = defineEmits(['updateIndex'])

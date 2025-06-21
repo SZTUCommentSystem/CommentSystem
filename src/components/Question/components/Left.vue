@@ -15,8 +15,10 @@
             round 
             size="large"
             closable 
+            @click="handleTagClick(comment.commentName)"
             @close="handleCloseComment(comment)"
             style="margin-right: 10px; margin-bottom: 10px; font-size: 16px;"
+            :style="isCuor ? { cursor: 'pointer' } : {}"
           >{{ comment.commentName }}</el-tag>
         </div>
       </div>
@@ -43,8 +45,19 @@ const props = defineProps({
   questionContent: {
     type: Object,
     required: true
+  },
+  isCuor: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emit = defineEmits(['clickEvent'])
+
+const handleTagClick = (comment: string) => {
+  console.log('111')
+  emit('clickEvent', comment)
+}
 
 const showDialog = ref(false)
 const handleCommentConfirm = (comments: any) => {

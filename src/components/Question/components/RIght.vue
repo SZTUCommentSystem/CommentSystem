@@ -1,5 +1,5 @@
 <template>
-  <div class="right">
+  <div class="right" :style="isDialog ? {width:'90%'}:{width:'50%'}">
     <div class="create-list">
       <p>标题：</p>
       <input type="text" v-model="props.questionContent.topicTitle" placeholder="请输入题目标题" />
@@ -127,6 +127,10 @@ const props = defineProps({
     type: Object,
     required: true
   },
+  isDialog: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const emit = defineEmits(['returnTypeId', 'returnUploadUrls'])
@@ -326,7 +330,7 @@ onMounted(() => {
   flex-direction: column;
   padding: 10px 20px;
   background-color: #fff;
-  width: 50%;
+  /* width: 50%; */
   margin-left: 10px;
 
   p {

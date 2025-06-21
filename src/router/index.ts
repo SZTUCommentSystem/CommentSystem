@@ -78,7 +78,7 @@ const router = createRouter({
         {
           path: '/home/corret',
           name: 'corret',
-          component: () => import('../components/Corret/index.vue')
+          component: () => import('../components/Corret/index.vue'),
         },
         {
           path: '/home/label',

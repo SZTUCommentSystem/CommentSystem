@@ -181,8 +181,8 @@ import { Search } from '@element-plus/icons-vue';
 
 import { questionListAPI, questionTypeAPI } from '@/api/QuestionAPI';
 import { labelInfoAPI } from '@/api/LabelAPI';
-import { addTaskAPI } from '@/api/TaskAPI/TaskQuestionList';
-import { taskCategoryListAPI, addTaskCategoryAPI, changeTaskCategoryAPI, deleteTaskCategoryAPI } from "@/api/TaskAPI/TaskQuestionList";
+import { addTaskAPI } from '@/api/TaskAPI';
+import { taskCategoryListAPI, addTaskCategoryAPI, changeTaskCategoryAPI, deleteTaskCategoryAPI } from "@/api/TaskAPI";
 
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/user';

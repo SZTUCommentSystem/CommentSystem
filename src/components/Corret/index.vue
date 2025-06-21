@@ -1,19 +1,23 @@
 <template>
     <div style="position: relative;">
         <!-- 左边学生列表组件 -->
-        <SideBorder :taskNumber="taskNumber" :nowTask="nowTask" :statusData="statusData" :nowCorrect="route.query.id"
+        <!-- <SideBorder 
+            :taskNumber="taskNumber" 
+            :nowTask="nowTask" 
+            :statusData="statusData" 
+            :nowCorrect="route.query.id"
             @updateStudentNumber="updateStudentNumber">
-        </SideBorder>
+        </SideBorder> -->
         <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
         </el-page-header>
 
         <div class="base">
             <div class="left">
-                <div v-if="student">
+                <div>
                     <h4>您当前批改的学生信息</h4>
-                    <p>学生姓名：{{ student.name }}</p>
-                    <p>学生班级：{{ student.class }}</p>
-                    <p>当前批改的题目为：第 {{ nowTask }} 题，共 {{ taskNumber }} 题</p>
+                    <p>学生姓名：{{ nowStudentOtherInfo?.studentName }}</p>
+                    <p>学生班级：{{ studentList?.className }}</p>
+                    <p>当前批改的题目为：第 {{ nowQuestionIdx+1 }} 题，共 {{ taskQuestList.length }} 题</p>
                 </div>
                 <div>
                     <h4>批改作业</h4>
@@ -26,7 +30,7 @@
                         </SignImage>
                         <!-- 点击弹出图片处理框 -->
                         <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
-                        <el-button>查看原题</el-button>
+                        <el-button @click="showDialog = true">查看原题</el-button>
 
                         <!-- 处理完图片回显 -->
                         <ul>
@@ -42,15 +46,14 @@
                 </div>
                 <div>
                     <p>批语：</p>
-                    <el-input v-model="textarea" :autosize="{ minRows: 8 }" type="textarea"
+                    <el-input v-model="submitStudentTask.infoCorrect" :autosize="{ minRows: 8 }" type="textarea"
                         style="width: 100%; font-size: 18px;" />
                     <p>得分：</p>
-                    <input type="number" placeholder="请输入分数" />
-
+                    <input v-model="submitStudentTask.infoNum" type="number" placeholder="请输入分数" />
                 </div>
             </div>
             <div class="right">
-                <div class="right-header">
+                <!-- <div class="right-header">
                     <p>本题的批语库为：</p>
                     <div class="left">
                         <el-button class="new-create" @click="createCategory">新建分类</el-button>
@@ -59,7 +62,12 @@
                 </div>
                 <div class="right-body">
                     <CategoryList :categories="category" @onclick="onclick" />
-                </div>
+                </div> -->
+                <Left 
+                    v-model:questionContent="questionContent" 
+                    @clickEvent="onclick"
+                    :isCuor="true"
+                ></Left>
             </div>
         </div>
         <div class="left-button" @click="LastOne">&lt;</div>
@@ -68,243 +76,304 @@
             <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
             <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
             <el-button type="success" style="width: 100px;"
-                @click="updateCorretStatus(nowTask - 1, Number(route.query.id) - 1)">保存</el-button>
+                @click="console.log('111')">保存并提交</el-button>
         </div>
+        <el-dialog
+            v-model="showDialog"
+            title="查看原题"
+            width="50%"
+            align-center
+        >
+            <Right ref="right" :isDialog="true" v-model:questionContent="questionContent"></Right>
+      </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
-import { ref, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, computed, watch, nextTick } from "vue";
 import CorrectWork from '@/hooks/CorretHooks/CorretWork';
-import { ElMessage, ElMessageBox } from 'element-plus';
-
-import CategoryList from '@/components/Generic/CategoryList.vue'
+import { ElMessage } from 'element-plus';
 import SignImage from '@/components/Generic/SignImage.vue'
-import SideBorder from '@/components/Generic/SideBorder.vue'
+import Left from '../Question/components/Left.vue';
+import Right from '../Question/components/Right.vue';
+import { questionDetailAPI, questionCommentListAPI } from '@/api/QuestionAPI'
+import { labelInfoAPI } from '@/api/LabelAPI'
+import { getCommentDetailAPI } from '@/api/CommentsAPI'
+import { taskDetailAPI } from "@/api/TaskAPI";
+import { classDetailAPI, studentListAPI, submitStudentTaskAPI, studentTaskInfoAPI } from '@/api/ClassAPI';
 
-import { studentInfoAPI } from '@/api/TaskAPI/studentList'
-
-// 接受携带数据
 const route = useRoute();
 const router = useRouter();
 
-// 题目情况
-interface Student {
-    id: number;
-    name: string;
-    class: string;
-    studentId: string;
-    status: string;
-    score: number;
-}
-const student = ref<Student | null>(null)
-
-// 根据路由参数获取学生信息
-const getStudentInfo = async () => {
-    const res = await studentInfoAPI(Number(route.query.id));
-    student.value = res.data.data;
-}
-
-// 从子组件获取学生数量
-const studentNumber = ref(0);
-const updateStudentNumber = (num: number) => {
-    studentNumber.value = num;
-}
-
-
-const nowTask = ref(1);
-const taskNumber = ref(3);
-const statusData = ref(new Array(taskNumber.value).fill(0).map(() => new Array(4).fill(0)));
-
-// 批改
 const { deleteImgShow, deleteImg, newImgs, cropperObj } = CorrectWork()
 
-// 更新学生批改状态
-const updateCorretStatus = (taskIndex: number, studentIndex: number) => {
-    statusData.value[taskIndex][studentIndex] = 1;
+// 展示原题
+const showDialog = ref(false)
+
+// 数据类型
+interface Student {
+  studentId: number;
+  studentName: string;
+  userId: number;
+  classId: number;
+  studentTel: string;
+  studentEmail: string;
+  studentNo: string;
+}
+interface ClassI {
+  classId: number,
+  className: string,
+  student: Student[]
+}
+interface StudentTask {
+  homeworkStudentId: number
+  studentId: number
+  infoState: string
+  answerInfo: string
+  infoCorrect: string
+  infoNum: number
+}
+interface Label {
+  chapterId: number
+  courseId: number
+  topicLabelId: number
+  topicLabelName: string
+}
+interface Comment {
+  commentId: number
+  commentName: string
+  commentTypeId: number
 }
 
-// 批语
-// const displayComments = ref([
-//     '你在这个项目中展现了极高的专业水平。',
-//     '你的思考方式为大家打开了新的视野。'
-// ])
-const textarea = ref('');
+// 路由参数
+const homeworkId = ref(Number(route.query.homeworkId))
+const classId = ref(Number(route.query.classId))
+const studentId = ref(Number(route.query.studentId))
 
-const onclick = (comment: string) => {
-    textarea.value += comment;
+// 学生列表和当前学生索引
+const studentList = ref<ClassI>({
+  classId: null,
+  className: '',
+  student: []
+});
+const nowStudentIdx = ref(0);
+
+// 题目列表和当前题目索引
+const taskQuestList = ref<string[]>([])
+const nowQuestionIdx = ref(0);
+
+// 当前学生信息
+const nowStudentOtherInfo = computed(() => {
+  return studentList.value.student[nowStudentIdx.value] || null;
+});
+
+// 当前学生ID响应式同步
+watch(nowStudentIdx, (idx) => {
+  if (studentList.value.student[idx]) {
+    studentId.value = studentList.value.student[idx].studentId;
+    getSubmitStudentTask();
+  }
+});
+
+// 获取学生列表
+const getStudentList = async () => {
+  const res = await studentListAPI(classId.value);
+  if (res.data.code == 200) {
+    studentList.value.student = res.data.rows;
+    // 定位当前学生索引
+    const idx = studentList.value.student.findIndex(s => s.studentId === studentId.value);
+    nowStudentIdx.value = idx !== -1 ? idx : 0;
+  }
+  const ret = await classDetailAPI(classId.value);
+  if (ret.data.code == 200) {
+    studentList.value.className = ret.data.data.className;
+    studentList.value.classId = ret.data.data.classId;
+  }
 }
 
-// 批语分类
-// interface Category {
-//     id: number;
-//     name: string;
-//     comments: string[];
-//     isEditing: boolean;
-//     spreadIndex: boolean;
-//     subcategories: Subcategory[];
-// }
-
-// interface Subcategory {
-//     id: number;
-//     name: string;
-//     comments: string[];
-//     isEditing: boolean;
-//     spreadIndex: boolean;
-//     subcategories: Subcategory[];
-// }
-
-const category = ref([
-    {
-        id: 1,
-        name: '分类A',
-        comments: [
-            '你在这个项目中展现了极高的专业水平。',
-            '你的思考方式为大家打开了新的视野。'
-        ],
-        isEditing: false,
-        spreadIndex: false,
-        subcategories: [
-            {
-                id: 4,
-                name: '子分类A1',
-                comments: [
-                    '子分类A1的评论1。',
-                    '子分类A1的评论2。'
-                ],
-                isEditing: false,
-                spreadIndex: false,
-                subcategories: []
-            }
-        ]
-    },
-    {
-        id: 2,
-        name: '分类B',
-        comments: [
-            '你在这个项目中展现了极高的专业水平。',
-            '你的思考方式为大家打开了新的视野。'
-        ],
-        isEditing: false,
-        spreadIndex: false,
-        subcategories: []
-    },
-    {
-        id: 3,
-        name: '分类C',
-        comments: [
-            '你在这个项目中展现了极高的专业水平。',
-            '你的思考方式为大家打开了新的视野。'
-        ],
-        isEditing: false,
-        spreadIndex: false,
-        subcategories: []
+// 学生作业信息
+const submitStudentTask = ref<StudentTask>({
+  homeworkStudentId: null,
+  studentId: null,
+  infoState: '',
+  answerInfo: '',
+  infoCorrect: '',
+  infoNum: null,
+})
+const getSubmitStudentTask = async () => {
+  let data = {
+    homeworkId: homeworkId.value,
+    studentId: studentId.value
+  }
+  const res = await studentTaskInfoAPI(data);
+  if (res.data.code == 200 && res.data.rows.length > 0) {
+    let da = {
+      studentId: studentId.value,
+      homeworkStudentId: res.data.rows[0].id,
+      topicId: taskQuestList.value[nowQuestionIdx.value]
     }
-]);
+    const ret = await submitStudentTaskAPI(da);
+    if (ret.data.code == 200 && ret.data.rows.length > 0) {
+      submitStudentTask.value = ret.data.rows[0];
+    }
+  }
+}
 
-// 切换展开状态
-const spreadIndex = ref(false);
+// 题目内容
+const questionContent = reactive<{
+  topicId?: string | number
+  topicTitle: string
+  topicType: string
+  labels: Label[]
+  topicUrls: string[]
+  topicInfo: string
+  comments: Comment[]
+}>({
+  topicId: '',
+  topicTitle: '',
+  topicType: '',
+  labels: [],
+  topicUrls: [],
+  topicInfo: '',
+  comments: [],
+})
 
-// 新建分类
-const createCategory = () => {
-    ElMessageBox.prompt('请输入您要放入的目录(多级目录请用.分隔)', '', {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-    })
-        .then(({ value }) => {
-            const parts = value.split('.');
-            if (parts.length === 2) {
-                // 子分类
-                const parentCategory = category.value.find(cat => cat.name === parts[0]);
-                if (parentCategory) {
-                    parentCategory.subcategories.push({
-                        id: parentCategory.subcategories.length + 1,
-                        name: parts[1],
-                        comments: [],
-                        isEditing: false,
-                        spreadIndex: false,
-                        subcategories: []
-                    });
-                    ElMessage({
-                        type: 'success',
-                        message: `创建成功`,
-                    });
-                } else {
-                    ElMessage({
-                        type: 'error',
-                        message: `未找到父分类 ${parts[0]}`,
-                    });
-                }
-            } else if (parts.length === 1) {
-                // 一级分类
-                category.value.push({
-                    id: category.value.length + 1,
-                    name: parts[0],
-                    comments: [],
-                    isEditing: false,
-                    spreadIndex: false,
-                    subcategories: []
-                });
-                ElMessage({
-                    type: 'success',
-                    message: `创建成功`,
-                });
-            } else {
-                ElMessage({
-                    type: 'error',
-                    message: '输入格式错误',
-                });
-            }
-        })
-        .catch(() => {
-            ElMessage({
-                type: 'info',
-                message: '创建取消',
-            })
-        })
+// 获取题目列表
+const getTaskDetail = async () => {
+  const res = await taskDetailAPI(homeworkId.value);
+  if (res.data.code == 200) {
+    taskQuestList.value = res.data.data.topicIds.split(',')
+  }
+}
+
+// 获取题目信息
+const getQuestionContent = async () => {
+  const res = await questionDetailAPI(Number(taskQuestList.value[nowQuestionIdx.value]))
+  if (res.data.code === 200) {
+    const data = res.data.data
+    questionContent.topicId = data.topicId
+    questionContent.topicTitle = data.topicTitle
+    questionContent.topicType = getTypeName(data.topicTypeId)
+    questionContent.topicInfo = data.topicInfo
+    questionContent.topicUrls = data.topicUrls
+      ? data.topicUrls.split(',').map(url => ({ url }))
+      : []
+    getLabelByIds(data.labelIds)
+  } else {
+    ElMessage.error('获取题目信息失败，请稍后再试')
+  }
+}
+
+// 获取题目id对应的类型
+const right = ref()
+const getTypeName = (typeId: number) => {
+  if (!right.value || typeof right.value.getTypeListValue !== 'function') return '';
+  const typeList = right.value.getTypeListValue()
+  const type = typeList.find((item: any) => item.topicTypeId === typeId)
+  return type ? type.topicTypeName : ''
+}
+
+// 获取标签
+const getLabelByIds = async (labelIds: string) => {
+  if (!labelIds) {
+    questionContent.labels = []
+    return
+  }
+  const ids = labelIds.split(',').map(Number).filter(id => !isNaN(id));
+  try {
+    const results = await Promise.all(
+      ids.map(id => labelInfoAPI(id))
+    );
+    const labels = results
+      .filter(res => res.data.code === 200)
+      .map(res => res.data.data)
+      .map((label: any) => ({
+        chapterId: label.chapterId,
+        courseId: label.courseId,
+        topicLabelId: label.topicLabelId,
+        topicLabelName: label.topicLabelName,
+      }));
+    questionContent.labels = labels;
+  } catch (error) {
+    ElMessage.error('获取题目标签失败，请稍后再试');
+  }
+}
+
+// 获取题目评论
+const getQuestionComments = async () => {
+  const res = await questionCommentListAPI(Number(taskQuestList.value[nowQuestionIdx.value]))
+  if (res.data.code === 200) {
+    const commentDetails = await Promise.all(
+      res.data.rows.map(async (comment: any) => {
+        const retRes = await getCommentDetailAPI(comment.commentId)
+        const ret = retRes.data.data
+        return {
+          commentId: ret.commentId,
+          commentName: ret.commentName,
+          commentTypeId: ret.commentTypeId,
+        }
+      })
+    )
+    questionContent.comments = commentDetails
+  } else {
+    ElMessage.error('获取题目评论失败，请稍后再试')
+  }
+}
+
+// 点击批语添加
+const onclick = (comment: string) => {
+  submitStudentTask.value.infoCorrect += comment;
 }
 
 // 切换学生
 const LastOne = () => {
-    const id = Number(route.query.id);
-    if (id > 1)
-        router.push(`/home/corret?id=${id - 1}`);
-    else
-        ElMessage.error('已经是第一个学生了');
+  if (nowStudentIdx.value > 0) {
+    nowStudentIdx.value--;
+  } else {
+    ElMessage.error('已经是第一个学生了');
+  }
 }
 const NextOne = () => {
-    const id = Number(route.query.id);
-    if (id < studentNumber.value)
-        router.push(`/home/corret?id=${id + 1}`);
-    else
-        ElMessage.error('已经是最后一个学生了');
+  if (nowStudentIdx.value < studentList.value.student.length - 1) {
+    nowStudentIdx.value++;
+  } else {
+    ElMessage.error('已经是最后一个学生了');
+  }
 }
 
 // 切换题目
 const LastProblem = () => {
-    if (nowTask.value > 1) {
-        nowTask.value--;
-    } else {
-        ElMessage.error('已经是第一题了');
-    }
+  if (nowQuestionIdx.value > 0) {
+    nowQuestionIdx.value--;
+    getQuestionContent();
+    getQuestionComments();
+  } else {
+    ElMessage.error('已经是第一题了');
+  }
 }
 const NextProblem = () => {
-    if (nowTask.value < taskNumber.value) {
-        nowTask.value++;
-    } else {
-        ElMessage.error('已经是最后一题了');
-    }
+  if (nowQuestionIdx.value < taskQuestList.value.length - 1) {
+    nowQuestionIdx.value++;
+    getQuestionContent();
+    getQuestionComments();
+  } else {
+    ElMessage.error('已经是最后一题了');
+  }
 }
 
-onMounted(() => {
-    getStudentInfo();
-})
-
-watch(() => route.query.id, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        getStudentInfo();
-    }
+// 初始化
+onMounted(async () => {
+  // 等待 nextTick，确保 right 组件已挂载
+  await nextTick();
+  if (right.value && typeof right.value.getTypeList === 'function') {
+    await right.value.getTypeList();
+  }
+  await getTaskDetail();
+  await getStudentList();
+  await getQuestionContent();
+  await getQuestionComments();
+  await getSubmitStudentTask();
 })
 </script>
 

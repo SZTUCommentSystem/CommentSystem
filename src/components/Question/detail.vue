@@ -158,7 +158,6 @@ const uploadUrls = ref('')
 const returnUploadUrls = async () => {
   await right.value.uploadImages();
   const urls = right.value.getUploadUrls();
-  console.log('获取到的图片地址:', urls);
   uploadUrls.value = urls.join(',');
 }
 

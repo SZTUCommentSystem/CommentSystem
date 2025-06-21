@@ -9,8 +9,14 @@
                 <h3>作业详情</h3>
                 <el-button v-if="!ListIndex" type="success" plain @click="Export">导出excel表格</el-button>
             </div>
-            <ClassList v-if="ListIndex"  :classList="classList" @updateListDate="updateListDate"></ClassList>
-            <StudentList v-else :className="className" :studentList="classStudentList" @updateIndex="ListIndex = !ListIndex"></StudentList>
+            <ClassList v-if="ListIndex" :classList="classList" @updateListDate="updateListDate"></ClassList>
+            <StudentList v-else 
+                :className="className" 
+                :classId="classi.classId" 
+                :homeworkId="homeworkId"
+                :studentList="classi.student" 
+                @updateIndex="ListIndex = !ListIndex"
+            ></StudentList>
         </div>
     </div>
 </template>
@@ -33,25 +39,25 @@ import { classDetailAPI, studentListAPI, studentTaskInfoAPI } from '@/api/ClassA
 const router = useRouter();
 const route = useRoute();
 
+const homeworkId = Number(route.query.id);
+
 // 切换学生和班级列表，并获取班级对应学生列表
 const ListIndex = ref(true);
 const className = ref('');
-const classStudentList = ref<Student[]>([]);
-
+const classi = ref <Class>();
 const updateListDate = (classObj: Class) => {
     ListIndex.value = !ListIndex.value;
     className.value = classObj.className;
-    const classi = classList.value.filter(item => item.className == classObj.className)
-    classStudentList.value = classi[0].student || [];
+    classi.value = classList.value.filter(item => item.className == classObj.className)[0]
 }
 
 // 获取班级数据，同时获取每个班级的学生列表
 export interface Student {
     studentId: string
-    studentNo: string
+    studentNo?: string
     studentName: string
     infoState: number
-    score: number
+    score?: number
 }
 interface Class {
     classId: number
@@ -69,7 +75,7 @@ const getClassList = async () => {
 
         // 并发请求所有班级
         const classPromises = classIds.map(async (id) => {
-            const re = await classDetailAPI(id);
+            const re = await classDetailAPI(Number(id));
             const res = await studentListAPI(Number(id));
             if (res.data.code == 200) {
                 // 并发请求所有学生的作业详情
@@ -79,7 +85,7 @@ const getClassList = async () => {
                         let score = 0;
                         // 获取作业详情
                         const data = {
-                            homeworkId: route.query.id,
+                            homeworkId: homeworkId,
                             studentId: student.studentId,
                         };
                         const ret = await studentTaskInfoAPI(data);

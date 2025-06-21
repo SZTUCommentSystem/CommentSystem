@@ -101,7 +101,7 @@ import {computed, onMounted, ref} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { classDetailAPI, studentListAPI } from '@/api/ClassAPI/index'
-import { taskListAPI } from '@/api/TaskAPI/TaskQuestionList'
+import { taskListAPI } from '@/api/TaskAPI'
 import { labelInfoAPI } from "@/api/LabelAPI";
 
 const source = ref(0)

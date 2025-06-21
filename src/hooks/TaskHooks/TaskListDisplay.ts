@@ -1,6 +1,6 @@
 import { ref, reactive, computed } from "vue";
 import { useUserStore } from "@/store/user";
-import { taskListAPI, taskCategoryListAPI } from "@/api/TaskAPI/TaskQuestionList";
+import { taskListAPI, taskCategoryListAPI } from "@/api/TaskAPI";
 import { questionDetailAPI } from "@/api/QuestionAPI";
 import { labelInfoAPI } from "@/api/LabelAPI";
 

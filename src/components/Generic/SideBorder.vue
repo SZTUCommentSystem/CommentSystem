@@ -24,7 +24,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { studentListAPI } from '@/api/TaskAPI/studentList';
+
+import type { Student } from '@/components/TaskCondition/index.vue';
+import { studentListAPI } from '@/api/ClassAPI';
 
 // 定义 `StatusData` 的类型
 interface StatusData {
@@ -33,21 +35,15 @@ interface StatusData {
 
 // 接受父组件传递的数据
 const props = defineProps<{
+    className: string,
+
+
     taskNumber: number;
     nowTask: number;
     statusData: StatusData;
 }>();
 
 const emit = defineEmits(['updateStudentNumber']);
-
-interface Student {
-    id: number;
-    name: string;
-    class: string;
-    studentId: string;
-    status: string;
-    score: number;
-}
 
 // 学生列表
 const studentList = ref<Student[]>([]);

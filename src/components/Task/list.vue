@@ -156,7 +156,7 @@ import { ref, watchEffect, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 import { classListAPI } from '@/api/ClassAPI/index';
-import { deleteTaskAPI, pubTaskAPI } from "@/api/TaskAPI/TaskQuestionList";
+import { deleteTaskAPI, pubTaskAPI } from "@/api/TaskAPI";
 
 // 导入列表展示逻辑和标签工具
 import ListDisplay, { getTagsByQuestionIds } from "@/hooks/TaskHooks/TaskListDisplay";

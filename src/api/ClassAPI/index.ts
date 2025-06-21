@@ -9,7 +9,7 @@ export const classListAPI = () => {
 }
 
 // 获取班级详情
-export const classDetailAPI = (classId: string) => {
+export const classDetailAPI = (classId: number) => {
     return request({
         url: `function/bclass/${classId}`,
         method: "get",
@@ -39,6 +39,15 @@ export const studentTaskInfoAPI = (data: any) => {
     return request({
         url: 'function/homeworkstudent/list',
         method: "get",
+        params: data
+    })
+}
+
+// 获取学生提交的作业信息
+export const submitStudentTaskAPI = (data: any) => {
+    return request({
+        url: `function/topicstudent/list`,
+        method: 'get',
         params: data
     })
 }
