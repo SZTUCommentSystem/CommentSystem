@@ -48,7 +48,7 @@ const questionContent = reactive<{
   topicTitle: string
   topicType: string
   labels: Label[]
-  topicUrls: string[]
+  topicUrls: any[]
   topicInfo: string
   comments: Comment[]
 }>({
@@ -64,34 +64,26 @@ const right = ref()
 // 返回类型Id函数
 const typeId = ref('')
 const returnTypeId = () => {
-  typeId.value = (right.value.getTypeList()
-    .find((item:any) => item.topicTypeName === questionContent.topicType)
+  typeId.value = (right.value.getTypeListValue()
+    ?.find((item:any) => item.topicTypeName === questionContent.topicType)
     ?.topicTypeId ?? '').toString();
-}
-// 返回图片地址函数
-const uploadUrls = ref('')
-const returnUploadUrls = async () => {
-  await right.value.uploadImages();
-  const urls = right.value.getUploadUrls();
-  console.log('获取到的图片地址:', urls);
-  uploadUrls.value = urls.join(',');
 }
 
 // 提交
 const submitQuestion = async () => {
   returnTypeId()
-  try {
-    await returnUploadUrls()
-  } catch {
-    console.log('error')
-  }
-  
+  // 直接取已上传图片的 url
+  const urls = questionContent.topicUrls
+    .map((file: any) => file.raw.url)
+    .filter(Boolean)
+    .join(',');
+
   let data = {
     courseId: userStore.selectClass.courseId,
     topicTitle: questionContent.topicTitle.trim(),
     topicTypeId: typeId.value,
     labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
-    topicUrls: uploadUrls.value,
+    topicUrls: urls,
     topicInfo: questionContent.topicInfo,
     commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
   }

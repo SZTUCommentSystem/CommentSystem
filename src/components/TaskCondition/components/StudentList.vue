@@ -8,7 +8,7 @@
                 :prefix-icon="Search" />
         </div>
     </div>
-    <el-table :data="displayStudent" style="width: 100%"
+    <el-table :data="displayStudent" style="width: 96%"
         :header-cell-style="{ backgroundColor: 'rgb(246, 247, 249)', textAlign: 'center' }"
         :cell-style="{ textAlign: 'center' }" :row-style="{ height: '50px' }" :header-row-style="{ height: '70px' }">
         <el-table-column type="index" label="序号" width="100" />
@@ -17,7 +17,7 @@
         <el-table-column label="作业状态" width="200">
             <template #default="{ row }">
                 <span :class="getStatusClass(row)">
-                    {{ row.infoState === 0 ? '未提交' : row.infoState === 1 ? '已提交' : row.infoState === 2 ? '已批改' : '未知' }}
+                    {{ row.infoState }}
                 </span>
             </template>
         </el-table-column>
@@ -57,10 +57,10 @@ import StudentList from '@/hooks/TaskConditionHooks/StudentList';
 import { onMounted } from "vue";
 
 const getStatusClass = (row: any) => {
-    if (row.status === '已发布') {
+    if (row.infoState === '未提交') {
         return 'isRed';
     }
-    else if (row.status === '已提交') {
+    else if (row.infoState === '已提交') {
         return 'isSubmit';
     }
     else {

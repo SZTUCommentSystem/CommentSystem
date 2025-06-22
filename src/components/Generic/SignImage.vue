@@ -1,7 +1,13 @@
 <template>
-    <el-dialog :title="title" :modelValue="dialogVisible" :show-close="true" :close-on-click-modal="false"
-        :close-on-press-escape="false" :before-close="closeDialog" destroy-on-close width="60%">
-
+    <el-dialog 
+        :title="title" 
+        :modelValue="dialogVisible" 
+        :show-close="true" 
+        :close-on-click-modal="false"
+        :close-on-press-escape="false" 
+        :before-close="closeDialog" 
+        destroy-on-close width="60%"
+    >
         <div class="drawing-container">
             <!-- 切换页面 -->
             <el-button class="prev" @click="loadPrevImage">&lt;</el-button>
@@ -20,7 +26,7 @@ import ImageEditor from 'tui-image-editor'
 
 import { ref, onMounted, nextTick, defineProps, defineEmits } from 'vue'
 
-import { uploadFile } from '@/api/CorretAPI/uploadImage'
+import { ElMessage } from 'element-plus'
 // 中文菜单
 const locale_zh = {
     ZoomIn: '放大',
@@ -180,9 +186,7 @@ const customTheme = {
 const props = defineProps({
     dialogVisible: {
         type: Boolean,
-        default: () => {
-            return false;
-        },
+        default: false
     },
     title: {
         type: String,
@@ -194,13 +198,12 @@ const props = defineProps({
     },
 
 });
-const emit = defineEmits()
+const emit = defineEmits(['uploadAndShowImg'])
 const instance = ref(null)
 
 // 关闭弹框
 const closeDialog = () => {
     emit('closeCropperDialog')
-    // options.img = ''
 }
 
 const currentImageIndex = ref(0) // 当前图片索引
@@ -217,8 +220,8 @@ const init = () => {
             locale: locale_zh, // 本地化语言为中文
             theme: customTheme // 自定义样式
         },
-        cssMaxWidth: 400, // canvas 最大宽度
-        cssMaxHeight: 500 // canvas 最大高度
+        cssMaxWidth: 1000, // canvas 最大宽度
+        cssMaxHeight: 1200 // canvas 最大高度
     })
     document.getElementsByClassName('tui-image-editor-main')[0].style.top = '45px' // 调整图片显示位置
     document.getElementsByClassName('tie-btn-reset tui-image-editor-item help')[0].style.display = 'none' // 隐藏顶部重置按钮
@@ -251,25 +254,27 @@ const loadPrevImage = () => {
 
 // 保存图片，并上传
 const save = () => {
-
-    const base64String = instance.value.toDataURL() // base64 文件
+    const base64String = instance.value.toDataURL()
     const data = window.atob(base64String.split(',')[1])
     const ia = new Uint8Array(data.length)
     for (let i = 0; i < data.length; i++) {
         ia[i] = data.charCodeAt(i)
     }
-    const blob = new Blob([ia], { type: 'image/png' }) // blob 文件
+    const fileName = `sign_${Date.now()}.png`
+    // 用 File 替换 Blob
+    const file = new File([ia], fileName, { type: 'image/png' })
     const form = new FormData()
-    form.append("avatarfile", blob)
+    form.append("file", file)
 
-    // 上传图片
-    uploadFile(form).then(res => {
-        emit('getNewImg', res.data.imgUrl);
-        closeDialog()
-    }).catch(err => {
-        console.error('上传失败', err)
-    })
-
+    // const res = uploadFileAPI(form);
+    // debugger
+    // if (res.code == 200) {
+    //     emit('getNewImg', res.url);
+    //     closeDialog()
+    // } else {
+    //     ElMessage.error('上传失败')
+    // }
+    emit('uploadAndShowImg', form)
 }
 
 onMounted(() => {

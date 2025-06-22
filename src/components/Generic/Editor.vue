@@ -1,6 +1,12 @@
 <template>
-    <VueMarkdownEditor v-model="(modelValue)" :disabled-menus="[]" :include-level="[1, 2, 3, 4, 5, 6]"
-        @upload-image="handleUploadImage" @change="change" :height="height + 'px'"></VueMarkdownEditor>
+    <VueMarkdownEditor 
+        v-model="(modelValue)"
+        :disabled-menus="[]" 
+        :include-level="[1, 2, 3, 4, 5, 6]"
+        @upload-image="handleUploadImage" 
+        @change="change" 
+        :height="height + 'px'"
+    ></VueMarkdownEditor>
 </template>
 
 <script setup>

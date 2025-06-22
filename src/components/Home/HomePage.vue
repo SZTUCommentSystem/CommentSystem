@@ -14,6 +14,7 @@
                 <div class="task-content">
                     <div class="task-title">
                         <h4>欢迎您，{{ userStore.userInfo.nickName }}老师，您当前选择的课程为：{{ selectClass.courseName }}</h4>
+                        <el-button type="primary" @click="selectOtherCourse">选择其他课程</el-button>
                     </div>
                     <div class="task-info">
                         <div class="task-condition">
@@ -156,10 +157,12 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, watchEffect } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { useUserStore } from '@/store/user';
+import { useRouter } from 'vue-router';
 
 const userStore = useUserStore();
+const router = useRouter();
 
 //圆环进度条
 const submittedCount = 23;
@@ -172,6 +175,12 @@ const correctedPercentage = ((correctedCount / totalCorrected) * 100).toFixed(2)
 
 //便签
 const textarea = ref('');
+
+// 选择其他课程
+const selectOtherCourse = () => {
+    userStore.clearSelectClass();
+    router.push('/home/course');
+}
 
 const selectClass = ref({} as any);
 // 从本地存储中获取是否选择课程
@@ -254,6 +263,8 @@ watchEffect(() => {
         height: auto;
 
         .task-title {
+            display: flex;
+            justify-content: space-between;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgb(0, 0, 0, 0.2);

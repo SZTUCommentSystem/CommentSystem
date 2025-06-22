@@ -2,9 +2,14 @@
   <div class="right" :style="isDialog ? {width:'90%'}:{width:'50%'}">
     <div class="create-list">
       <p>标题：</p>
-      <input type="text" v-model="props.questionContent.topicTitle" placeholder="请输入题目标题" />
+      <span v-if="isDialog">{{ props.questionContent.topicTitle }}</span>
+      <input v-else type="text" v-model="props.questionContent.topicTitle" placeholder="请输入题目标题" />
     </div>
-    <div class="create-list">
+    <div v-if="isDialog" class="create-list">
+      <p>题目类型：</p>
+      <span>{{ props.questionContent.topicType.topicTypeName }}</span>
+    </div>
+    <div v-else class="create-list">
       <p>题目类型：</p>
       <el-select
         v-model="props.questionContent.topicType"
@@ -65,8 +70,8 @@
       <p>题目标签：</p>
       <div class="tag">
         <el-tag v-for="tag in props.questionContent.labels" :key="tag" type="primary" effect="plain" round size="large"
-          closable @close="handleCloseTag(tag)">{{ tag.topicLabelName }}</el-tag>
-        <el-button type="primary" plain style="border-radius: 20px;" @click="drawerTag = true">+ 添加</el-button>
+          :closable="!isDialog" @close="handleCloseTag(tag)">{{ tag.topicLabelName }}</el-tag>
+        <el-button v-if="!isDialog" type="primary" plain style="border-radius: 20px;" @click="drawerTag = true">+ 添加</el-button>
         <el-drawer v-model="drawerTag" title="选择标签">
           <Label
             :selectMode="true"
@@ -79,19 +84,22 @@
     <div class="create-list">
       <p>作业相关图片：</p>
       <el-upload 
-        ref="upload" 
+        ref="upload"
         v-model:file-list="props.questionContent.topicUrls"
         list-type="picture-card"
-        :auto-upload="false" 
+        :auto-upload="true"
         :on-preview="handlePictureCardPreview"
-        :on-remove="handleRemove"
+        :on-remove="isDialog ? () => false : handleRemove"
+        :before-upload="isDialog ? () => false : undefined"
+        :disabled="isDialog"
+        :http-request="handleUpload"
       >
         <el-icon>
           <Plus />
         </el-icon>
       </el-upload>
-      <el-dialog v-model="dialogVisible">
-        <img w-full :src="dialogImageUrl" alt="Preview Image" />
+      <el-dialog v-model="dialogVisible" >
+        <img w-full :src="dialogImageUrl" alt="Preview Image" style="width: 100%;" />
       </el-dialog>
     </div>
     <div class="create-list">
@@ -289,37 +297,30 @@ const handleTagConfirm = (tags: any) => {
 }
 
 // 图片上传相关
-const uploadUrls = ref<string[]>([])
-// 根据图片转换二进制数据给后端，获取返回数据
-const handleUploadImage = async () => {
-  uploadUrls.value = []
-  await Promise.all(
-    props.questionContent.topicUrls.map(async (fileObj: { raw: File }) => {
-      try {
-        const formData = new FormData()
-        // fileObj.raw 才是真正的 File 类型
-        formData.append('file', fileObj.raw)
+const handleUpload = async (option: any) => {
+  const formData = new FormData();
+  formData.append('file', option.file);
 
-        const res = await uploadFileAPI(formData)
-        if (res.data.code === 200) {
-          const url = res.data.url
-          uploadUrls.value.push(url)
-          ElMessage.success('图片上传成功')
-        } else {
-          ElMessage.error('图片上传失败，请稍后再试')
-        }
-      } catch (e) {
-        ElMessage.error('图片上传异常，请稍后再试')
-      }
-    })
-  )
-}
+  try {
+    const res = await uploadFileAPI(formData);
+    if (res.data.code === 200) {
+      option.file.url = res.data.url;
+      console.log(option.file.url)
+      ElMessage.success('图片上传成功');
+      option.onSuccess(res, option.file);
+    } else {
+      ElMessage.error('图片上传失败，请稍后再试');
+      option.onError();
+    }
+  } catch (e) {
+    ElMessage.error('图片上传异常，请稍后再试');
+    option.onError();
+  }
+};
 
 
 defineExpose({
   getTypeListValue: () => typeList.value,
-  getUploadUrls: () => uploadUrls.value,
-  uploadImages: handleUploadImage,
   getTypeList
 })
 

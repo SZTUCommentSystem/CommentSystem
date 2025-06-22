@@ -6,10 +6,8 @@
     <div class="create-title-top">
       <!-- 左盒子 -->
       <Left v-model:questionContent="questionContent"></Left>
-
       <!-- 右盒子 -->
       <Right ref="right" v-model:questionContent="questionContent"></Right>
-
     </div>
     <div class="button_submit">
       <el-button type="primary" @click="submitQuestion">保存并提交</el-button>
@@ -55,7 +53,7 @@ const questionContent = reactive<{
   topicTitle: string
   topicType: string
   labels: Label[]
-  topicUrls: string[]
+  topicUrls: any[] // 必须是 any[]，不能是 string[]
   topicInfo: string
   comments: Comment[]
 }>({
@@ -68,26 +66,69 @@ const questionContent = reactive<{
   comments: [],
 })
 
+const right = ref()
+// 返回类型Id函数
+const typeId = ref('')
+const returnTypeId = () => {
+  typeId.value = (right.value.getTypeListValue()
+    ?.find((item:any) => item.topicTypeName === questionContent.topicType)
+    ?.topicTypeId ?? '').toString();
+}
+
+// 提交
+const submitQuestion = async () => {
+  returnTypeId()
+  // 直接取已上传图片的 url
+  const urls = questionContent.topicUrls
+    .map((file: any) => file.raw.url)
+    .filter(Boolean)
+    .join(',');
+
+  let data = {
+    topicId: questionContent.topicId,
+    courseId: userStore.selectClass.courseId,
+    topicTitle: questionContent.topicTitle.trim(),
+    topicTypeId: typeId.value,
+    labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
+    topicUrls: urls,
+    topicInfo: questionContent.topicInfo,
+    commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+  }
+  try {
+    const res = await changeQuestionAPI(data)
+    if(res.data.code === 200) {
+      ElMessage.success('提交题目成功')
+      router.push({
+        name: 'question',
+        query: { forceRefresh: Date.now() },
+      })
+    } else {
+      ElMessage.error('提交题目失败，请稍后再试')
+    }
+  } catch (error) {
+    console.error('提交题目失败:', error)
+  }
+}
+
 // 获取基础信息
 const getQuestionContent = async () => {
   const itemId = Number(route.query.itemId)
   const res = await questionDetailAPI(itemId)
   if (res.data.code === 200) {
     const data = res.data.data
-    console.log('获取到的题目信息:', data);
     questionContent.topicId = data.topicId
     questionContent.topicTitle = data.topicTitle
     questionContent.topicType = getTypeName(data.topicTypeId)
     questionContent.topicInfo = data.topicInfo
     questionContent.topicUrls = data.topicUrls
-    ? data.topicUrls.split(',').map(url => ({ url }))
-    : []
+      ? data.topicUrls.split(',').map((url: string) => ({ url }))
+      : []
     getLabelByIds(data.labelIds)
   } else {
     ElMessage.error('获取题目信息失败，请稍后再试')
   }
-  console.log('获取到的题目信息:', questionContent);
 }
+
 // 获取题目id对应的类型
 const getTypeName = (typeId: number) => {
   const typeList = right.value.getTypeListValue()
@@ -142,53 +183,6 @@ const getQuestionComments = async () => {
     questionContent.comments = commentDetails
   } else {
     ElMessage.error('获取题目评论失败，请稍后再试')
-  }
-}
-
-const right = ref()
-// 返回类型Id函数
-const typeId = ref('')
-const returnTypeId = () => {
-  typeId.value = (right.value.getTypeListValue()
-    .find((item:any) => item.topicTypeName === questionContent.topicType)
-    ?.topicTypeId ?? '').toString();
-}
-// 返回图片地址函数
-const uploadUrls = ref('')
-const returnUploadUrls = async () => {
-  await right.value.uploadImages();
-  const urls = right.value.getUploadUrls();
-  uploadUrls.value = urls.join(',');
-}
-
-// 提交
-const submitQuestion = async () => {
-  returnTypeId()
-  await returnUploadUrls()
-  
-  let data = {
-    topicId: questionContent.topicId,
-    courseId: userStore.selectClass.courseId,
-    topicTitle: questionContent.topicTitle.trim(),
-    topicTypeId: typeId.value,
-    labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
-    topicUrls: uploadUrls.value,
-    topicInfo: questionContent.topicInfo,
-    commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
-  }
-  try {
-    const res = await changeQuestionAPI(data)
-    if(res.data.code === 200) {
-      ElMessage.success('提交题目成功')
-      router.push({
-        name: 'question',
-        query: { forceRefresh: Date.now() },
-      })
-    } else {
-      ElMessage.error('提交题目失败，请稍后再试')
-    }
-  } catch (error) {
-    console.error('提交题目失败:', error)
   }
 }
 

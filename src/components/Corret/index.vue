@@ -2,11 +2,10 @@
     <div style="position: relative;">
         <!-- 左边学生列表组件 -->
         <SideBorder 
-            :homeworkId="homeworkId"
-            :studentList="studentList"
+            :students="students"
             @updateStudent="updateStudent">
         </SideBorder>
-        <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
+        <el-page-header @back="router.go(-1)" content="批改作业" title="返回">
         </el-page-header>
 
         <div class="base">
@@ -22,9 +21,14 @@
                     <p>批改：</p>
                     <div class="correct-box">
                         <!-- 图片处理框 -->
-                        <SignImage v-if="cropperObj.cVisible" :dialogVisible.sync="cropperObj.cVisible"
-                            :title="cropperObj.ctitle" :imgUrl="cropperObj.previewsImgUrl"
-                            @getNewImg="cropperObj.getNewImg" @closeCropperDialog="cropperObj.closeCropperView">
+                        <SignImage 
+                          v-if="cropperObj.cVisible" 
+                          :dialogVisible.sync="cropperObj.cVisible"
+                          :title="cropperObj.ctitle" 
+                          :imgUrl="cropperObj.previewsImgUrl"
+                          @uploadAndShowImg="uploadAndShowImg"
+                          @closeCropperDialog="cropperObj.closeCropperView"
+                        >
                         </SignImage>
                         <!-- 点击弹出图片处理框 -->
                         <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
@@ -74,7 +78,7 @@
             <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
             <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
             <el-button type="success" style="width: 100px;"
-                @click="console.log('111')">保存并提交</el-button>
+                @click="submitTask">保存并提交</el-button>
         </div>
         <el-dialog
             v-model="showDialog"
@@ -106,12 +110,16 @@ import { questionDetailAPI, questionCommentListAPI } from '@/api/QuestionAPI'
 import { labelInfoAPI } from '@/api/LabelAPI'
 import { getCommentDetailAPI } from '@/api/CommentsAPI'
 import { taskDetailAPI } from "@/api/TaskAPI";
-import { classDetailAPI, studentListAPI, submitStudentTaskAPI, studentTaskInfoAPI } from '@/api/ClassAPI';
+import {
+  classDetailAPI,
+  studentListAPI,
+  submitStudentTaskAPI,
+  studentTaskInfoAPI,
+  submitCorretTaskAPI
+} from '@/api/ClassAPI';
 
 const route = useRoute();
 const router = useRouter();
-
-const { deleteImgShow, deleteImg, newImgs, cropperObj } = CorrectWork()
 
 // 展示原题
 const showDialog = ref(false)
@@ -133,10 +141,12 @@ interface ClassI {
   student: Student[]
 }
 interface StudentTask {
+  id: number
   homeworkStudentId: number
   studentId: number
   infoState: string
   answerInfo: string
+  answerUrls: string
   infoCorrect: string
   infoNum: number
 }
@@ -164,6 +174,66 @@ const studentList = ref<ClassI>({
   student: []
 });
 const nowStudentIdx = ref(0);
+
+// 学生批改状态列表
+const students = ref<{
+  className: string,
+  studentName: string,
+  infoState: string,
+}[]>([])
+
+const getudentList = async () => {
+  // 获取所有学生id
+  const ids = studentList.value.student
+    .filter((item: any) => item.studentId)
+    .map((item: any) => item.studentId);
+
+  // 并发请求每个学生的作业状态
+  const results = await Promise.all(
+    ids.map(async (id: number) => {
+      // 查询学生作业信息
+      const res = await studentTaskInfoAPI({
+        homeworkId: homeworkId.value,
+        studentId: id
+      });
+      if (res.data.code === 200 && res.data.rows.length > 0) {
+        // 查询该学生该题目的批改状态
+        const da = {
+          studentId: id,
+          homeworkStudentId: res.data.rows[0].id,
+          topicId: taskQuestList.value[nowQuestionIdx.value]
+        };
+        const ret = await submitStudentTaskAPI(da);
+        if (ret.data.code === 200 && ret.data.rows.length > 0) {
+          const stu = ret.data.rows[0];
+          return {
+            className: studentList.value.className,
+            studentName: studentList.value.student.find((st: any) => st.studentId == stu.studentId)?.studentName || '',
+            infoState: stu.infoState
+          };
+        }
+      }
+      // 没有作业信息或批改信息时返回空对象
+      return {
+        className: studentList.value.className,
+        studentName: studentList.value.student.find((st: any) => st.studentId == id)?.studentName || '',
+        infoState: ''
+      };
+    })
+  );
+
+  students.value = results;
+}
+
+watch(
+    () => studentList.value.student,
+    (newVal) => {
+        if (newVal && newVal.length > 0) {
+            getudentList();
+        }
+    },
+    { immediate: true }
+);
 
 // 题目列表和当前题目索引
 const taskQuestList = ref<string[]>([])
@@ -200,10 +270,12 @@ const getStudentList = async () => {
 
 // 学生作业信息
 const submitStudentTask = ref<StudentTask>({
+  id: null,
   homeworkStudentId: null,
   studentId: null,
   infoState: '',
   answerInfo: '',
+  answerUrls: '',
   infoCorrect: '',
   infoNum: null,
 })
@@ -232,7 +304,7 @@ const questionContent = reactive<{
   topicTitle: string
   topicType: string
   labels: Label[]
-  topicUrls: string[]
+  topicUrls: any[]
   topicInfo: string
   comments: Comment[]
 }>({
@@ -261,7 +333,6 @@ const getQuestionContent = async () => {
     const data = res.data.data
     questionContent.topicId = data.topicId
     questionContent.topicTitle = data.topicTitle
-    debugger
     // questionContent.topicType = getTypeName(data.topicTypeId)
     nowTopicTypeId.value = data.topicTypeId
     questionContent.topicInfo = data.topicInfo
@@ -273,14 +344,6 @@ const getQuestionContent = async () => {
     ElMessage.error('获取题目信息失败，请稍后再试')
   }
 }
-
-// 获取题目id对应的类型
-// const getTypeName = (typeId: number) => {
-//   if (!right.value || typeof right.value.getTypeListValue !== 'function') return '';
-//   const typeList = right.value.getTypeListValue()
-//   const type = typeList.find((item: any) => item.topicTypeId === typeId)
-//   return type ? type.topicTypeName : ''
-// }
 
 // 获取标签
 const getLabelByIds = async (labelIds: string) => {
@@ -373,15 +436,84 @@ const NextProblem = () => {
   }
 }
 
-// watch(showDialog, async (val) => {
-//   if (val) {
-//     await nextTick();
-//     if (right.value && typeof right.value.getTypeList === 'function') {
-//       await right.value.getTypeList();
-//     }
-//     // 如果需要，弹窗每次打开都可以刷新题型列表
-//   }
-// })
+// 批改
+const {
+  deleteImgShow,
+  deleteImg,
+  newImgs,
+  cropperObj,
+  uploadAndShowImg
+} = CorrectWork(submitStudentTask)
+
+// 提交批改完成后的学生作业
+const submitTask = async () => {
+  try {
+    let data = {
+      id: submitStudentTask.value.id,
+      homeworkStudentId: submitStudentTask.value.homeworkStudentId,
+      studentId: submitStudentTask.value.studentId,
+      infoState: '已批改',
+      topicId: questionContent.topicId,
+      infoCorrect: submitStudentTask.value.infoCorrect,
+      infoNum: submitStudentTask.value.infoNum
+    }
+    const res = await submitCorretTaskAPI(data);
+    if (res.data.code == 200) {
+      ElMessage.success('提交成功');
+
+      // 1. 更新当前学生的批改状态
+      students.value[nowStudentIdx.value].infoState = '已批改';
+
+      // 2. 查找下一个 infoState === '已提交' 的学生
+      let found = false;
+      let nextIdx = nowStudentIdx.value + 1;
+      while (nextIdx < students.value.length) {
+        if (students.value[nextIdx].infoState === '已提交') {
+          nowStudentIdx.value = nextIdx;
+          found = true;
+          break;
+        }
+        nextIdx++;
+      }
+
+      // 3. 如果没找到，检查前面是否还有 infoState === '已提交' 的
+      if (!found) {
+        let prevIdx = 0;
+        while (prevIdx < nowStudentIdx.value) {
+          if (students.value[prevIdx].infoState === '已提交') {
+            nowStudentIdx.value = prevIdx;
+            found = true;
+            break;
+          }
+          prevIdx++;
+        }
+      }
+
+      // 4. 如果全部学生都不是“已提交”，说明本题已全部批改，跳到下一个题目的第一个学生
+      const allCorrected = students.value.every(s => s.infoState !== '已提交');
+      if (allCorrected) {
+        if (nowQuestionIdx.value < taskQuestList.value.length - 1) {
+          nowQuestionIdx.value++;
+          nowStudentIdx.value = 0;
+          ElMessage.success('本题全部学生批改完成，自动跳到下一题');
+          await getQuestionContent();
+          await getQuestionComments();
+          await getudentList(); // 更新新题目的学生批改状态
+        } else {
+          ElMessage.success('全部题目全部学生批改完成！');
+        }
+        return;
+      }
+
+      // 5. 如果当前是最后一名学生且还有“已提交”的学生未批改
+      if (!found && nowStudentIdx.value === students.value.length - 1) {
+        ElMessage.warning('现在是最后一名学生，但还有学生未批改');
+      }
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
 
 // 初始化
 onMounted(async () => {

@@ -3,7 +3,7 @@
         <div class="overlay" v-if="isSidebarVisible" @click="toggleSidebar"></div>
         <div class="sidebar" :class="{ 'sidebar-visible': isSidebarVisible }">
             <button class="close-btn" @click="toggleSidebar">x</button>
-            <el-table :data="students" style="width: 100%" @row-click="update" row-style="cursor:pointer">
+            <el-table :data="props.students" style="width: 100%" @row-click="update" row-style="cursor:pointer">
                 <el-table-column prop="className" label="班级" width="150" />
                 <el-table-column prop="studentName" label="姓名" width="150" />
                 <el-table-column prop="infoState" label="本题状态" width="90" />
@@ -15,53 +15,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { studentTaskInfoAPI } from '@/api/ClassAPI';
+import { ref } from 'vue';
 
 // 接受父组件传递的数据
 const props = defineProps<{
-    studentList: any
-    homeworkId: number
+    students: any
 }>();
 
 const emit = defineEmits(['updateStudent']);
-
-// 学生列表
-const students = ref<{
-    className: string,
-    studentName: string,
-    infoState: string,
-}[]>([])
-
-const getudentList = async () => {
-    // 获取所有学生id
-    const ids = props.studentList.student
-        .filter((item: any) => item.studentId)
-        .map((item: any) => item.studentId);
-
-    const results = await Promise.all(
-        ids.map((id: number) => studentTaskInfoAPI({homeworkId:props.homeworkId, studentId: id}))
-    );
-    const studen = results
-        .filter(res => res.data.code == 200)
-        .map(res => res.data.rows[0])
-        .map((stu: any) => ({
-            className: props.studentList.className,
-            studentName: stu && props.studentList.student.find((st: any) => st.studentId == stu.studentId)?.studentName || '',
-            infoState: stu && stu.infoState
-        }));
-    students.value = studen;
-}
-
-watch(
-    () => props.studentList.student,
-    (newVal) => {
-        if (newVal && newVal.length > 0) {
-            getudentList();
-        }
-    },
-    { immediate: true }
-);
 
 const isSidebarVisible = ref(false);
 const toggleSidebar = () => {

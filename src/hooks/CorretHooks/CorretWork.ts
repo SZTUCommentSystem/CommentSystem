@@ -1,54 +1,69 @@
-import { reactive } from 'vue';
-import testImage from "@/assets/测试1.png";
-import testImage2 from "@/assets/测试2.png";
+import { reactive, computed } from 'vue';
+import type { Ref } from 'vue';
+import { uploadFileAPI } from '@/api/login'
+import { ElMessage } from 'element-plus';
 
-export default function CorrectWork() {
-    //////////////// 批改
+interface StudentTask {
+  homeworkStudentId: number
+  studentId: number
+  infoState: string
+  answerInfo: string
+  answerUrls: string
+  infoCorrect: string
+  infoNum: number
+}
+
+export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
     // 图片删除
     const deleteImgShow = reactive<boolean[]>([]);
     const deleteImg = (index: number) => {
         newImgs.splice(index, 1);
+        deleteImgShow.splice(index, 1);
     }
-
 
     // 图片处理
     const newImgs = reactive<string[]>([]);
+    const previewsImgUrl = computed(() => {
+        return submitStudentTask.value.answerUrls
+            ? submitStudentTask.value.answerUrls.split(',')
+            : [];
+    });
+
     const cropperObj = reactive({
         cVisible: false, // 显示切图弹框
         ctitle: "", // 弹框标题
-        previewsImgUrl: [testImage, testImage2], //图片地址
+        get previewsImgUrl() {
+            return previewsImgUrl.value;
+        },
         // 开启剪切弹框
         openCropperView: () => {
             cropperObj.ctitle = "图片处理"
             cropperObj.cVisible = true
         },
         // 关闭弹框所触发的事件
-        closeCropperView: (data: any) => {
+        closeCropperView: () => {
             cropperObj.cVisible = false
         },
-        // 获取处理完的图片
-        getNewImg: (val: any) => {
-            const serverUrl = 'http://localhost:3000';
-            newImgs.push(serverUrl + val);
-            deleteImgShow.push(false);
-        }
     })
 
-
-    // 处理文件上传，这个函数还没用到
-    // const handleFileUpload = (event) => {
-    //     const files = event.target.files;
-    //     for (let i = 0; i < files.length; i++) {
-    //         const file = files[i];
-    //         const imageUrl = URL.createObjectURL(file);
-    //         images.value.push(imageUrl);
-    //     }
-    // };
+    // 上传图片并展示
+    const uploadAndShowImg = async (form: FormData) => {
+        const res = await uploadFileAPI(form);
+        if (res.data.code === 200) {
+            ElMessage.success('批注成功')
+            newImgs.push(res.data.url);
+            deleteImgShow.push(false);
+        } else {
+            ElMessage.error('批注失败')
+        }
+        cropperObj.closeCropperView();
+    }
 
     return {
         deleteImgShow,
         deleteImg,
         newImgs,
-        cropperObj
+        cropperObj,
+        uploadAndShowImg
     }
 }

@@ -12,16 +12,16 @@ export default function useStudentList(studentListProp: Student[]) {
     const searchStudentIdQuery = ref('');
 
     // 过滤搜索
-const filteredStudent = computed(() => {
-    return studentListProp.filter(student => {
-        // 确保字段为字符串
-        const name = typeof student.studentName === 'string' ? student.studentName : String(student.studentName ?? '');
-        const no = typeof student.studentNo === 'string' ? student.studentNo : String(student.studentNo ?? '');
-        const matchesSearchName = name.includes(searchNameQuery.value);
-        const matchesSearchId = no.includes(searchStudentIdQuery.value);
-        return matchesSearchName && matchesSearchId;
+    const filteredStudent = computed(() => {
+        return studentListProp.filter(student => {
+            // 确保字段为字符串
+            const name = typeof student.studentName === 'string' ? student.studentName : String(student.studentName ?? '');
+            const no = typeof student.studentNo === 'string' ? student.studentNo : String(student.studentNo ?? '');
+            const matchesSearchName = name.includes(searchNameQuery.value);
+            const matchesSearchId = no.includes(searchStudentIdQuery.value);
+            return matchesSearchName && matchesSearchId;
+        });
     });
-});
 
     // 当前页显示
     const displayStudent = computed(() => {

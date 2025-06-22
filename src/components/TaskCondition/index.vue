@@ -1,7 +1,7 @@
 <template>
     <div class="create-wrapper">
         <div class="header">
-            <el-page-header @back="router.push('/home/task')" content="查看作业" title="返回">
+            <el-page-header @back="router.go(-1)" content="查看作业" title="返回">
             </el-page-header>
         </div>
         <div class="list">
@@ -33,7 +33,8 @@ import ExcelEport from '@/hooks/TaskConditionHooks/ExcelExport';
 // 学生和班级列表
 import StudentList from './components/StudentList.vue';
 import ClassList from './components/ClassList.vue';
-import { classDetailAPI, studentListAPI, studentTaskInfoAPI } from '@/api/ClassAPI';
+import { classDetailAPI, studentListAPI, studentTaskInfoAPI, submitStudentTaskAPI } from '@/api/ClassAPI';
+import { taskDetailAPI } from "@/api/TaskAPI";
 
 //// 作业详情
 const router = useRouter();
@@ -53,10 +54,11 @@ const updateListDate = (classObj: Class) => {
 
 // 获取班级数据，同时获取每个班级的学生列表
 export interface Student {
+    homeworkStudentId: number
     studentId: string
     studentNo?: string
     studentName: string
-    infoState: number
+    infoState: number 
     score?: number
 }
 interface Class {
@@ -65,6 +67,15 @@ interface Class {
     svgNum: string
     student: Student[]
 }
+// 获取题目列表
+const taskQuestList = ref<string[]>([])
+const getTaskDetail = async () => {
+  const res = await taskDetailAPI(homeworkId);
+  if (res.data.code == 200) {
+    taskQuestList.value = res.data.data.topicIds.split(',')
+  }
+}
+
 const classIds = Array.isArray(route.query.classIds)
     ? route.query.classIds
     : (typeof route.query.classIds === 'string' ? route.query.classIds.split(',') : []);
@@ -81,24 +92,54 @@ const getClassList = async () => {
                 // 并发请求所有学生的作业详情
                 const students: Student[] = await Promise.all(
                     res.data.rows.map(async (student: any) => {
-                        let infoState = 0;
-                        let score = 0;
+                        let infoState = '未提交';
+                        let totalScore = 0;
+                        let allCorrected = true;
+                        let hasSubmit = false;
+
                         // 获取作业详情
-                        const data = {
+                        const taskRes = await studentTaskInfoAPI({
                             homeworkId: homeworkId,
                             studentId: student.studentId,
-                        };
-                        const ret = await studentTaskInfoAPI(data);
-                        if (ret.data.code == 200 && ret.data.rows && ret.data.rows.length > 0) {
-                            infoState = ret.data.rows[0].infoState;
-                            score = ret.data.rows[0].score ?? 0;
+                        });
+
+                        if (taskRes.data.code == 200 && taskRes.data.rows && taskRes.data.rows.length > 0) {
+                            const homeworkStudentId = taskRes.data.rows[0].id;
+
+                            // 遍历所有题目，判断是否全部已批改，累加分数
+                            for (const topicId of taskQuestList.value) {
+                                const da = {
+                                    studentId: student.studentId,
+                                    homeworkStudentId,
+                                    topicId
+                                }
+                                const re = await submitStudentTaskAPI(da);
+                                if (re.data.code == 200 && re.data.rows.length > 0) {
+                                    const row = re.data.rows[0];
+                                    // 只要有一题不是已批改，则不是全部已批改
+                                    if (row.infoState !== '已批改') {
+                                        allCorrected = false;
+                                    }
+                                    if (row.infoState === '已提交' || row.infoState === '已批改') {
+                                        hasSubmit = true;
+                                    }
+                                    totalScore += Number(row.infoNum) ?? 0;
+                                } else {
+                                    allCorrected = false;
+                                }
+                            }
+
+                            if (hasSubmit) {
+                                infoState = allCorrected ? '已批改' : '已提交';
+                            }
                         }
+
                         return {
                             studentId: student.studentId,
                             studentNo: student.studentNo,
                             studentName: student.studentName,
                             infoState,
-                            score,
+                            score: totalScore,
                         };
                     })
                 );
@@ -117,7 +158,6 @@ const getClassList = async () => {
         const classResults = await Promise.all(classPromises);
         // 过滤掉无效班级
         classList.value = classResults.filter(item => item !== null);
-
         console.log(classList.value)
     } catch (error) {
         console.log(error.message)
@@ -125,18 +165,16 @@ const getClassList = async () => {
 }
 
 //导出Excel表格
-//导出表格的数据
-const data = reactive([
-    { 名字: 'hyt', serct: '测试' },
-]);
-
-
 const Export = () => {
-    ElMessageBox.alert(`您当前选择导出Excel表格为:111`, {
+    const exportData = (classList.value[0]?.student || []).map(stu => ({
+        名字: stu.studentName,
+        分数: stu.score ?? ''
+    }));
+    ElMessageBox.alert(`您当前选择导出Excel表格为:${classList.value[0]?.className}`, {
         confirmButtonText: '确认',
         callback: (action: Action) => {
             if (action === 'confirm') {
-                ExcelEport(data).then(() => {
+                ExcelEport(exportData).then(() => {
                     ElMessage({
                         type: 'success',
                         message: '导出成功'
@@ -153,6 +191,7 @@ const Export = () => {
 }
 
 onMounted(() => {
+    getTaskDetail();
     getClassList();
 })
 </script>

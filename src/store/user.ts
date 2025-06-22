@@ -16,6 +16,9 @@ export const useUserStore = defineStore('user', {
         setSelectClass(selectClass: object) {
             this.selectClass = selectClass;
         },
+        clearSelectClass() {
+            this.selectClass = {};
+        },
         clearUser() {
             this.token = '';
             this.userInfo = {};

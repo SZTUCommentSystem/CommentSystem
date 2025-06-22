@@ -51,3 +51,12 @@ export const submitStudentTaskAPI = (data: any) => {
         params: data
     })
 }
+
+// 批改后提交学生返回情况
+export const submitCorretTaskAPI = (data: any) => {
+    return request({
+        url: 'function/topicstudent',
+        method: 'put',
+        data
+    })
+}
