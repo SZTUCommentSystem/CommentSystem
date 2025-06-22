@@ -1,13 +1,11 @@
 <template>
     <div style="position: relative;">
         <!-- 左边学生列表组件 -->
-        <!-- <SideBorder 
-            :taskNumber="taskNumber" 
-            :nowTask="nowTask" 
-            :statusData="statusData" 
-            :nowCorrect="route.query.id"
-            @updateStudentNumber="updateStudentNumber">
-        </SideBorder> -->
+        <SideBorder 
+            :homeworkId="homeworkId"
+            :studentList="studentList"
+            @updateStudent="updateStudent">
+        </SideBorder>
         <el-page-header @back="router.push('/home/task/taskcondition?title=Task+1')" content="批改作业" title="返回">
         </el-page-header>
 
@@ -84,19 +82,26 @@
             width="50%"
             align-center
         >
-            <Right ref="right" :isDialog="true" v-model:questionContent="questionContent"></Right>
+            <Right
+              :isDialog="true"
+              :nowTopicTypeId="nowTopicTypeId"
+              v-model:questionContent="questionContent"
+            ></Right>
       </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
-import { ref, reactive, onMounted, computed, watch, nextTick } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import CorrectWork from '@/hooks/CorretHooks/CorretWork';
 import { ElMessage } from 'element-plus';
+
 import SignImage from '@/components/Generic/SignImage.vue'
+import SideBorder from '@/components/Generic/SideBorder.vue'
 import Left from '../Question/components/Left.vue';
 import Right from '../Question/components/Right.vue';
+
 import { questionDetailAPI, questionCommentListAPI } from '@/api/QuestionAPI'
 import { labelInfoAPI } from '@/api/LabelAPI'
 import { getCommentDetailAPI } from '@/api/CommentsAPI'
@@ -110,6 +115,7 @@ const { deleteImgShow, deleteImg, newImgs, cropperObj } = CorrectWork()
 
 // 展示原题
 const showDialog = ref(false)
+// const right = ref()
 
 // 数据类型
 interface Student {
@@ -248,13 +254,16 @@ const getTaskDetail = async () => {
 }
 
 // 获取题目信息
+const nowTopicTypeId = ref(null);
 const getQuestionContent = async () => {
   const res = await questionDetailAPI(Number(taskQuestList.value[nowQuestionIdx.value]))
   if (res.data.code === 200) {
     const data = res.data.data
     questionContent.topicId = data.topicId
     questionContent.topicTitle = data.topicTitle
-    questionContent.topicType = getTypeName(data.topicTypeId)
+    debugger
+    // questionContent.topicType = getTypeName(data.topicTypeId)
+    nowTopicTypeId.value = data.topicTypeId
     questionContent.topicInfo = data.topicInfo
     questionContent.topicUrls = data.topicUrls
       ? data.topicUrls.split(',').map(url => ({ url }))
@@ -266,13 +275,12 @@ const getQuestionContent = async () => {
 }
 
 // 获取题目id对应的类型
-const right = ref()
-const getTypeName = (typeId: number) => {
-  if (!right.value || typeof right.value.getTypeListValue !== 'function') return '';
-  const typeList = right.value.getTypeListValue()
-  const type = typeList.find((item: any) => item.topicTypeId === typeId)
-  return type ? type.topicTypeName : ''
-}
+// const getTypeName = (typeId: number) => {
+//   if (!right.value || typeof right.value.getTypeListValue !== 'function') return '';
+//   const typeList = right.value.getTypeListValue()
+//   const type = typeList.find((item: any) => item.topicTypeId === typeId)
+//   return type ? type.topicTypeName : ''
+// }
 
 // 获取标签
 const getLabelByIds = async (labelIds: string) => {
@@ -341,6 +349,9 @@ const NextOne = () => {
     ElMessage.error('已经是最后一个学生了');
   }
 }
+const updateStudent = (id: number) => {
+    nowStudentIdx.value = id;
+}
 
 // 切换题目
 const LastProblem = () => {
@@ -362,13 +373,18 @@ const NextProblem = () => {
   }
 }
 
+// watch(showDialog, async (val) => {
+//   if (val) {
+//     await nextTick();
+//     if (right.value && typeof right.value.getTypeList === 'function') {
+//       await right.value.getTypeList();
+//     }
+//     // 如果需要，弹窗每次打开都可以刷新题型列表
+//   }
+// })
+
 // 初始化
 onMounted(async () => {
-  // 等待 nextTick，确保 right 组件已挂载
-  await nextTick();
-  if (right.value && typeof right.value.getTypeList === 'function') {
-    await right.value.getTypeList();
-  }
   await getTaskDetail();
   await getStudentList();
   await getQuestionContent();

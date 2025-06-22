@@ -3,17 +3,10 @@
         <div class="overlay" v-if="isSidebarVisible" @click="toggleSidebar"></div>
         <div class="sidebar" :class="{ 'sidebar-visible': isSidebarVisible }">
             <button class="close-btn" @click="toggleSidebar">x</button>
-            <el-table :data="studentList" style="width: 100%" @row-click="jumpToStudent" row-style="cursor:pointer">
-                <el-table-column prop="class" label="班级" width="150" />
-                <el-table-column prop="name" label="姓名" width="90" />
-                <el-table-column label="本题状态">
-                    <template #default="scope">
-                        <span v-if="props.statusData[props.nowTask - 1][scope.$index] === 1" class="selected">
-                            已批改
-                        </span>
-                        <span v-else>未批改</span>
-                    </template>
-                </el-table-column>
+            <el-table :data="students" style="width: 100%" @row-click="update" row-style="cursor:pointer">
+                <el-table-column prop="className" label="班级" width="150" />
+                <el-table-column prop="studentName" label="姓名" width="150" />
+                <el-table-column prop="infoState" label="本题状态" width="90" />
             </el-table>
         </div>
         <button class="open-btn" @click="toggleSidebar">学生列表</button>
@@ -22,54 +15,63 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-
-import type { Student } from '@/components/TaskCondition/index.vue';
-import { studentListAPI } from '@/api/ClassAPI';
-
-// 定义 `StatusData` 的类型
-interface StatusData {
-    [index: number]: number[];
-}
+import { ref, watch } from 'vue';
+import { studentTaskInfoAPI } from '@/api/ClassAPI';
 
 // 接受父组件传递的数据
 const props = defineProps<{
-    className: string,
-
-
-    taskNumber: number;
-    nowTask: number;
-    statusData: StatusData;
+    studentList: any
+    homeworkId: number
 }>();
 
-const emit = defineEmits(['updateStudentNumber']);
+const emit = defineEmits(['updateStudent']);
 
 // 学生列表
-const studentList = ref<Student[]>([]);
+const students = ref<{
+    className: string,
+    studentName: string,
+    infoState: string,
+}[]>([])
 
 const getudentList = async () => {
-    const res = await studentListAPI();
-    studentList.value = res.data.data;
-    emit('updateStudentNumber', studentList.value.length);
+    // 获取所有学生id
+    const ids = props.studentList.student
+        .filter((item: any) => item.studentId)
+        .map((item: any) => item.studentId);
+
+    const results = await Promise.all(
+        ids.map((id: number) => studentTaskInfoAPI({homeworkId:props.homeworkId, studentId: id}))
+    );
+    const studen = results
+        .filter(res => res.data.code == 200)
+        .map(res => res.data.rows[0])
+        .map((stu: any) => ({
+            className: props.studentList.className,
+            studentName: stu && props.studentList.student.find((st: any) => st.studentId == stu.studentId)?.studentName || '',
+            infoState: stu && stu.infoState
+        }));
+    students.value = studen;
 }
 
-const isSidebarVisible = ref(false);
+watch(
+    () => props.studentList.student,
+    (newVal) => {
+        if (newVal && newVal.length > 0) {
+            getudentList();
+        }
+    },
+    { immediate: true }
+);
 
+const isSidebarVisible = ref(false);
 const toggleSidebar = () => {
     isSidebarVisible.value = !isSidebarVisible.value;
 };
 
-// 跳转到对应的学生
-const router = useRouter();
-const jumpToStudent = (row: Student) => {
-    router.push({ path: '/home/corret', query: { id: row.id } });
-    window.location.reload();
-};
-
-onMounted(() => {
-    getudentList();
-})
+// 更新学生参数
+const update = (id: number) => {
+    emit('updateStudent', id);
+}
 </script>
 
 <style scoped>

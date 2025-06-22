@@ -130,6 +130,10 @@ const props = defineProps({
   isDialog: {
     type: Boolean,
     default: false
+  },
+  nowTopicTypeId: {
+    type: Number,
+    default: null
   }
 })
 
@@ -319,8 +323,11 @@ defineExpose({
   getTypeList
 })
 
-onMounted(() => {
-  getTypeList()
+onMounted(async () => {
+  await getTypeList()
+  if (props.nowTopicTypeId) {
+    props.questionContent.topicType = typeList.value.find((item: any) => item.topicTypeId === props.nowTopicTypeId)
+  }
 })
 </script>
 
