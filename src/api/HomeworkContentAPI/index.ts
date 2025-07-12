@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取作业分类列表
-export const getHomeworkContentListAPI = () => {
+export const getHomeworkContentListAPI = (data: any) => {
     return request({
       url: 'function/homeworkcontent/list',
-      method: 'get'
+      method: 'get',
+      params: data
     })
 }
 

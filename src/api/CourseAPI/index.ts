@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取课程列表
-export const getCourseListAPI = () => {
+export const getCourseListAPI = (data: any) => {
     return request({
         url: 'function/course/list',
-        method: 'get'
+        method: 'get',
+        params: data
     })
 }
 

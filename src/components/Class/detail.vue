@@ -55,12 +55,16 @@
             <h3 class="section-title mt-4">已布置作业列表</h3>
             <el-button type="success" @click="publishTask">发布作业</el-button>
           </div>
-          <div v-for="task in taskLists" :key="task.homeworkContentId" class="task-item" @click.self="router.push('/home/task/taskcondition')">
+          <div v-for="task in taskLists" :key="task.homeworkContentId" class="task-item">
             <div class="task-header m-2">
               <h5>作业标题：{{ task.homeworkTitle }}</h5>
+              <el-button type="primary" @click.stop="router.push({
+                name: 'taskconditionDetail',
+                query: { classId: route.query.classId, homeworkId: task.homeworkContentId }
+              })">批改作业</el-button>
             </div>
             <div class="task-tags m-2" v-if="task.topicIds.length">
-              <div v-for="tag in task.topicIds" :key="tag.topicLabelId" class="task-tag">{{ tag.topicLabelName }}</div>
+              <div v-for="tag in task.topicIds" :key="tag?.topicLabelId" class="task-tag">{{ tag?.topicLabelName }}</div>
             </div>
             <div class="p-4" @click.stop>
               <el-collapse>
@@ -214,7 +218,8 @@ onMounted(() => {
 }
 .header {
   font-size: 20px;
-  background-color: white;padding: 10px;
+  background-color: white;
+  padding: 10px;
 }
 .el-col {
   text-align: center;
@@ -237,6 +242,8 @@ onMounted(() => {
 }
 
 .task-header {
+  display: flex;
+  justify-content: space-between;
   font-size: 16px;
   font-weight: bold;
 }
@@ -263,7 +270,6 @@ onMounted(() => {
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
-  cursor: pointer;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 

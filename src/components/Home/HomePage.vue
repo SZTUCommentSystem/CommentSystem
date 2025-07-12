@@ -19,13 +19,11 @@
                     <div class="task-info">
                         <div class="task-condition">
                             <div class="task-condition-left">
-                                <p>距离最近发布的作业结束时间还有：<br><i>2小时14分钟</i></p>
-
+                                <p>距离最近发布的作业结束时间还有：<br><i>{{ nearestTaskRemainTime }}</i></p>
                             </div>
                             <div class="task-condition-right">
-                                <p>当前有 <i>0</i> 个作业未发布</p>
-                                <p>当前有 <i>0</i> 个作业已发布</p>
-                                <p>当前有 <i>0</i> 个作业已批改</p>
+                                <p>当前有 <i>{{ unpublishedCount }}</i> 个作业未发布</p>
+                                <p>当前有 <i>{{ publishedCount }}</i> 个作业已发布</p>
                             </div>
                         </div>
                         <div class="task-corret">
@@ -50,7 +48,6 @@
                                         </div>
                                         <p>最近发布的作业提交数量为：<br><i>23 / 54</i></p>
                                     </div>
-
                                 </div>
                                 <div class="right">
                                     <div class="top">
@@ -88,32 +85,26 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
+            <!-- 题库设计模块 -->
             <div class="home-body-question-container">
                 <div class="home-body-question">
                     <div class="title">
-                        <h1>学生提问</h1>
+                        <h1>题目设计</h1>
                     </div>
-                    <p style="margin-left: 10vw;">当前有 <i style="font-size: 27px;">0</i> 个学生提问(注：本栏是根据学生提问列表展示前两个)</p>
-                    <div class="question">
-                        <div class="question-info">
-                            <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
-                            <p>提问的学生是：<i>张学生</i></p>
-                            <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
-                            <el-button type="primary">前往回答</el-button>
-                        </div>
-                        <div class="question-info">
-                            <p>提问的作业题目是：<i>第三章第二次作业第一题</i></p>
-                            <p>提问的学生是：<i>张学生</i></p>
-                            <p>提问的问题是：<i>如果本题如此如此，在满足本题条件的情况下，那么这样设计应该也可以吧？</i></p>
-                            <el-button type="primary">前往回答</el-button>
+                    <p style="margin-left: 10vw;">当前有 <i style="font-size: 27px;">{{ questionLength }}</i> 道题目（仅展示前两道）</p>
+                    <div class="question-bank">
+                        <div class="bank-card" v-for="que in questionList" :key="que.topicId">
+                            <div class="bank-title">{{ que.topicTitle }}</div>
+                            <div class="bank-desc">{{ que.topicInfo }}</div>
+                            <el-button type="primary" size="small" @click="router.push({ name: 'questiondetail', query: { type: 1, itemId: que.topicId } })">查看详情</el-button>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- 详情内容模块 -->
             <div class="home-body-library">
                 <div class="title">
                     <h1>详情内容</h1>
@@ -131,10 +122,10 @@
                         <li>
                             <div class="top">
                                 <img src="@/assets/img/交流.png" alt="">
-                                <h4>交流</h4>
-                                <p>教师便捷批改，学生即时反馈，促进高效教学互动。</p>
+                                <h4>题库</h4>
+                                <p>丰富的题库资源，支持自定义组卷，满足不同教学需求。</p>
                             </div>
-                            <div class="bottom">查看详情</div>
+                            <div class="bottom" @click="router.push('/home/question')">进入题库</div>
                         </li>
                         <li>
                             <div class="top">
@@ -142,7 +133,7 @@
                                 <h4>批改</h4>
                                 <p>智能批改，即时反馈，提升学习效率，简化教学流程。</p>
                             </div>
-                            <div class="bottom">查看详情</div>
+                            <div class="bottom" @click="router.push('/home/task')">前往批阅</div>
                         </li>
                     </ul>
                 </div>
@@ -157,9 +148,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watchEffect } from 'vue';
+import { onMounted, ref, watchEffect, computed } from 'vue';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'vue-router';
+import { taskListAPI } from '@/api/TaskAPI';
+import { questionListAPI } from '@/api/QuestionAPI';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -188,6 +181,86 @@ watchEffect(() => {
     selectClass.value = userStore.selectClass;
 })
 
+// 获取本课程所有作业
+const taskList = ref<{
+    classIds?: string,
+    startTime?: Date
+}[]>([]);
+const nearestTask = ref<{ classIds?: string, startTime?: Date } | null>(null);
+
+const getTaskList = async () => {
+    let data = {
+        courseId: selectClass.value.courseId,
+        pageSize: 1000,
+        pageNum: 1
+    }
+    const res = await taskListAPI(data);
+    if (res.data.code == 200) {
+        taskList.value = res.data.rows.map(item => ({
+            classIds: item.classIds,
+            startTime: item.startTime
+        }));
+        console.log(taskList.value)
+        // 找到距离当前时间最近的作业
+        if (taskList.value.length > 0) {
+            const now = new Date().getTime();
+            nearestTask.value = taskList.value.reduce((prev, curr) => {
+                const prevDiff = Math.abs(new Date(prev.startTime as any).getTime() - now);
+                const currDiff = Math.abs(new Date(curr.startTime as any).getTime() - now);
+                return currDiff < prevDiff ? curr : prev;
+            });
+        } else {
+            nearestTask.value = null;
+        }
+    }
+}
+
+// 统计未发布和已发布数量
+const unpublishedCount = computed(() => taskList.value.filter(item => !item.classIds).length);
+const publishedCount = computed(() => taskList.value.filter(item => item.classIds).length);
+
+// 计算最近作业剩余时间
+const nearestTaskRemainTime = computed(() => {
+    if (!nearestTask.value || !nearestTask.value.startTime) return '--';
+    const end = new Date(nearestTask.value.startTime).getTime();
+    const now = Date.now();
+    let diff = end - now;
+    if (diff <= 0) return '已截止';
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    diff = diff % (1000 * 60 * 60);
+    const minutes = Math.floor(diff / (1000 * 60));
+    return `${hours}小时${minutes}分钟`;
+});
+
+// 获取前两个题目
+const questionList = ref<{
+    topicId: number
+    topicTitle: string
+    topicInfo: string
+}[]>([])
+const questionLength = ref(0)
+const getQuestionList = async () => {
+    let data = {
+        courseId: selectClass.value.courseId,
+        pageSize: 1000,
+        pageNum: 1
+    }
+    const res = await questionListAPI(data);
+    if (res.data.code == 200) {
+        questionLength.value = res.data.total
+        questionList.value = res.data.rows.slice(0, 2).map(item => ({
+            topicId: item.topicId,
+            topicTitle: item.topicTitle,
+            topicInfo: item.topicInfo,
+        }))
+    }
+}
+
+onMounted(() => {
+    getTaskList();
+    getQuestionList();
+})
+
 </script>
 
 <style scoped>
@@ -211,7 +284,6 @@ watchEffect(() => {
     h1 {
         position: absolute;
         color: #fff;
-        /* 宽度变大 */
         font-size: 64px;
         font-family: 'Arial', sans-serif;
         font-weight: bold;
@@ -444,6 +516,7 @@ watchEffect(() => {
     }
 }
 
+/* 题库设计模块样式 */
 .home-body-question-container {
     position: relative;
     width: 100%;
@@ -457,42 +530,37 @@ watchEffect(() => {
         height: 33em;
         background-color: #fff;
 
-        .question {
+        .question-bank {
             display: flex;
             justify-content: space-around;
             width: 80%;
             margin: 0 auto;
-
-            .question-info {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                width: 49%;
-                height: 20em;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 20px;
-                padding-top: 30px;
-                box-shadow: 0 0 10px rgb(0, 0, 0, 0.1);
-                transition: box-shadow 0.3s;
-
-                &:hover {
-                    box-shadow: 0 0 10px rgb(0, 0, 0, 0.3);
-                }
-
-                i {
-                    font-size: 20px;
-                    font-weight: bold;
-                }
-
-                button {
-                    position: absolute;
-                    bottom: 20px;
-                    right: 20px;
-                }
-            }
-
+            gap: 30px;
+        }
+        .bank-card {
+            background: #ecf3f9;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(60, 120, 200, 0.08);
+            padding: 30px 24px 20px 24px;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.3s;
+        }
+        .bank-card:hover {
+            box-shadow: 0 4px 16px rgba(60, 120, 200, 0.18);
+        }
+        .bank-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .bank-desc {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 18px;
         }
     }
 }
@@ -536,27 +604,33 @@ watchEffect(() => {
                 }
 
                 h4 {
-                    font-size: 20px;
-                    margin: 2em 0 10px 0;
+                    color: #2563eb;
+                    font-size: 22px;
+                    margin: 1.5em 0 10px 0;
                 }
 
                 p {
-                    margin: 0 47px;
+                    color: #444;
+                    font-size: 15px;
+                    margin: 0 30px;
                 }
             }
 
             .bottom {
+                background: #f1f5fd;
+                color: #2563eb;
+                font-weight: bold;
+                border-top: 1px solid #e0e7ef;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 width: 100%;
                 height: 20%;
-                color: rgb(83, 160, 255);
                 font-size: 20px;
-                border-top: 1px solid #ccc;
+                transition: background 0.2s, color 0.2s;
 
                 &:hover {
-                    background-color: rgb(83, 160, 255);
+                    background-color: #2563eb;
                     color: #fff;
                     cursor: pointer;
                 }
@@ -586,150 +660,17 @@ watchEffect(() => {
     stroke-width: 3.8;
 }
 
-@keyframes progress {
-    0% {
-        stroke-dasharray: 0 100;
-    }
-}
-
 .circular-chart.blue .circle {
     stroke: #3b82f6;
-    /* 蓝色 */
 }
 
 .circular-chart.green .circle {
     stroke: #10b981;
-    /* 绿色 */
 }
 
 .percentage {
     fill: #666;
     font-size: 0.5em;
     text-anchor: middle;
-}
-
-@media (max-width: 768px) {
-    .home-header {
-        h1 {
-            font-size: 30px;
-
-            &:first-child {
-                top: 1em;
-                left: 2em;
-            }
-
-            &:last-child {
-                top: 3em;
-                left: 3em;
-            }
-        }
-    }
-
-    .title {
-        h1 {
-            font-size: 30px;
-
-            &::before,
-            &::after {
-                height: 15px;
-                width: 15px;
-                margin: 0 20px;
-            }
-        }
-    }
-
-    .task-title {
-        h4 {
-            font-size: 14px;
-        }
-    }
-
-    .task-condition {
-        height: 10em !important;
-    }
-
-    .task-condition-left {
-        p {
-            font-size: 14px !important;
-
-            i {
-                font-size: 20px !important;
-            }
-        }
-    }
-
-    .task-condition-right {
-        p {
-            font-size: 14px !important;
-
-            i {
-                font-size: 20px !important;
-            }
-        }
-    }
-
-    .task-corret {
-        justify-content: start;
-    }
-
-    .task-corret-left {
-        width: 100% !important;
-
-        p {
-            font-size: 14px !important;
-
-            i {
-                font-size: 20px !important;
-            }
-        }
-    }
-
-    .task-corret-right {
-        display: none;
-    }
-
-    .bottom {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .circular-chart {
-        width: 80px !important;
-    }
-
-    .home-body-question-container {
-        .home-body-question {
-            .question {
-                .question-info {
-                    padding: 5px;
-
-                    p {
-                        font-size: 12px;
-
-                        i {
-                            font-size: 15px;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    .home-body-library {
-        ul {
-            li {
-                .top {
-                    p {
-                        margin: 0;
-                        font-size: 12px;
-                    }
-                }
-
-                .bottom {
-                    font-size: 12px;
-                }
-            }
-        }
-    }
 }
 </style>

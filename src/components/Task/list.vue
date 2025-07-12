@@ -56,9 +56,6 @@
                                   <el-dropdown-item @click="confirmPubTask(item.homeworkId)">
                                     立即发布
                                   </el-dropdown-item>
-                                  <el-dropdown-item @click="confirmEndTask(item.homeworkId)">
-                                    立即截止
-                                  </el-dropdown-item>
                                   <el-dropdown-item @click="confirmDelTask(item.homeworkId)">
                                     立即删除
                                   </el-dropdown-item>
@@ -123,19 +120,6 @@
       </template>
     </el-dialog>
 
-    <!-- 截止作业 -->
-    <el-dialog v-model="endDialogVisible" title="截止作业" width="30%" center>
-      <div>确定立刻截止该作业吗？</div>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="endTask">
-            确定
-          </el-button>
-          <el-button @click="endDialogVisible = false">取消</el-button>
-        </div>
-      </template>
-    </el-dialog>
-
     <!-- 删除作业 -->
     <el-dialog v-model="delDialogVisible" title="删除作业" width="30%" center>
       <div>确定删除该作业吗？</div>
@@ -160,7 +144,7 @@ import { deleteTaskAPI, pubTaskAPI } from "@/api/TaskAPI";
 
 // 导入列表展示逻辑和标签工具
 import ListDisplay, { getTagsByQuestionIds } from "@/hooks/TaskHooks/TaskListDisplay";
-import { PubList, EndList, DelList } from "@/hooks/TaskHooks/OperateList";
+import { PubList, DelList } from "@/hooks/TaskHooks/OperateList";
 import { ElMessage } from "element-plus";
 
 // 获取作业分类、作业列表等
@@ -193,7 +177,11 @@ const checkedClass = ref<ClassItem[]>([])
 const classList = ref<ClassItem[]>([])
 const getClassList = async () => {
   try {
-    const res = await classListAPI();
+    let data = {
+      pageNum: 1,
+      pageSize: 9999
+    }
+    const res = await classListAPI(data);
     classList.value = res.data.rows;
     console.log(classList.value)
   } catch (error) {
@@ -234,12 +222,6 @@ const publishTask = async () => {
     pubDialogVisible.value = false
   }
 }
-
-// 截止作业相关
-const { endDialogVisible, confirmEndTask, endTask: endTaskOriginal } = EndList();
-const endTask = () => {
-  state.TaskList = endTaskOriginal(state.TaskList);
-};
 
 // 删除作业相关
 const { delDialogVisible, delTaskId, confirmDelTask } = DelList();

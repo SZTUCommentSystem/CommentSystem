@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取班级列表
-export const classListAPI = () => {
+export const classListAPI = (data: any) => {
     return request({
         url: 'function/bclass/list',
         method: "get",
+        params: data
     })
 }
 

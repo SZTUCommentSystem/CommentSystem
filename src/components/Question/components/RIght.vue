@@ -18,7 +18,6 @@
         popper-class="type-select-dropdown"
         :teleported="false"
         filterable
-        
       >
         <el-option
           v-for="item in typeList"

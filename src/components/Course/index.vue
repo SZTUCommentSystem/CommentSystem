@@ -79,7 +79,11 @@ const router = useRouter();
 const userInfo = userStore.userInfo;
 // 从本地存储获取课程列表
 const getTaskList = async () => {
-  const res = await getCourseListAPI();
+  let data = {
+    pageNum: 1,
+    pageSize: 9999
+  }
+  const res = await getCourseListAPI(data);
 
   if(res.data.code === 200) {
     testPage.taskList = res.data.rows;

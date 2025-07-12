@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取批语列表
-export const getCommentListAPI = () => {
+export const getCommentListAPI = (data: any) => {
   return request({
     url: "function/comment/list",
     method: "get",
+    params: data
   });
 };
 
@@ -43,10 +44,11 @@ export const deleteCommentAPI = (id: string) => {
 };
 
 // 获取批语类型列表
-export const getTypeListAPI = () => {
+export const getTypeListAPI = (data: any) => {
   return request({
     url: 'function/type/list',
-    method: 'get'
+    method: 'get',
+    params: data
   })
 }
 

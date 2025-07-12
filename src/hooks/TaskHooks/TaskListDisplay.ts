@@ -97,7 +97,11 @@ export default function ListDisplay() {
     // 获取作业列表
     const getTaskList = async () => {
         try {
-            const res = await taskListAPI({});
+            let data = {
+                pageNum: 1,
+                pageSize: 9999
+            }
+            const res = await taskListAPI(data);
             if (res.data.code == 200) {
                 state.TaskList = res.data.rows as HomeworkTask[];
             } else {

@@ -99,15 +99,17 @@
             <p>请选择本次作业的截止时间：</p>
             <div class="block">
                 <el-date-picker
-                    v-model="taskContent.limitTime"
-                    type="datetime"
-                    placeholder="请选择截止时间"
+                    v-model="taskContent.timeRange"
+                    type="datetimerange"
+                    range-separator="至"
+                    start-placeholder="请选择开始时间"
+                    end-placeholder="请选择截止时间"
                     format="YYYY-MM-DD"
                 />
             </div>
         </div>
         <div class="button_submit">
-            <el-button type="primary" @click="submitTask">提交</el-button>
+            <el-button type="primary" @click="submitTask">保存</el-button>
             <router-link to="/home/task">
                 <el-button>取消</el-button>
             </router-link>
@@ -198,7 +200,8 @@ interface TaskContent {
     homeworkTitle: string;
     homeworkDescribe: string;
     topicIds: number[];
-    limitTime?: Date;
+    // limitTime?: Date;
+    timeRange: [Date, Date];
     homeworkContent?: string;
     userId?: number;
 }
@@ -209,7 +212,8 @@ const taskContent = reactive<TaskContent>({
     homeworkTitle: '',
     homeworkDescribe: '',
     topicIds: [],
-    limitTime: undefined,
+    // limitTime: undefined,
+    timeRange: [undefined, undefined],
     homeworkContent: '', // 目录
 });
 
@@ -335,6 +339,7 @@ const getQuestionList = async () => {
     let data = {
         courseId: userStore.selectClass.courseId,
         pageNum: 1,
+        ////////////////////这里暂时没管是不是分页器、、、、、、、、、、、、、、、、、、
         pageSize: 10,
         topicTypeId: search.searchType ? Number(search.searchType) : undefined,
         topicTitle: search.searchQuestion || undefined,
@@ -474,7 +479,8 @@ const getDetail = async () => {
             const content = homeworkComment.find(item => item.homeworkContentId === ret.homeworkContentId);
             taskContent.homeworkContent = content ? content.homeworkContentName : '';
             // 截止时间
-            taskContent.limitTime = ret.limitTime ? dayjs(ret.limitTime).toDate() : undefined;
+            taskContent.timeRange[0] = ret.startTime ? dayjs(ret.startTime).toDate() : undefined;
+            taskContent.timeRange[1] = ret.limitTime ? dayjs(ret.limitTime).toDate() : undefined;
             // 题目
             if (ret.topicIds) {
                 const topicIdArr = ret.topicIds.split(',').map((id: string) => Number(id));

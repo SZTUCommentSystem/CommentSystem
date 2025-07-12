@@ -179,7 +179,11 @@ function convertToCascaderOptions(list: any[]): any[] {
 const getChapterList = async () => {
   root.value = [];
   try {
-    const res = await getChapterListAPI();
+    let data = {
+      pageNum: 1,
+      pageSize: 9999
+    }
+    const res = await getChapterListAPI(data);
     if (res.data.code === 200) {
       res.data.rows.forEach((item: any) => {
         item.children = []
@@ -314,7 +318,9 @@ const getShowTags = async () => {
   console.log(userStore.selectClass.courseId, currentChapterId.value);
   let data = {
     courseId: userStore.selectClass.courseId,
-    chapterId: currentChapterId.value
+    chapterId: currentChapterId.value,
+    pageNum: 1,
+    pageSize: 9999
   }
   const res = await labelListAPI(data);
   if (res.data.code == 200) {

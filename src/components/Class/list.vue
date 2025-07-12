@@ -90,8 +90,12 @@ const createClass = async () => {
 };
 
 const getClassList = async () => {
+  let data = {
+    pageNum: 1,
+    pageSize: 9999
+  }
   try {
-    const res = await classListAPI();
+    const res = await classListAPI(data);
     classes.value = res.data.rows;
     console.log('获取班级列表成功:', classes.value);
   } catch (error) {

@@ -1,8 +1,19 @@
 import { computed, ref } from 'vue';
+import type { Ref } from 'vue';
 
-import type { Student } from '@/components/TaskCondition/index.vue';
+interface Student {
+  homeworkStudentId: number
+  studentId: string
+  studentNo?: string
+  studentName: string
+  infoState: string 
+  score?: number
+}
 
-export default function useStudentList(studentListProp: Student[]) {
+export default function useStudentList(
+    studentListProp: Ref<Student[]>,
+    homeWorkStatus: Ref<string>
+) {
     // 分页相关
     const pageSize = ref(20);
     const pageNum = ref(1);
@@ -13,13 +24,18 @@ export default function useStudentList(studentListProp: Student[]) {
 
     // 过滤搜索
     const filteredStudent = computed(() => {
-        return studentListProp.filter(student => {
+        return studentListProp.value.filter(student => {
             // 确保字段为字符串
             const name = typeof student.studentName === 'string' ? student.studentName : String(student.studentName ?? '');
             const no = typeof student.studentNo === 'string' ? student.studentNo : String(student.studentNo ?? '');
             const matchesSearchName = name.includes(searchNameQuery.value);
             const matchesSearchId = no.includes(searchStudentIdQuery.value);
-            return matchesSearchName && matchesSearchId;
+            let matchesStatus = true;
+            if (homeWorkStatus && homeWorkStatus && homeWorkStatus.value !== '全部' && homeWorkStatus.value !== '') {
+                matchesStatus = student.infoState === homeWorkStatus.value;
+            }
+            return matchesSearchName && matchesSearchId && matchesStatus;
+        
         });
     });
 

@@ -1,10 +1,11 @@
 import request from "@/utils/https";
 
 // 获取章节列表
-export const getChapterListAPI = () => {
+export const getChapterListAPI = (data: any) => {
     return request({
         url: 'function/chapter/list',
-        method: 'get'
+        method: 'get',
+        params: data
     })
 }
 

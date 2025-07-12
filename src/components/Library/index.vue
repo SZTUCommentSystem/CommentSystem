@@ -24,7 +24,15 @@
         <el-dialog v-model="dialogVisible" title="添加批语" width="600">
           <div>
             <span>目标章节：</span>
-            <el-input v-model="chapterType" style="width: 80%" placeholder="请输入目标章节" />
+            <el-select v-model="chapterTypeId" placeholder="请选择章节" style="width: 80%;" filterable>
+              <el-option
+                v-for="item in flatChapterList"
+                :key="item.commentTypeId"
+                :label="item.fullName"
+                :value="item.commentTypeId"
+              />
+            </el-select>
+            <!-- <el-input v-model="chapterType" style="width: 80%" placeholder="请输入目标章节" /> -->
           </div>
           <div style="margin-top: 20px;">
             <span>批语内容：</span>
@@ -96,8 +104,15 @@
       <!-- 新增子章节弹窗 -->
       <el-dialog v-model="sonDialogVisible" title="新增子章节" width="600">
         <div class="dialog-row" style="margin-top: 20px;">
-          <span class="dialog-label">父章节名称：</span>
-          <el-input v-model="faChapter" style="width: 80%" placeholder="请输入父章节名称" />
+          <span class="dialog-label">父章节：</span>
+          <el-select v-model="faChapter" placeholder="请选择章节" style="width: 80%;" filterable>
+            <el-option
+              v-for="item in flatChapterList"
+              :key="item.commentTypeId"
+              :label="item.fullName"
+              :value="item.commentTypeId"
+            />
+          </el-select>
         </div>
         <div class="dialog-row" style="margin-top: 20px;">
           <span class="dialog-label">章节名称：</span>
@@ -249,7 +264,11 @@ const fillCommentsToBase = (typeList: any[], commentList: any[]) => {
 
 // 获取类型列表
 const getTypeList = async () => {
-  const res = await getTypeListAPI();
+  let data = {
+    pageNum: 1,
+    pageSize: 9999
+  }
+  const res = await getTypeListAPI(data);
   if (res.data.code == 200) {
     typeList.value = formatTypeList(res.data.rows);
     if (commentList.value.length) {
@@ -260,7 +279,11 @@ const getTypeList = async () => {
 
 // 获取批语列表
 const getList = async () => {
-  const res = await getCommentListAPI();
+  let data = {
+    pageNum: 1,
+    pageSize: 9999
+  }
+  const res = await getCommentListAPI(data);
   if (res.data.code == 200) {
     commentList.value = res.data.rows;
     if (typeList.value.length) {
@@ -270,6 +293,21 @@ const getList = async () => {
   console.log('批语列表:', commentList.value);
   console.log('分类树:', typeList.value);
 };
+
+const flattenChapters = (list: any[], parentName = '') => {
+  let result: any[] = [];
+  list.forEach(item => {
+    if (!item.isBase) {
+      const fullName = parentName ? `${parentName} / ${item.commentTypeName}` : item.commentTypeName;
+      result.push({ ...item, fullName });
+      if (item.children) {
+        result = result.concat(flattenChapters(item.children.filter(c => !c.isBase), fullName));
+      }
+    }
+  });
+  return result;
+}
+const flatChapterList = computed(() => flattenChapters(typeList.value));
 
 // 菜单选择
 const handleMenuSelect = (index: string) => {
@@ -420,16 +458,11 @@ const addFaChapter = async () => {
 const sonDialogVisible = ref(false);
 const faChapter = ref('');
 const newSonChapter = ref('');
-// 根据faChapter找到对应父章节parentId
-const findParentId = (name: string): number | null => {
-  const chapter = typeList.value.find(item => item.commentTypeName === name);
-  return chapter ? chapter.commentTypeId : null;
-}
 
 const addSonChapter = async () => {
   let data = {
     commentTypeName: newSonChapter.value.trim(),
-    parentId: findParentId(faChapter.value.trim()),
+    parentId: faChapter.value,
     courseId: userStore.selectClass.courseId,
   }
 
@@ -453,39 +486,18 @@ const addSonChapter = async () => {
 
 // 新增批语弹窗
 const dialogVisible = ref(false); //弹窗控制
-const chapterType = ref(''); //章节名称
+const chapterTypeId = ref(null); //章节名称
 const newComment = ref(''); //新增批语内容
 // 添加批语到当前基础内容
 // 递归查找章节名称对应的节点
-function findChapterByName(list: any[], name: string): any | null {
-  for (const item of list) {
-    if (item.commentTypeName === name) return item;
-    if (item.children && item.children.length) {
-      const found = findChapterByName(item.children.filter((c: any) => !c.isBase), name);
-      if (found) return found;
-    }
-  }
-  return null;
-}
 
 const addComment = async () => {
-  if (!newComment.value.trim() || !chapterType.value.trim()) return;
-
-  // 递归查找章节
-  const target = findChapterByName(typeList.value, chapterType.value.trim());
-  if (!target) {
-    ElMessage.error('未找到对应章节');
-    return;
-  }
-
-  // 获取chapterTypeId
-  const chapterTypeId = target.commentTypeId;
-  chapterType.value = chapterTypeId; // 存到chapterType
-
-  // 发送添加批语请求（假设有addCommentAPI）
+  // 发送添加批语请求
   let data = {
     commentId: null, // 新增时ID为null
-    commentTypeId: chapterTypeId,
+    pageNum: 1,
+    pageSize: 9999,
+    commentTypeId: chapterTypeId.value,
     commentName: newComment.value.trim(),
     courseId: userStore.selectClass.courseId, // 课程ID
   };
@@ -495,7 +507,7 @@ const addComment = async () => {
       ElMessage.success('添加成功');
       // 清空输入框
       newComment.value = '';
-      chapterType.value = '';
+      chapterTypeId.value = '';
       dialogVisible.value = false;
       // 刷新批语列表
       init();

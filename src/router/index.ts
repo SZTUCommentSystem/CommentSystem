@@ -31,6 +31,11 @@ const router = createRouter({
           component: () => import('../components/TaskCondition/index.vue')
         },
         {
+          path: '/home/task/taskcondition/detail',
+          name: 'taskconditionDetail',
+          component: () => import('../components/TaskCondition/detail.vue')
+        },
+        {
           path: '/home/task/taskdetail',
           name: 'taskdetail',
           component: () => import('../components/Task/detail.vue')

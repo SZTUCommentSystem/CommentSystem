@@ -92,8 +92,8 @@ const navList1 = [
 // 已选择课程
 const navList2 = [
   { path: "/home/homepage", name: "首页" },
-  { path: "/home/question", name: "题库管理" },
   { path: "/home/class", name: "班级管理" },
+  { path: "/home/question", name: "题库管理" },
   { path: "/home/task", name: "作业库管理" },
   { path: "/home/library", name: "批语库管理" },
   { path: "/home/label", name: "标签库管理" },
