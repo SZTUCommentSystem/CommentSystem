@@ -19,9 +19,9 @@
   ],
   "compilerOptions": {
     "moduleResolution": "node",
-    "target": "ES2016",
+    "target": "ES2017",
     "lib": [
-      "ES2016",
+      "ES2017",
       "DOM"
     ],
     "baseUrl": ".",

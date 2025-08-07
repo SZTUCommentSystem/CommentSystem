@@ -27,7 +27,7 @@ import Right from '../Question/components/Right.vue'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { addQuestionAPI } from '@/api/QuestionAPI'
 
@@ -41,6 +41,7 @@ interface Label {
 
 interface Comment {
   commentId: string | number
+  weightNum: string
   [key: string]: any
 }
 
@@ -50,6 +51,7 @@ const questionContent = reactive<{
   labels: Label[]
   topicUrls: any[]
   topicInfo: string
+  isSvg: boolean
   comments: Comment[]
 }>({
   topicTitle: '',
@@ -57,8 +59,54 @@ const questionContent = reactive<{
   labels: [],
   topicUrls: [],
   topicInfo: '',
+  isSvg: false,
   comments: [],
 })
+
+// 检查总权重
+const checkTotalWeight = async () => {
+  const validComments = questionContent.comments.slice(0, 10); // 只取前10条
+  if (validComments.length === 0) return true;
+
+  // 如果用户已经勾选了自动平均权重，直接返回 true，不需要检查
+  if (questionContent.isSvg) {
+    return true;
+  }
+
+  const totalWeight = validComments.reduce((sum, comment) => {
+    return sum + (parseFloat(comment.weightNum) || 0);
+  }, 0);
+
+  if (Math.abs(totalWeight - 1) > 0.01) { // 允许0.01的误差
+    try {
+      await ElMessageBox.confirm(
+        `当前权重和为${totalWeight.toFixed(2)}，不等于1。是否要自动平均分配权重？`,
+        '权重提示',
+        {
+          confirmButtonText: '自动平均',
+          cancelButtonText: '手动调整',
+          type: 'warning',
+        }
+      );
+      
+      // 用户选择自动平均
+      // const averageWeight = 1 / validComments.length;
+      // validComments.forEach(comment => {
+      //   comment.weight = averageWeight.toFixed(3);
+      // });
+      // questionContent.isSvg = true;
+      // ElMessage.success('已自动平均分配权重');
+      questionContent.isSvg = true;
+      return true;
+      
+    } catch {
+      // 用户选择手动调整
+      ElMessage.info('请手动调整权重，确保总和为1');
+      return false;
+    }
+  }
+  return true;
+}
 
 const right = ref()
 // 返回类型Id函数
@@ -71,6 +119,11 @@ const returnTypeId = () => {
 
 // 提交
 const submitQuestion = async () => {
+  // 先检查权重
+  const weightValid = await checkTotalWeight();
+  if (!weightValid) {
+    return; // 用户选择手动调整，不继续提交
+  }
   returnTypeId()
   // 直接取已上传图片的 url
   const urls = questionContent.topicUrls
@@ -85,7 +138,15 @@ const submitQuestion = async () => {
     labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
     topicUrls: urls,
     topicInfo: questionContent.topicInfo,
-    commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+    // 下面是批语权重
+    isSvg: questionContent.isSvg, //看是否需要平均权重
+    // commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+    topicComments: questionContent.comments.map( //每条批语的权重和id
+      comment => ({
+        commentId: comment.commentId,
+        weightNum: comment.weightNum
+      })
+    )
   }
   try {
     const res = await addQuestionAPI(data)

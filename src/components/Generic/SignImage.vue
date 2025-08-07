@@ -184,20 +184,16 @@ const customTheme = {
 
 // props
 const props = defineProps({
-    dialogVisible: {
-        type: Boolean,
-        default: false
-    },
-    title: {
-        type: String,
-        default: "",
-    },
-    imgUrl: {
-        type: Array,
-        required: true,
-    },
-
+    dialogVisible: Boolean,
+    title: String,
+    imgUrl: Array,
+    currentImageIndex: {
+        type: Number,
+        default: 0
+    }
 });
+const currentImageIndex = ref(props.currentImageIndex); // 当前图片索引
+
 const emit = defineEmits(['uploadAndShowImg'])
 const instance = ref(null)
 
@@ -206,7 +202,6 @@ const closeDialog = () => {
     emit('closeCropperDialog')
 }
 
-const currentImageIndex = ref(0) // 当前图片索引
 const init = () => {
     instance.value = new ImageEditor(document.querySelector('#tui-image-editor'), {
         includeUI: {
@@ -279,9 +274,10 @@ const save = () => {
 
 onMounted(() => {
     nextTick(() => {
-        init() // 页面创建完成后调用
-    })
-})
+        currentImageIndex.value = props.currentImageIndex; // 初始化索引
+        init();
+    });
+});
 </script>
 
 <style scoped>

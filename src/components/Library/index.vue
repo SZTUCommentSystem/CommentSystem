@@ -58,7 +58,13 @@
                 @click="props.selectMode && handleSelectComment(row.commentId)"
                 style="cursor: pointer;"
               >
-                <span>{{ row.commentName }}</span>
+                <span>
+                  <!-- 序号显示 -->
+                  <template v-if="props.selectMode && selectedOrderMap[row.commentId]">
+                    <b style="color: #67c23a; margin-right: 8px;">{{ selectedOrderMap[row.commentId] }}</b>
+                  </template>
+                  {{ row.commentName }}
+                </span>
                 <div class="rig" v-if="!props.selectMode">
                   <img src="@/assets/img/编辑.png" class="edit-icon" @click.stop="getCurrentComment(row)" />
                   <img src="@/assets/img/删除2.png" class="edit-icon" @click.stop="deleteComment(row)" />
@@ -156,7 +162,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import CategoryMenu from './components/CategoryMenu.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
@@ -179,28 +185,61 @@ const props = defineProps({
 });
 const emit = defineEmits(['confirm']);
 
-const selectedIds = ref<number[]>([]); // 选择模式下已选批语ID
+// 维护选择顺序映射
+const selectedOrderMap = ref<Record<number, number>>({})
+// 改用数组维护选择顺序
+const selectedComments = ref<any[]>([]); // 按选择顺序存储完整的批语对象
+const selectedIds = ref<number[]>([]); // 仅用于快速查找
+
 watch(
   () => props.selectedIds,
   (val) => {
     selectedIds.value = [...val];
+    // 延迟执行，确保 commentList 已加载
+    nextTick(() => {
+      const allComments = commentList.value;
+      selectedComments.value = val.map(id => 
+        allComments.find(c => c.commentId === id)
+      ).filter(Boolean);
+      
+      selectedOrderMap.value = {};
+      selectedComments.value.forEach((comment, idx) => {
+        if (comment) {
+          selectedOrderMap.value[comment.commentId] = idx + 1;
+        }
+      });
+    });
   },
   { immediate: true }
 );
 
 const handleSelectComment = (id: number) => {
-  const idx = selectedIds.value.indexOf(id);
-  if (idx > -1) {
-    selectedIds.value.splice(idx, 1);
+  const comment = commentList.value.find(c => c.commentId === id);
+  if (!comment) return;
+  
+  const existingIndex = selectedComments.value.findIndex(c => c.commentId === id);
+  
+  if (existingIndex > -1) {
+    // 取消选择
+    selectedComments.value.splice(existingIndex, 1);
+    selectedIds.value.splice(selectedIds.value.indexOf(id), 1);
+    delete selectedOrderMap.value[id];
+    
+    // 重新分配序号
+    selectedComments.value.forEach((c, idx) => {
+      selectedOrderMap.value[c.commentId] = idx + 1;
+    });
   } else {
+    // 新选择，添加到末尾
+    selectedComments.value.push(comment);
     selectedIds.value.push(id);
+    selectedOrderMap.value[id] = selectedComments.value.length;
   }
 };
+
 const confirmSelect = () => {
-  // 只传递已选中的完整批语对象
-  const allComments = commentList.value;
-  const selectedComments = allComments.filter(c => selectedIds.value.includes(c.commentId));
-  emit('confirm', selectedComments);
+  // 直接返回按选择顺序排列的批语数组
+  emit('confirm', [...selectedComments.value]);
 };
 
 const rowStyle = computed(() => ({
@@ -613,11 +652,8 @@ onMounted(() => {
 
 .header-container {
   display: flex;
-  /* 使用 Flexbox */
   justify-content: space-between;
-  /* 元素两端对齐 */
   align-items: center;
-  /* 垂直居中 */
 
   h5 {
     margin-bottom: 0;
@@ -630,22 +666,16 @@ onMounted(() => {
 
 .h5 {
   flex: 1;
-  /* 使文字占满可用空间 */
   text-align: center;
-  /* 使文字居中 */
 }
 
 .right-container {
   display: flex;
   justify-content: center;
-  /* 使列表居中 */
 }
-
-
 
 .right-container {
   padding: 0 20px;
-  /* 内边距 */
   margin: 10px;
 }
 
@@ -655,14 +685,12 @@ onMounted(() => {
   }
 
   font-size: 16px;
-  /* 调整标题字体大小 */
 }
 
 
 .el-menu {
   .el-menu-item {
     font-size: 18px;
-    /* 调整菜单项字体大小 */
   }
 
 }
@@ -700,7 +728,6 @@ onMounted(() => {
 
 .edit-icon {
   cursor: pointer;
-  /* 设置鼠标样式为指针 */
 }
 
 .pagination {
@@ -730,12 +757,12 @@ onMounted(() => {
     padding-top: 10px;
   }
 
-  ::v-deep .con el-sub-menu__title {
+  .con ::v-deep(el-sub-menu__title){
     padding: 0;
   }
 
-  ::v-deep .con .el-menu .el-menu-item {
-    font-size: 12px !important;
+  .con ::v-deep(.el-menu-item){
+    font-size: 12px;
   }
 }
 

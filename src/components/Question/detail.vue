@@ -25,7 +25,7 @@ import Right from '../Question/components/Right.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { getCommentDetailAPI } from '@/api/CommentsAPI'
 import { labelInfoAPI } from '@/api/LabelAPI'
@@ -46,6 +46,7 @@ interface Comment {
   commentId: number
   commentName: string
   commentTypeId: number
+  weightNum: string
 }
 
 const questionContent = reactive<{
@@ -55,6 +56,7 @@ const questionContent = reactive<{
   labels: Label[]
   topicUrls: any[] // 必须是 any[]，不能是 string[]
   topicInfo: string
+  isSvg: boolean
   comments: Comment[]
 }>({
   topicId: '',
@@ -63,6 +65,7 @@ const questionContent = reactive<{
   labels: [],
   topicUrls: [],
   topicInfo: '',
+  isSvg: false,
   comments: [],
 })
 
@@ -75,12 +78,72 @@ const returnTypeId = () => {
     ?.topicTypeId ?? '').toString();
 }
 
+// 检查总权重
+const checkTotalWeight = async () => {
+  const validComments = questionContent.comments.slice(0, 10); // 只取前10条
+  if (validComments.length === 0) return true;
+
+  // 如果用户已经勾选了自动平均权重，直接返回 true，不需要检查
+  if (questionContent.isSvg) {
+    return true;
+  }
+
+  const totalWeight = validComments.reduce((sum, comment) => {
+    return sum + (parseFloat(comment.weightNum) || 0);
+  }, 0);
+
+  if (Math.abs(totalWeight - 1) > 0.01) { // 允许0.01的误差
+    try {
+      await ElMessageBox.confirm(
+        `当前权重和为${totalWeight.toFixed(2)}，不等于1。是否要自动平均分配权重？`,
+        '权重提示',
+        {
+          confirmButtonText: '自动平均',
+          cancelButtonText: '手动调整',
+          type: 'warning',
+        }
+      );
+      
+      // 用户选择自动平均
+      // const averageWeight = 1 / validComments.length;
+      // validComments.forEach(comment => {
+      //   comment.weight = averageWeight.toFixed(3);
+      // });
+      // ElMessage.success('已自动平均分配权重');
+      questionContent.isSvg = true;
+      return true;
+      
+    } catch {
+      // 用户选择手动调整
+      ElMessage.info('请手动调整权重，确保总和为1');
+      return false;
+    }
+  }
+  return true;
+}
+
 // 提交
 const submitQuestion = async () => {
+  // 先检查权重
+  const weightValid = await checkTotalWeight();
+  if (!weightValid) {
+    return; // 用户选择手动调整，不继续提交
+  }
   returnTypeId()
   // 直接取已上传图片的 url
+  debugger
   const urls = questionContent.topicUrls
-    .map((file: any) => file.raw.url)
+    .map((item: any) => {
+      // 如果是从详情页加载的数据，使用 item.url
+      if (item.url) {
+        return item.url;
+      }
+      // 如果是新上传的文件，使用 item.raw.url
+      if (item.raw && item.raw.url) {
+        return item.raw.url;
+      }
+      return null;
+    })
     .filter(Boolean)
     .join(',');
 
@@ -92,7 +155,15 @@ const submitQuestion = async () => {
     labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
     topicUrls: urls,
     topicInfo: questionContent.topicInfo,
-    commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+    // 下面是批语权重
+    isSvg: questionContent.isSvg, //看是否需要平均权重
+    // commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
+    topicComments: questionContent.comments.map( //每条批语的权重和id
+      comment => ({
+        commentId: comment.commentId,
+        weightNum: comment.weightNum
+      })
+    )
   }
   try {
     const res = await changeQuestionAPI(data)
@@ -163,12 +234,12 @@ const getLabelByIds = async (labelIds: string) => {
   }
 }
 
-// 获取题目对应的评论
+// 获取题目对应的批语
 const getQuestionComments = async () => {
   const itemId = Number(route.query.itemId)
   const res = await questionCommentListAPI(itemId)
   if (res.data.code === 200) {
-    // 并发获取每个评论的详情
+    // 并发获取每个批语的详情
     const commentDetails = await Promise.all(
       res.data.rows.map(async (comment: any) => {
         const retRes = await getCommentDetailAPI(comment.commentId)
@@ -177,6 +248,7 @@ const getQuestionComments = async () => {
           commentId: ret.commentId,
           commentName: ret.commentName,
           commentTypeId: ret.commentTypeId,
+          weightNum: comment.weightNum || '0', // 确保 weightNum 有默认值
         }
       })
     )

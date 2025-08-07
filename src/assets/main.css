@@ -91,3 +91,10 @@ select {
     font-family: KaiTi;
 
 }
+
+/* 超出以省略号省略 */
+.ov-fl-ell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1,4 +1,4 @@
-import { reactive, computed } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import type { Ref } from 'vue';
 import { uploadFileAPI } from '@/api/login'
 import { ElMessage } from 'element-plus';
@@ -32,13 +32,9 @@ export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
     const cropperObj = reactive({
         cVisible: false, // 显示切图弹框
         ctitle: "", // 弹框标题
+        currentImageIndex: 0,
         get previewsImgUrl() {
             return previewsImgUrl.value;
-        },
-        // 开启剪切弹框
-        openCropperView: () => {
-            cropperObj.ctitle = "图片处理"
-            cropperObj.cVisible = true
         },
         // 关闭弹框所触发的事件
         closeCropperView: () => {
@@ -46,6 +42,14 @@ export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
         },
     })
 
+    const hoverImgIndex = ref<number | null>(null);
+
+    // 打开图片处理框并定位到指定图片
+    const openCropperView = (index: number) => {
+        cropperObj.cVisible = true;
+        cropperObj.currentImageIndex = index; // 新增字段，传递给图片处理组件
+        cropperObj.ctitle = '批改作业';
+    };
     // 上传图片并展示
     const uploadAndShowImg = async (form: FormData) => {
         const res = await uploadFileAPI(form);
@@ -60,6 +64,8 @@ export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
     }
 
     return {
+        hoverImgIndex,
+        openCropperView,
         deleteImgShow,
         deleteImg,
         newImgs,

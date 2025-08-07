@@ -18,6 +18,32 @@
                 </div>
                 <div>
                     <h4>批改作业</h4>
+                    <div class="correct-box">
+                      <ul>
+                        <li v-for="(img, index) in newImgs" :key="index" style="position: relative;">
+                          <el-image
+                            :src="img"
+                            fit="cover"
+                            style="width: 180px; height: 120px; border-radius: 8px;"
+                            @mouseenter="hoverImgIndex = index"
+                            @mouseleave="hoverImgIndex = null"
+                          />
+                          <!-- 悬浮显示批改按钮 -->
+                          <el-button
+                            v-if="hoverImgIndex === index"
+                            type="primary"
+                            size="small"
+                            style="position: absolute; top: 10px; right: 10px; z-index: 10;"
+                            @click="openCropperView(index)"
+                          >批改</el-button>
+                          <!-- 删除按钮等原有功能 -->
+                          <div class="img-del" v-show="deleteImgShow[index]"
+                            @mouseleave="deleteImgShow[index] = false">
+                            <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
                     <p>批改：</p>
                     <div class="correct-box">
                         <!-- 图片处理框 -->
@@ -26,12 +52,12 @@
                           :dialogVisible.sync="cropperObj.cVisible"
                           :title="cropperObj.ctitle" 
                           :imgUrl="cropperObj.previewsImgUrl"
+                          :currentImageIndex="cropperObj.currentImageIndex"
                           @uploadAndShowImg="uploadAndShowImg"
                           @closeCropperDialog="cropperObj.closeCropperView"
-                        >
-                        </SignImage>
+                        />
                         <!-- 点击弹出图片处理框 -->
-                        <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button>
+                        <!-- <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button> -->
                         <el-button @click="showDialog = true">查看原题</el-button>
 
                         <!-- 处理完图片回显 -->
@@ -438,6 +464,8 @@ const NextProblem = () => {
 
 // 批改
 const {
+  hoverImgIndex,
+  openCropperView,
   deleteImgShow,
   deleteImg,
   newImgs,
