@@ -51,6 +51,8 @@ const questionContent = reactive<{
   labels: Label[]
   topicUrls: any[]
   topicInfo: string
+  topicAnswerInfo: string
+  topicAnswerUrls: any[]
   isSvg: boolean
   comments: Comment[]
 }>({
@@ -59,6 +61,8 @@ const questionContent = reactive<{
   labels: [],
   topicUrls: [],
   topicInfo: '',
+  topicAnswerInfo: '',
+  topicAnswerUrls: [],
   isSvg: false,
   comments: [],
 })
@@ -126,7 +130,11 @@ const submitQuestion = async () => {
   }
   returnTypeId()
   // 直接取已上传图片的 url
-  const urls = questionContent.topicUrls
+  const topicUrls = questionContent.topicUrls
+    .map((file: any) => file.raw.url)
+    .filter(Boolean)
+    .join(',');
+  const topicAnswerUrls = questionContent.topicAnswerUrls
     .map((file: any) => file.raw.url)
     .filter(Boolean)
     .join(',');
@@ -136,8 +144,10 @@ const submitQuestion = async () => {
     topicTitle: questionContent.topicTitle.trim(),
     topicTypeId: typeId.value,
     labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
-    topicUrls: urls,
+    topicUrls: topicUrls,
     topicInfo: questionContent.topicInfo,
+    topicAnswerInfo: questionContent.topicAnswerInfo,
+    topicAnswerUrls: topicAnswerUrls,
     // 下面是批语权重
     isSvg: questionContent.isSvg ? '是':'否', //看是否需要平均权重
     // commentIds: questionContent.comments.map(comment => comment.commentId).join(','),

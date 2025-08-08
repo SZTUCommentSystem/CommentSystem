@@ -467,7 +467,12 @@ const getLabelByIds = async (labelIds: string) => {
 
 // 获取题目批语
 const getQuestionComments = async () => {
-  const res = await questionCommentListAPI(Number(taskQuestList.value[nowQuestionIdx.value]))
+  const data = {
+    pageNum: 1,
+    pageSize: 1000, // 假设最多1000条批语
+    topicId: Number(taskQuestList.value[nowQuestionIdx.value])
+  }
+  const res = await questionCommentListAPI(data)
   if (res.data.code === 200) {
     const commentDetails = await Promise.all(
       res.data.rows.map(async (comment: any) => {

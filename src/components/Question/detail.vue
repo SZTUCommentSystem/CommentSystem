@@ -56,6 +56,8 @@ const questionContent = reactive<{
   labels: Label[]
   topicUrls: any[] // 必须是 any[]，不能是 string[]
   topicInfo: string
+  topicAnswerInfo: string
+  topicAnswerUrls: any[]
   isSvg: boolean
   comments: Comment[]
 }>({
@@ -65,6 +67,8 @@ const questionContent = reactive<{
   labels: [],
   topicUrls: [],
   topicInfo: '',
+  topicAnswerInfo: '',
+  topicAnswerUrls: [],
   isSvg: false,
   comments: [],
 })
@@ -132,7 +136,22 @@ const submitQuestion = async () => {
   returnTypeId()
   // 直接取已上传图片的 url
   debugger
-  const urls = questionContent.topicUrls
+  const topicUrls = questionContent.topicUrls
+    .map((item: any) => {
+      // 如果是从详情页加载的数据，使用 item.url
+      if (item.url) {
+        return item.url;
+      }
+      // 如果是新上传的文件，使用 item.raw.url
+      if (item.raw && item.raw.url) {
+        return item.raw.url;
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .join(',');
+
+  const topicAnswerUrls = questionContent.topicAnswerUrls
     .map((item: any) => {
       // 如果是从详情页加载的数据，使用 item.url
       if (item.url) {
@@ -153,8 +172,10 @@ const submitQuestion = async () => {
     topicTitle: questionContent.topicTitle.trim(),
     topicTypeId: typeId.value,
     labelIds: questionContent.labels.map(label => label.topicLabelId).join(','),
-    topicUrls: urls,
+    topicUrls: topicUrls,
     topicInfo: questionContent.topicInfo,
+    topicAnswerInfo: questionContent.topicAnswerInfo,
+    topicAnswerUrls: topicAnswerUrls,
     // 下面是批语权重
     isSvg: questionContent.isSvg ? '是':'否', //看是否需要平均权重
     // commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
@@ -193,6 +214,10 @@ const getQuestionContent = async () => {
     questionContent.topicInfo = data.topicInfo
     questionContent.topicUrls = data.topicUrls
       ? data.topicUrls.split(',').map((url: string) => ({ url }))
+      : []
+    questionContent.topicAnswerInfo = data.topicAnswerInfo
+    questionContent.topicAnswerUrls = data.topicAnswerUrls
+      ? data.topicAnswerUrls.split(',').map((url: string) => ({ url }))
       : []
     getLabelByIds(data.labelIds)
     questionContent.isSvg = data.isSvg === '是'
@@ -237,8 +262,12 @@ const getLabelByIds = async (labelIds: string) => {
 
 // 获取题目对应的批语
 const getQuestionComments = async () => {
-  const itemId = Number(route.query.itemId)
-  const res = await questionCommentListAPI(itemId)
+  let data = {
+    pageNum: 1,
+    pageSize: 1000, // 假设最多1000条批语
+    topicId: Number(route.query.itemId)
+  }
+  const res = await questionCommentListAPI(data)
   if (res.data.code === 200) {
     // 并发获取每个批语的详情
     const commentDetails = await Promise.all(

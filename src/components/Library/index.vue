@@ -65,7 +65,7 @@
                   </template>
                   {{ row.commentName }}
                 </span>
-                <div class="rig" v-if="!props.selectMode">
+                <div class="rig">
                   <img src="@/assets/img/编辑.png" class="edit-icon" @click.stop="getCurrentComment(row)" />
                   <img src="@/assets/img/删除2.png" class="edit-icon" @click.stop="deleteComment(row)" />
                 </div>
@@ -202,11 +202,10 @@ watch(
         allComments.find(c => c.commentId === id)
       ).filter(Boolean);
       
+      // 重新构建序号映射，保持原有顺序
       selectedOrderMap.value = {};
-      selectedComments.value.forEach((comment, idx) => {
-        if (comment) {
-          selectedOrderMap.value[comment.commentId] = idx + 1;
-        }
+      val.forEach((id, idx) => {
+        selectedOrderMap.value[id] = idx + 1;
       });
     });
   },
@@ -217,29 +216,33 @@ const handleSelectComment = (id: number) => {
   const comment = commentList.value.find(c => c.commentId === id);
   if (!comment) return;
   
-  const existingIndex = selectedComments.value.findIndex(c => c.commentId === id);
+  const existingIndex = selectedIds.value.indexOf(id);
   
   if (existingIndex > -1) {
-    // 取消选择
-    selectedComments.value.splice(existingIndex, 1);
-    selectedIds.value.splice(selectedIds.value.indexOf(id), 1);
-    delete selectedOrderMap.value[id];
+    // 取消选择 - 从数组中移除，但保持其他元素的序号不变
+    selectedIds.value.splice(existingIndex, 1);
+    selectedComments.value = selectedComments.value.filter(c => c.commentId !== id);
     
-    // 重新分配序号
-    selectedComments.value.forEach((c, idx) => {
-      selectedOrderMap.value[c.commentId] = idx + 1;
+    // 重新分配序号 - 基于 selectedIds 的顺序
+    selectedOrderMap.value = {};
+    selectedIds.value.forEach((selectedId, idx) => {
+      selectedOrderMap.value[selectedId] = idx + 1;
     });
   } else {
     // 新选择，添加到末尾
-    selectedComments.value.push(comment);
     selectedIds.value.push(id);
-    selectedOrderMap.value[id] = selectedComments.value.length;
+    selectedComments.value.push(comment);
+    selectedOrderMap.value[id] = selectedIds.value.length;
   }
 };
 
 const confirmSelect = () => {
-  // 直接返回按选择顺序排列的批语数组
-  emit('confirm', [...selectedComments.value]);
+  // 基于 selectedIds 的顺序返回批语数组，确保顺序一致
+  const orderedComments = selectedIds.value.map(id => 
+    commentList.value.find(c => c.commentId === id)
+  ).filter(Boolean);
+  
+  emit('confirm', orderedComments);
 };
 
 const rowStyle = computed(() => ({

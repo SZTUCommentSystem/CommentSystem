@@ -87,10 +87,10 @@ export const deleteQuestionTypeAPI = (id: number) => {
 }
 
 // 获取题目对应的批语列表
-export const questionCommentListAPI = (id: number) => {
+export const questionCommentListAPI = (data: Object) => {
     return request({
         url: `function/topicComment/list`,
         method: "get",
-        params: { topicId: id }
+        params: data
     })
 }

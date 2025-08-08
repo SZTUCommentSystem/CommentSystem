@@ -119,15 +119,23 @@ export default function QuestionListDisplay() {
     }
 
     let timer:any = null;
-    // 监听筛选条件变化，重置页码
+    // 修改监听器：分离筛选条件和分页条件
     watch(
-        () => [state.selectedType, state.searchQuery, state.currentPage, state.pageSize],
+        () => [state.selectedType, state.searchQuery],
         () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
-                state.currentPage = 1; // 重置页码
-                getList(); // 重新获取题目列表
+                state.currentPage = 1; // 只有筛选条件变化时才重置页码
+                getList();
             }, 400);
+        }
+    );
+
+    // 单独监听分页变化
+    watch(
+        () => [state.currentPage, state.pageSize],
+        () => {
+            getList(); // 分页变化时直接获取数据，不重置页码
         }
     );
 

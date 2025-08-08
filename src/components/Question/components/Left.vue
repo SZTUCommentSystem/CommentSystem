@@ -24,7 +24,6 @@
               :key="comment.commentId"
               type="primary"
               effect="plain"
-              round
               size="large"
               :closable="!isCuor"
               @click="handleTagClick(comment)"
@@ -38,10 +37,10 @@
                 <span class="drag-handle" v-if="!isCuor">⋮⋮</span>
                 
                 <!-- 左侧：序号+批语内容 -->
-                <span class="ov-fl-ell comment-content">
-                  <b style="color: #67c23a; margin-right: 8px;">{{ getDisplayIndex(comment) }}</b>
-                  {{ comment.commentName }}
-                </span>
+                <div class="comment-content">
+                  <b class="comment-index">{{ getDisplayIndex(comment) }}</b>
+                  <span class="comment-text">{{ comment.commentName }}</span>
+                </div>
                 
                 <!-- 右侧：权重 -->
                 <span class="weight-section" @mousedown.stop @click.stop>
@@ -157,16 +156,30 @@ const handleCommentConfirm = (comments: any) => {
     return
   }
   
-  props.questionContent.comments = comments
-  updateOrderMapping()
-  
-  // 初始化权重
-  props.questionContent.comments.forEach((comment: any, index: number) => {
-    if (typeof comment.weightNum === 'undefined') {
-      comment.weightNum = index < 10 ? 0 : undefined;
+  // 保存原有批语的权重信息
+  const existingWeights: Record<number, any> = {}
+  props.questionContent.comments.forEach((comment: any) => {
+    if (comment.commentId && typeof comment.weightNum !== 'undefined') {
+      existingWeights[comment.commentId] = comment.weightNum
     }
-  });
+  })
   
+  // 更新批语列表，保留原有权重
+  props.questionContent.comments = comments.map((comment: any, index: number) => {
+    const newComment = { ...comment }
+    
+    // 如果是原有批语，保留其权重；如果是新批语，设置默认权重
+    if (existingWeights.hasOwnProperty(comment.commentId)) {
+      newComment.weightNum = existingWeights[comment.commentId]
+    } else {
+      // 新增批语的权重设置
+      newComment.weightNum = index < 10 ? 0 : undefined
+    }
+    
+    return newComment
+  })
+  
+  updateOrderMapping()
   showDialog.value = false
 }
 
@@ -262,6 +275,7 @@ onMounted(() => {
 }
 
 .draggable-tag {
+  height: auto;
   width: 100%; 
   font-size: 16px; 
   padding: 8px 12px;
@@ -275,20 +289,25 @@ onMounted(() => {
 
 .tag-div {
   display: flex; 
-  align-items: center; 
+  align-items: center; /* 改为居中对齐 */
   justify-content: space-between; 
   width: 100%;
-  gap: 8px;
-  padding-left: 10px;
+  gap: 12px; /* 增加间距 */
+  padding: 12px 8px; /* 增加内边距，让文本有更多空间 */
+  min-height: auto; /* 移除固定高度，自适应内容 */
 }
 
 .drag-handle {
   cursor: grab;
   color: #999;
   font-weight: bold;
-  padding: 0 8px;
+  padding: 4px;
   user-select: none;
   transform: rotate(90deg);
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1;
+  align-self: center; /* 居中对齐 */
 }
 
 .drag-handle:hover {
@@ -301,13 +320,38 @@ onMounted(() => {
 
 .comment-content {
   flex: 1;
-  min-width: 0; /* 允许文字截断 */
+  display: flex;
+  align-items: center; /* 改为居中对齐 */
+  justify-content: flex-start; /* 靠左对齐 */
+  gap: 8px; /* 序号和文本之间的间距 */
+
+  .comment-index {
+    color: #67c23a;
+    flex-shrink: 0; /* 防止序号被压缩 */
+    line-height: 1.5;
+    font-weight: bold;
+  }
+
+  .comment-text {
+    display: block; /* 改为块级元素 */
+    height: auto;
+    white-space: normal; /* 允许换行 */
+    word-wrap: break-word; /* 长单词换行 */
+    line-height: 1.5; /* 增加行高，提高可读性 */
+    flex: 1;
+  }
+}
+
+.draggable-tag :deep(.el-tag__close) {
+  margin-right: 10px;
 }
 
 .weight-section {
   display: flex; 
-  align-items: center;
+  align-items: center; /* 居中对齐 */
   flex-shrink: 0; /* 防止权重输入框被压缩 */
+  min-width: 80px;
+  justify-content: flex-end;
 }
 
 /* 拖拽时的样式 */

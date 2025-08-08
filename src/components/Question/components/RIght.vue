@@ -105,6 +105,31 @@
       <p>题目描述（可选）：</p>
       <editor-markdown v-model="props.questionContent.topicInfo"></editor-markdown>
     </div>
+    <div class="create-list">
+      <p>答案相关图片：</p>
+      <el-upload 
+        ref="upload"
+        v-model:file-list="props.questionContent.topicAnswerUrls"
+        list-type="picture-card"
+        :auto-upload="true"
+        :on-preview="handlePictureCardPreview"
+        :on-remove="isDialog ? () => false : handleRemove"
+        :before-upload="isDialog ? () => false : undefined"
+        :disabled="isDialog"
+        :http-request="handleUpload"
+      >
+        <el-icon>
+          <Plus />
+        </el-icon>
+      </el-upload>
+      <el-dialog v-model="dialogVisible" >
+        <img w-full :src="dialogImageUrl" alt="Preview Image" style="width: 100%;" />
+      </el-dialog>
+    </div>
+    <div class="create-list">
+      <p>答案描述（可选）：</p>
+      <editor-markdown v-model="props.questionContent.topicAnswerInfo"></editor-markdown>
+    </div>
   </div>
 
   <!-- 编辑类型弹窗 -->
