@@ -1,73 +1,94 @@
 <template>
-  <div class="left">
-        <div class="create-list">
-          <div class="create-title">
-            <div class="flex-between">
-              <p>题目批语：<el-checkbox v-model="questionContent.isSvg" label="自动平均权重" size="large" /></p>
-              <el-button type="primary" plain @click="showDialog = true" style="border-radius: 10px;margin-right: 0;">添加批语</el-button>
-            </div>
-          </div>
-          <el-tag
-            v-for="(comment, index) in questionContent.comments"
-            :key="comment.commentId"
-            type="primary"
-            effect="plain"
-            round
-            size="large"
-            closable 
-            @click="handleTagClick(comment.commentName)"
-            @close="handleCloseComment(comment)"
-          >
-            <div class="tag-div">
-              <!-- 左侧：序号+批语内容 -->
-              <span class="ov-fl-ell">
-                <b style="color: #67c23a; margin-right: 8px;">{{ getDisplayIndex(comment) }}</b>
-                {{ comment.commentName }}
-              </span>
-              <!-- 右侧：权重+删除 -->
-              <span style="display: flex; align-items: center;">
-                <!-- <el-input
-                  v-model="comment.weightNum"
-                  size="small"
-                  style="width: 60px; margin-right: 8px;"
-                /> -->
-                <el-input
-                  v-if="index < 10"
-                  v-model="comment.weightNum"
-                  size="small"
-                  type="number"
-                  :min="0"
-                  :max="1"
-                  step="0.01"
-                  style="width: 60px; margin-right: 8px;"
-                  @input="validateWeight(comment, index)"
-                />
-                <span v-else style="width: 60px; margin-right: 8px; text-align: center; color: #999;">
-                  无权重
-                </span>
-              </span>
-            </div>
-          </el-tag>
+  <div class="left" :style="isCuor ? 'width: 100%;' : 'width: 50%;'">
+    <div class="create-list">
+      <div class="create-title">
+        <div class="flex-between">
+          <p>题目批语：<el-checkbox v-if="!isCuor" v-model="questionContent.isSvg" label="自动平均权重" size="large" /></p>
+          <el-button type="primary" plain @click="showDialog = true" style="border-radius: 10px;margin-right: 0;">添加批语</el-button>
         </div>
       </div>
-      <el-dialog
-        v-model="showDialog"
-        title="选择批语"
-        width="80%"
-        align-center
+      
+      <!-- 使用 draggable 替换原来的 v-for -->
+      <draggable 
+        v-model="questionContent.comments" 
+        group="comments"
+        @change="handleDragChange"
+        :disabled="isCuor"
+        item-key="commentId"
+        class="drag-container"
+        handle=".drag-handle"
       >
-        <Library 
-          :selectMode="true"
-          :selectedIds="questionContent.comments.map((t: any)=>t.commentId)"
-          @confirm="handleCommentConfirm"
-        ></Library>
-      </el-dialog>
+        <template #item="{ element: comment, index }">
+          <div class="drag-item">
+            <el-tag
+              :key="comment.commentId"
+              type="primary"
+              effect="plain"
+              round
+              size="large"
+              :closable="!isCuor"
+              @click="handleTagClick(comment)"
+              @close="handleCloseComment(comment)"
+              class="draggable-tag"
+              :class="{'selected-comment': isCommentSelected(comment.commentId)}"
+              :style="!isCuor ? '':'cursor: pointer;'"
+            >
+              <div class="tag-div">
+                <!-- 拖拽手柄 -->
+                <span class="drag-handle" v-if="!isCuor">⋮⋮</span>
+                
+                <!-- 左侧：序号+批语内容 -->
+                <span class="ov-fl-ell comment-content">
+                  <b style="color: #67c23a; margin-right: 8px;">{{ getDisplayIndex(comment) }}</b>
+                  {{ comment.commentName }}
+                </span>
+                
+                <!-- 右侧：权重 -->
+                <span class="weight-section" @mousedown.stop @click.stop>
+                  <el-input
+                    v-if="index < 10"
+                    v-model="comment.weightNum"
+                    size="small"
+                    type="number"
+                    :min="0"
+                    :max="1"
+                    step="0.01"
+                    style="width: 60px; margin-right: 8px;"
+                    @input="validateWeight(comment, index)"
+                    @mousedown.stop
+                    @click.stop
+                  />
+                  <span v-else-if="index >= 10" style="width: 60px; margin-right: 8px; text-align: center; color: #999;">
+                    无权重
+                  </span>
+                </span>
+              </div>
+            </el-tag>
+          </div>
+        </template>
+      </draggable>
+    </div>
+  </div>
+  
+  <el-dialog
+    v-model="showDialog"
+    title="选择批语"
+    width="80%"
+    align-center
+  >
+    <Library 
+      :selectMode="true"
+      :selectedIds="questionContent.comments.map((t: any)=>t.commentId)"
+      @confirm="handleCommentConfirm"
+    ></Library>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import Library from '@/components/Library/index.vue'
+import draggable from 'vuedraggable'
 
 const props = defineProps({
   questionContent: {
@@ -77,6 +98,10 @@ const props = defineProps({
   isCuor: {
     type: Boolean,
     default: false
+  },
+  selectedCommentIds: {
+    type: Array as () => number[],
+    default: () => []
   }
 })
 
@@ -85,13 +110,35 @@ const emit = defineEmits(['clickEvent'])
 // 维护选择顺序映射
 const selectedOrderMap = ref<Record<number, number>>({})
 
-// 计算显示序号 - 简化逻辑
+// 计算显示序号 - 根据在数组中的实际位置
 const getDisplayIndex = (comment: any) => {
-  return selectedOrderMap.value[comment.commentId] || 1
+  const index = props.questionContent.comments.findIndex(c => c.commentId === comment.commentId)
+  return index + 1
 }
 
-const handleTagClick = (comment: string) => {
+// 处理拖拽变化
+const handleDragChange = (evt: any) => {
+  console.log('拖拽变化:', evt)
+  // 重新分配序号映射
+  updateOrderMapping()
+}
+
+// 更新序号映射
+const updateOrderMapping = () => {
+  selectedOrderMap.value = {}
+  props.questionContent.comments.forEach((comment: any, index: number) => {
+    selectedOrderMap.value[comment.commentId] = index + 1
+  })
+}
+
+const handleTagClick = (comment: any) => {
+  if (!props.isCuor) return // 编辑模式下禁用点击
   emit('clickEvent', comment)
+}
+
+// 判断批语是否被选中
+const isCommentSelected = (commentId: number) => {
+  return props.selectedCommentIds.includes(commentId)
 }
 
 // 验证单个权重
@@ -111,16 +158,15 @@ const handleCommentConfirm = (comments: any) => {
   }
   
   props.questionContent.comments = comments
+  updateOrderMapping()
   
-  // 重新分配序号映射
-  selectedOrderMap.value = {}
+  // 初始化权重
   props.questionContent.comments.forEach((comment: any, index: number) => {
     if (typeof comment.weightNum === 'undefined') {
       comment.weightNum = index < 10 ? 0 : undefined;
     }
-    // 按照选择顺序分配序号
-    selectedOrderMap.value[comment.commentId] = index + 1
   });
+  
   showDialog.value = false
 }
 
@@ -128,13 +174,8 @@ const handleCloseComment = (comment: any) => {
   const idx = props.questionContent.comments.indexOf(comment)
   if (idx > -1) {
     props.questionContent.comments.splice(idx, 1)
-    // 删除序号映射
-    delete selectedOrderMap.value[comment.commentId]
-    
-    // 重新调整后续序号
-    props.questionContent.comments.forEach((c: any, index: number) => {
-      selectedOrderMap.value[c.commentId] = index + 1
-    })
+    // 删除后重新更新序号映射
+    updateOrderMapping()
   }
 }
 
@@ -146,8 +187,8 @@ onMounted(() => {
       if (typeof comment.weightNum === 'undefined') {
         comment.weightNum = index < 10 ? 0 : undefined;
       }
-      selectedOrderMap.value[comment.commentId] = index + 1
     });
+    updateOrderMapping()
   });
 })
 </script>
@@ -158,7 +199,6 @@ onMounted(() => {
   flex-direction: column;
   padding: 10px 20px;
   background-color: #fff;
-  width: 50%;
 
   p {
     margin: 0;
@@ -166,24 +206,9 @@ onMounted(() => {
     margin-bottom: 10px;
   }
 
-  input {
-    display: inline-block;
-    width: 100%;
-    height: 45px;
-    padding-left: 10px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-
-    &:focus {
-        outline: none;
-    }
-  }
-
   .create-list {
     display: flex;
-    /* 纵向排列 */
     flex-direction: column;
-    /* 向左对齐 */
     align-items: flex-start;
     width: 100%;
     height: auto;
@@ -211,33 +236,6 @@ onMounted(() => {
         width: 100%
       }
     }
-
-    input {
-      display: inline-block;
-      width: 100%;
-      height: 45px;
-      margin-top: 5px;
-      padding-left: 10px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-
-      &:focus {
-        outline: none;
-      }
-    }
-
-    .icon-btn {
-      width: 15px;
-      height: 15px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-
-    .type-input {
-      width: 20%;
-      margin-top: 5px;
-      margin-left: 20px;
-    }
   }
 
   .create-list ::v-deep(.el-tag) {
@@ -248,9 +246,31 @@ onMounted(() => {
     padding: 0;
 
     .el-tag__content {
-      width: 90%;
+      width: 100%;
     }
   }
+}
+
+/* 拖拽相关样式 */
+.drag-container {
+  width: 100%;
+}
+
+.drag-item {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.draggable-tag {
+  width: 100%; 
+  font-size: 16px; 
+  padding: 8px 12px;
+  transition: transform 0.2s ease;
+}
+
+.draggable-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tag-div {
@@ -258,5 +278,62 @@ onMounted(() => {
   align-items: center; 
   justify-content: space-between; 
   width: 100%;
+  gap: 8px;
+  padding-left: 10px;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #999;
+  font-weight: bold;
+  padding: 0 8px;
+  user-select: none;
+  transform: rotate(90deg);
+}
+
+.drag-handle:hover {
+  color: #409eff;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.comment-content {
+  flex: 1;
+  min-width: 0; /* 允许文字截断 */
+}
+
+.weight-section {
+  display: flex; 
+  align-items: center;
+  flex-shrink: 0; /* 防止权重输入框被压缩 */
+}
+
+/* 拖拽时的样式 */
+.sortable-ghost {
+  opacity: 0.5;
+  background: #f0f0f0;
+}
+
+.sortable-chosen {
+  opacity: 0.8;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+  transform: rotate(2deg);
+}
+
+/* 文字截断 */
+.ov-fl-ell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 增加选择样式 */
+.selected-comment {
+  border: 2px solid rgba(144, 238, 144, 0.7) !important;
 }
 </style>

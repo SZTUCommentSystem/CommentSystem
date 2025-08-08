@@ -277,6 +277,7 @@ onMounted(() => {
         currentImageIndex.value = props.currentImageIndex; // 初始化索引
         init();
     });
+    console.log('1111', currentImageIndex.value, props.imgUrl);
 });
 </script>
 

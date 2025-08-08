@@ -156,7 +156,7 @@ const submitQuestion = async () => {
     topicUrls: urls,
     topicInfo: questionContent.topicInfo,
     // 下面是批语权重
-    isSvg: questionContent.isSvg, //看是否需要平均权重
+    isSvg: questionContent.isSvg ? '是':'否', //看是否需要平均权重
     // commentIds: questionContent.comments.map(comment => comment.commentId).join(','),
     topicComments: questionContent.comments.map( //每条批语的权重和id
       comment => ({
@@ -195,6 +195,7 @@ const getQuestionContent = async () => {
       ? data.topicUrls.split(',').map((url: string) => ({ url }))
       : []
     getLabelByIds(data.labelIds)
+    questionContent.isSvg = data.isSvg === '是'
   } else {
     ElMessage.error('获取题目信息失败，请稍后再试')
   }

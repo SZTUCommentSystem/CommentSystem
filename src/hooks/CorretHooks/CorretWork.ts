@@ -10,7 +10,6 @@ interface StudentTask {
   answerInfo: string
   answerUrls: string
   infoCorrect: string
-  infoNum: number
 }
 
 export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
@@ -33,9 +32,6 @@ export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
         cVisible: false, // 显示切图弹框
         ctitle: "", // 弹框标题
         currentImageIndex: 0,
-        get previewsImgUrl() {
-            return previewsImgUrl.value;
-        },
         // 关闭弹框所触发的事件
         closeCropperView: () => {
             cropperObj.cVisible = false
@@ -68,6 +64,7 @@ export default function CorrectWork(submitStudentTask: Ref<StudentTask>) {
         openCropperView,
         deleteImgShow,
         deleteImg,
+        previewsImgUrl,
         newImgs,
         cropperObj,
         uploadAndShowImg

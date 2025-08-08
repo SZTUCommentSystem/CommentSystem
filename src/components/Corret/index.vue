@@ -2,121 +2,144 @@
     <div style="position: relative;">
         <!-- 左边学生列表组件 -->
         <SideBorder 
-            :students="students"
-            @updateStudent="updateStudent">
+          :students="students"
+          @updateStudent="updateStudent">
         </SideBorder>
         <el-page-header @back="router.go(-1)" content="批改作业" title="返回">
         </el-page-header>
 
         <div class="base">
-            <div class="left">
-                <div>
-                    <h4>您当前批改的学生信息</h4>
-                    <p>学生姓名：{{ nowStudentOtherInfo?.studentName }}</p>
-                    <p>学生班级：{{ studentList?.className }}</p>
-                    <p>当前批改的题目为：第 {{ nowQuestionIdx+1 }} 题，共 {{ taskQuestList.length }} 题</p>
-                </div>
-                <div>
-                    <h4>批改作业</h4>
-                    <div class="correct-box">
-                      <ul>
-                        <li v-for="(img, index) in newImgs" :key="index" style="position: relative;">
-                          <el-image
-                            :src="img"
-                            fit="cover"
-                            style="width: 180px; height: 120px; border-radius: 8px;"
-                            @mouseenter="hoverImgIndex = index"
-                            @mouseleave="hoverImgIndex = null"
-                          />
-                          <!-- 悬浮显示批改按钮 -->
-                          <el-button
-                            v-if="hoverImgIndex === index"
-                            type="primary"
-                            size="small"
-                            style="position: absolute; top: 10px; right: 10px; z-index: 10;"
-                            @click="openCropperView(index)"
-                          >批改</el-button>
-                          <!-- 删除按钮等原有功能 -->
-                          <div class="img-del" v-show="deleteImgShow[index]"
-                            @mouseleave="deleteImgShow[index] = false">
-                            <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
-                          </div>
-                        </li>
-                      </ul>
+          <div class="left">
+            <div>
+              <h4>您当前批改的学生信息</h4>
+              <p>学生姓名：{{ nowStudentOtherInfo?.studentName }}</p>
+              <p>学生班级：{{ studentList?.className }}</p>
+              <p>当前批改的题目为：第 {{ nowQuestionIdx+1 }} 题，共 {{ taskQuestList.length }} 题</p>
+            </div>
+            <div>
+              <h4>批改作业</h4>
+              <el-button @click="showDialog = true">查看原题</el-button>
+              <p>学生作业：</p>
+              <div class="correct-box">
+                <ul>
+                  <li v-for="(img, index) in previewsImgUrl" :key="index" class="img-container">
+                    <div 
+                      class="img-wrapper"
+                      @mouseenter="hoverImgIndex = index"
+                      @mouseleave="hoverImgIndex = null"
+                    >
+                      <el-image
+                        :src="img"
+                        fit="cover"
+                        style="width: 100%; height: 97%; border-radius: 8px;"
+                      />
+                      <!-- 悬浮遮罩层 -->
+                      <div class="hover-overlay" v-if="hoverImgIndex === index">
+                        <el-button
+                          type="primary"
+                          size="small"
+                          @click="openCropperView(index)"
+                        >批改</el-button>
+                      </div>
                     </div>
-                    <p>批改：</p>
-                    <div class="correct-box">
-                        <!-- 图片处理框 -->
-                        <SignImage 
-                          v-if="cropperObj.cVisible" 
-                          :dialogVisible.sync="cropperObj.cVisible"
-                          :title="cropperObj.ctitle" 
-                          :imgUrl="cropperObj.previewsImgUrl"
-                          :currentImageIndex="cropperObj.currentImageIndex"
-                          @uploadAndShowImg="uploadAndShowImg"
-                          @closeCropperDialog="cropperObj.closeCropperView"
-                        />
-                        <!-- 点击弹出图片处理框 -->
-                        <!-- <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button> -->
-                        <el-button @click="showDialog = true">查看原题</el-button>
+                  </li>
+                </ul>
+              </div>
+              <p>批改：</p>
+              <div class="correct-box">
+                <!-- 图片处理框 -->
+                <SignImage 
+                  v-if="cropperObj.cVisible" 
+                  :dialogVisible.sync="cropperObj.cVisible"
+                  :title="cropperObj.ctitle" 
+                  :imgUrl="previewsImgUrl"
+                  :currentImageIndex="cropperObj.currentImageIndex"
+                  @uploadAndShowImg="uploadAndShowImg"
+                  @closeCropperDialog="cropperObj.closeCropperView"
+                />
+                <!-- 点击弹出图片处理框 -->
+                <!-- <el-button type="primary" plain @click="cropperObj.openCropperView">批改作业</el-button> -->
 
-                        <!-- 处理完图片回显 -->
-                        <ul>
-                            <li v-for="(img, index) in newImgs" :key="index">
-                                <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
-                                <div class="img-del" v-show="deleteImgShow[index]"
-                                    @mouseleave="deleteImgShow[index] = false">
-                                    <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
-                                </div>
-                            </li>
-                        </ul>
+                <!-- 处理完图片回显 -->
+                <ul>
+                  <li v-for="(img, index) in newImgs" :key="index">
+                    <el-image :src="img" fit="cover" @mouseenter="deleteImgShow[index] = true" />
+                    <div class="img-del" v-show="deleteImgShow[index]"
+                      @mouseleave="deleteImgShow[index] = false">
+                      <img src="@/assets/img/删除.png" alt="" @click="deleteImg(index)">
                     </div>
-                </div>
-                <div>
-                    <p>批语：</p>
-                    <el-input v-model="submitStudentTask.infoCorrect" :autosize="{ minRows: 8 }" type="textarea"
-                        style="width: 100%; font-size: 18px;" />
-                    <p>得分：</p>
-                    <input v-model="submitStudentTask.infoNum" type="number" placeholder="请输入分数" />
-                </div>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div class="right">
-                <!-- <div class="right-header">
-                    <p>本题的批语库为：</p>
-                    <div class="left">
-                        <el-button class="new-create" @click="createCategory">新建分类</el-button>
-                        <el-button type="primary" plain>添加批语</el-button>
+            <div>
+              <!-- <p>批语：</p>
+              <el-input v-model="submitStudentTask.infoCorrect" :autosize="{ minRows: 8 }" type="textarea"
+                  style="width: 100%; font-size: 18px;" />
+              <p>得分：</p>
+              <input v-model="submitStudentTask.infoNum" type="number" placeholder="请输入分数" /> -->
+              <!-- 选中的批语列表 -->
+              <div class="selected-comments">
+                <h4>已选批语：</h4>
+                <div v-if="selectedComments.length === 0" class="no-comments">
+                  暂未选择批语
+                </div>
+                <div v-else class="comment-list">
+                  <div 
+                    v-for="(comment, index) in selectedComments" 
+                    :key="comment.commentId"
+                    class="comment-item"
+                  >
+                    <!-- 上部分：扣分标签 -->
+                    <el-tag 
+                      type="danger" 
+                      size="small"
+                      class="deduct-tag"
+                    >
+                      扣除：{{ getDeductScore(comment) }}分
+                    </el-tag>
+                    <!-- 下部分：批语内容 -->
+                    <div class="comment-content">
+                      {{ comment.commentName }}
                     </div>
+                  </div>
                 </div>
-                <div class="right-body">
-                    <CategoryList :categories="category" @onclick="onclick" />
-                </div> -->
-                <Left 
-                    v-model:questionContent="questionContent" 
-                    @clickEvent="onclick"
-                    :isCuor="true"
-                ></Left>
+                
+                <!-- 得分显示 -->
+                <div class="score-section">
+                  <span class="score-display">最终得分：{{ calculatedScore }}分</span>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="right">
+            <Left 
+              v-model:questionContent="questionContent" 
+              @clickEvent="handleCommentClick"
+              :isCuor="true"
+              :selectedCommentIds="selectedComments.map(c => c.commentId)"
+            ></Left>
+          </div>
         </div>
         <div class="left-button" @click="LastOne">&lt;</div>
         <div class="right-button" @click="NextOne">&gt;</div>
         <div class="bottom-button">
-            <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
-            <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
-            <el-button type="success" style="width: 100px;"
-                @click="submitTask">保存并提交</el-button>
+          <el-button type="primary" plain style="width: 100px;" @click="LastProblem">上一题</el-button>
+          <el-button type="primary" plain style="width: 100px;" @click="NextProblem">下一题</el-button>
+          <el-button type="success" style="width: 100px;"
+            @click="submitTask">保存并提交</el-button>
         </div>
         <el-dialog
-            v-model="showDialog"
-            title="查看原题"
-            width="50%"
-            align-center
+          v-model="showDialog"
+          title="查看原题"
+          width="50%"
+          align-center
         >
-            <Right
-              :isDialog="true"
-              :nowTopicTypeId="nowTopicTypeId"
-              v-model:questionContent="questionContent"
-            ></Right>
+          <Right
+            :isDialog="true"
+            :nowTopicTypeId="nowTopicTypeId"
+            v-model:questionContent="questionContent"
+          ></Right>
       </el-dialog>
     </div>
 </template>
@@ -174,7 +197,6 @@ interface StudentTask {
   answerInfo: string
   answerUrls: string
   infoCorrect: string
-  infoNum: number
 }
 interface Label {
   chapterId: number
@@ -186,12 +208,54 @@ interface Comment {
   commentId: number
   commentName: string
   commentTypeId: number
+  weightNum: string
 }
 
 // 路由参数
 const homeworkId = ref(Number(route.query.homeworkId))
 const classId = ref(Number(route.query.classId))
 const studentId = ref(Number(route.query.studentId))
+
+// 选中的批语列表
+const selectedComments = ref<Comment[]>([]);
+
+// 计算扣除分数
+const getDeductScore = (comment: Comment) => {
+  const weight = parseFloat(comment.weightNum || '0');
+  return Math.round(weight * 100);
+};
+
+// 计算总得分
+const calculatedScore = computed(() => {
+  const totalDeduct = selectedComments.value.reduce((sum, comment) => {
+    return sum + getDeductScore(comment);
+  }, 0);
+  return Math.max(0, 100 - totalDeduct); // 最低不小于0
+});
+
+
+// 处理批语点击事件
+const handleCommentClick = (comment: Comment) => {
+  const existingIndex = selectedComments.value.findIndex(c => c.commentId === comment.commentId);
+  
+  if (existingIndex > -1) {
+    // 已选中，取消选择
+    selectedComments.value.splice(existingIndex, 1);
+  } else {
+    // 未选中，添加到选中列表
+    selectedComments.value.push(comment);
+  }
+  
+  // 更新批语文本
+  updateCommentText();
+};
+
+// 更新批语文本框内容
+const updateCommentText = () => {
+  const commentTexts = selectedComments.value.map(c => c.commentName);
+  submitStudentTask.value.infoCorrect = commentTexts.join('；');
+  console.log(submitStudentTask.value.infoCorrect)
+};
 
 // 学生列表和当前学生索引
 const studentList = ref<ClassI>({
@@ -303,7 +367,6 @@ const submitStudentTask = ref<StudentTask>({
   answerInfo: '',
   answerUrls: '',
   infoCorrect: '',
-  infoNum: null,
 })
 const getSubmitStudentTask = async () => {
   let data = {
@@ -320,6 +383,9 @@ const getSubmitStudentTask = async () => {
     const ret = await submitStudentTaskAPI(da);
     if (ret.data.code == 200 && ret.data.rows.length > 0) {
       submitStudentTask.value = ret.data.rows[0];
+      console.log('111', submitStudentTask.value);
+      // 清空选中的批语
+      selectedComments.value = [];
     }
   }
 }
@@ -332,6 +398,7 @@ const questionContent = reactive<{
   labels: Label[]
   topicUrls: any[]
   topicInfo: string
+  isSvg: boolean
   comments: Comment[]
 }>({
   topicId: '',
@@ -340,6 +407,7 @@ const questionContent = reactive<{
   labels: [],
   topicUrls: [],
   topicInfo: '',
+  isSvg: false,
   comments: [],
 })
 
@@ -397,7 +465,7 @@ const getLabelByIds = async (labelIds: string) => {
   }
 }
 
-// 获取题目评论
+// 获取题目批语
 const getQuestionComments = async () => {
   const res = await questionCommentListAPI(Number(taskQuestList.value[nowQuestionIdx.value]))
   if (res.data.code === 200) {
@@ -409,6 +477,7 @@ const getQuestionComments = async () => {
           commentId: ret.commentId,
           commentName: ret.commentName,
           commentTypeId: ret.commentTypeId,
+          weightNum: comment.weightNum || '0', // 确保 weightNum 有默认值
         }
       })
     )
@@ -418,15 +487,11 @@ const getQuestionComments = async () => {
   }
 }
 
-// 点击批语添加
-const onclick = (comment: string) => {
-  submitStudentTask.value.infoCorrect += comment;
-}
-
 // 切换学生
 const LastOne = () => {
   if (nowStudentIdx.value > 0) {
     nowStudentIdx.value--;
+    selectedComments.value = []; // 清空选中的批语
   } else {
     ElMessage.error('已经是第一个学生了');
   }
@@ -434,18 +499,21 @@ const LastOne = () => {
 const NextOne = () => {
   if (nowStudentIdx.value < studentList.value.student.length - 1) {
     nowStudentIdx.value++;
+    selectedComments.value = []; // 清空选中的批语
   } else {
     ElMessage.error('已经是最后一个学生了');
   }
 }
 const updateStudent = (id: number) => {
-    nowStudentIdx.value = id;
+  nowStudentIdx.value = id;
+  selectedComments.value = []; // 清空选中的批语
 }
 
 // 切换题目
 const LastProblem = () => {
   if (nowQuestionIdx.value > 0) {
     nowQuestionIdx.value--;
+    selectedComments.value = []; // 清空选中的批语
     getQuestionContent();
     getQuestionComments();
   } else {
@@ -455,6 +523,7 @@ const LastProblem = () => {
 const NextProblem = () => {
   if (nowQuestionIdx.value < taskQuestList.value.length - 1) {
     nowQuestionIdx.value++;
+    selectedComments.value = []; // 清空选中的批语
     getQuestionContent();
     getQuestionComments();
   } else {
@@ -468,6 +537,7 @@ const {
   openCropperView,
   deleteImgShow,
   deleteImg,
+  previewsImgUrl,
   newImgs,
   cropperObj,
   uploadAndShowImg
@@ -483,7 +553,7 @@ const submitTask = async () => {
       infoState: '已批改',
       topicId: questionContent.topicId,
       infoCorrect: submitStudentTask.value.infoCorrect,
-      infoNum: submitStudentTask.value.infoNum
+      infoNum: calculatedScore.value,
     }
     const res = await submitCorretTaskAPI(data);
     if (res.data.code == 200) {
@@ -568,11 +638,67 @@ onMounted(async () => {
     margin-bottom: 10px;
 
     .left {
-        width: 49%;
-        height: auto;
-        background-color: #fff;
+      width: 49%;
+      height: auto;
+      background-color: #fff;
+      margin-bottom: 5px;
+      padding: 10px 20px;
+
+      .selected-comments {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #e4e7ed;
+        border-radius: 8px;
+        background-color: #fafafa;
+      }
+
+      .selected-comments h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 16px;
+      }
+
+      .no-comments {
+        color: #999;
+        font-style: italic;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .comment-list {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .comment-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background-color: white;
+      }
+
+      .deduct-tag {
         margin-bottom: 5px;
-        padding: 10px 20px;
+      }
+
+      .comment-content {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.4;
+      }
+
+      .score-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e4e7ed;
+      }
+
+      .score-display {
+        font-weight: bold;
+        color: #409eff;
+        font-size: 16px;
+      }
     }
 
     .right {
@@ -608,45 +734,66 @@ onMounted(async () => {
 
 .correct-box {
     ul {
-        display: flex;
-        flex-wrap: wrap;
-        margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 10px;
 
         li {
+          position: relative;
+          width: 380px;
+          margin-right: 10px;
+          margin-bottom: 10px;
+
+          .img-wrapper {
             position: relative;
-            width: 380px;
-            margin-right: 10px;
-            margin-bottom: 10px;
+            display: inline-block;
+            width: 100%;
+            height: 97%;
+          }
 
-            image {
-                width: 100%;
-                height: 100%;
+          .hover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            z-index: 10;
+          }
+
+          image {
+            width: 100%;
+            height: 100%;
+          }
+
+          .img-del {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 97%;
+            background-color: #000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            cursor: pointer;
+
+            img {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 40px;
+              height: 40px;
             }
 
-            .img-del {
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 100%;
-                height: 97%;
-                background-color: #000;
-                opacity: 0;
-                transition: opacity 0.5s;
-                cursor: pointer;
-
-                img {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    width: 40px;
-                    height: 40px;
-                }
-
-                &:hover {
-                    opacity: 0.5;
-                }
+            &:hover {
+                opacity: 0.5;
             }
+          }
         }
     }
 }
@@ -663,36 +810,36 @@ onMounted(async () => {
     }
 
     ul {
-        padding: 0;
+      padding: 0;
 
-        li {
-            margin: 5px;
+      li {
+        margin: 5px;
 
-            .comments-main-body {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 5px 10px;
-                border: 1px solid #ccc;
-            }
-
-            .comments-daughter {
-                padding: 5px 10px;
-                border: 1px solid #ccc;
-                padding-right: 0;
-            }
-
-            .comments-left {
-                display: flex;
-                align-items: center;
-            }
-
-            img {
-                width: 15px;
-                margin-left: 10px;
-                cursor: pointer;
-            }
+        .comments-main-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
         }
+
+        .comments-daughter {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            padding-right: 0;
+        }
+
+        .comments-left {
+            display: flex;
+            align-items: center;
+        }
+
+        img {
+            width: 15px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+      }
     }
 }
 
